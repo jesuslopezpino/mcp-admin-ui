@@ -1,0 +1,112 @@
+<div class="assistant-container">
+  <div class="header">
+    <h2>🤖 MCP Assistant</h2>
+    <p>Planifica y ejecuta tareas usando herramientas MCP</p>
+  </div>
+
+  <div class="form-section">
+    <div class="form-group">
+      <label for="message">Mensaje *</label>
+      <textarea 
+        id="message"
+        [(ngModel)]="message" 
+        placeholder="Describe la tarea que quieres realizar..."
+        rows="4"
+        [disabled]="isLoading">
+      </textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="assetId">Asset ID (opcional)</label>
+      <input 
+        id="assetId"
+        type="text" 
+        [(ngModel)]="assetId" 
+        placeholder="ID del asset relacionado"
+        [disabled]="isLoading">
+    </div>
+
+    <div class="actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="onPlan()" 
+        [disabled]="isLoading || !message.trim()">
+        <span *ngIf="isLoading">⏳</span>
+        <span *ngIf="!isLoading">📋</span>
+        {{ isLoading ? 'Planificando...' : 'Planificar' }}
+      </button>
+      
+      <button 
+        class="btn btn-secondary" 
+        (click)="onReset()" 
+        [disabled]="isLoading">
+        🔄 Limpiar
+      </button>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="error">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      {{ error }}
+    </div>
+  </div>
+
+  <div class="plan-section" *ngIf="plan">
+    <h3>📋 Plan Generado</h3>
+    <div class="plan-card">
+      <div class="plan-header">
+        <span class="tool-name">{{ plan.toolName }}</span>
+        <span class="risk-score" [class]="'risk-' + (plan.riskScore > 7 ? 'high' : plan.riskScore > 4 ? 'medium' : 'low')">
+          Riesgo: {{ plan.riskScore }}/10
+        </span>
+      </div>
+      
+      <div class="plan-details">
+        <p><strong>Razonamiento:</strong> {{ plan.rationale }}</p>
+        <p><strong>Requiere confirmación:</strong> 
+          <span [class]="plan.requiresConfirmation ? 'requires-confirmation' : 'no-confirmation'">
+            {{ plan.requiresConfirmation ? 'Sí' : 'No' }}
+          </span>
+        </p>
+        <p><strong>Asset ID:</strong> {{ plan.assetId || 'N/A' }}</p>
+      </div>
+
+      <div class="plan-actions" *ngIf="plan.requiresConfirmation">
+        <button 
+          class="btn btn-success" 
+          (click)="onExecute()" 
+          [disabled]="isLoading">
+          <span *ngIf="isLoading">⏳</span>
+          <span *ngIf="!isLoading">✅</span>
+          {{ isLoading ? 'Ejecutando...' : 'Confirmar y ejecutar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="execution-section" *ngIf="executionResult">
+    <h3>⚡ Resultado de Ejecución</h3>
+    <div class="execution-card">
+      <div class="execution-header">
+        <span class="execution-id">ID: {{ executionResult.executionId }}</span>
+        <span class="execution-status" [class]="'status-' + executionResult.status.toLowerCase()">
+          {{ executionResult.status }}
+        </span>
+        <span class="exit-code">Exit Code: {{ executionResult.exitCode }}</span>
+      </div>
+      
+      <div class="execution-details">
+        <div class="output-section" *ngIf="executionResult.stdout">
+          <h4>📤 Salida (STDOUT)</h4>
+          <pre class="output-content">{{ getTruncatedStdout(executionResult.stdout) }}</pre>
+        </div>
+        
+        <div class="error-section" *ngIf="executionResult.stderr">
+          <h4>❌ Errores (STDERR)</h4>
+          <pre class="error-content">{{ executionResult.stderr }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

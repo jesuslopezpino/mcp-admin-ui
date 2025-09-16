@@ -1,0 +1,94 @@
+<div class="catalog-container">
+  <div class="header">
+    <h2>🛠️ Catálogo de Herramientas</h2>
+    <p>Explora y ejecuta herramientas MCP disponibles</p>
+  </div>
+
+  <div class="actions-bar">
+    <button 
+      class="btn btn-primary" 
+      (click)="loadTools()" 
+      [disabled]="isLoading">
+      <span *ngIf="isLoading">⏳</span>
+      <span *ngIf="!isLoading">🔄</span>
+      {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <div class="error-message" *ngIf="error">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      {{ error }}
+    </div>
+  </div>
+
+  <div class="loading-message" *ngIf="isLoading && tools.length === 0">
+    <div class="loading-content">
+      <span class="loading-icon">⏳</span>
+      Cargando herramientas...
+    </div>
+  </div>
+
+  <div class="tools-grid" *ngIf="tools.length > 0">
+    <div class="tool-card" *ngFor="let tool of tools">
+      <div class="tool-header">
+        <h3 class="tool-name">{{ tool.name }}</h3>
+        <span class="confirmation-badge" [class]="tool.requiresConfirmation ? 'requires-confirmation' : 'no-confirmation'">
+          {{ tool.requiresConfirmation ? 'Requiere confirmación' : 'Automático' }}
+        </span>
+      </div>
+      
+      <div class="tool-description">
+        <p>{{ tool.description }}</p>
+      </div>
+
+      <div class="tool-actions">
+        <button 
+          class="btn btn-success" 
+          (click)="executeTool(tool)" 
+          [disabled]="isLoading || executingTool === tool.name">
+          <span *ngIf="executingTool === tool.name">⏳</span>
+          <span *ngIf="executingTool !== tool.name">▶️</span>
+          {{ executingTool === tool.name ? 'Ejecutando...' : 'Ejecutar' }}
+        </button>
+      </div>
+
+      <div class="execution-result" *ngIf="hasResult(tool.name)">
+        <div class="result-header">
+          <h4>📊 Resultado</h4>
+          <span class="result-status" [class]="'status-' + getResult(tool.name).status.toLowerCase()">
+            {{ getResult(tool.name).status }}
+          </span>
+        </div>
+        
+        <div class="result-details">
+          <div class="result-info">
+            <span class="execution-id">ID: {{ getResult(tool.name).executionId }}</span>
+            <span class="exit-code">Exit Code: {{ getResult(tool.name).exitCode }}</span>
+          </div>
+          
+          <div class="result-output" *ngIf="getResult(tool.name).stdout">
+            <h5>📤 Salida</h5>
+            <pre class="output-content">{{ getTruncatedStdout(getResult(tool.name).stdout) }}</pre>
+          </div>
+          
+          <div class="result-error" *ngIf="getResult(tool.name).stderr">
+            <h5>❌ Errores</h5>
+            <pre class="error-content">{{ getResult(tool.name).stderr }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && tools.length === 0 && !error">
+    <div class="empty-content">
+      <span class="empty-icon">🔧</span>
+      <h3>No hay herramientas disponibles</h3>
+      <p>No se encontraron herramientas en el catálogo. Verifica que el backend esté ejecutándose correctamente.</p>
+      <button class="btn btn-primary" (click)="loadTools()">
+        🔄 Intentar de nuevo
+      </button>
+    </div>
+  </div>
+</div>

@@ -26,11 +26,35 @@
         [disabled]="isLoading">
     </div>
 
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="useManualSelection"
+          (change)="toggleManualSelection()"
+          [disabled]="isLoading">
+        <span>Selección manual de herramienta</span>
+      </label>
+    </div>
+
+    <div class="form-group" *ngIf="useManualSelection">
+      <label for="selectedTool">Herramienta *</label>
+      <select 
+        id="selectedTool"
+        [(ngModel)]="selectedTool"
+        [disabled]="isLoading">
+        <option value="">Selecciona una herramienta...</option>
+        <option *ngFor="let tool of availableTools" [value]="tool.name">
+          {{ tool.name }} - {{ tool.description }}
+        </option>
+      </select>
+    </div>
+
     <div class="actions">
       <button 
         class="btn btn-primary" 
         (click)="onPlan()" 
-        [disabled]="isLoading || !message.trim()">
+        [disabled]="isLoading || !message.trim() || (useManualSelection && !selectedTool)">
         <span *ngIf="isLoading">⏳</span>
         <span *ngIf="!isLoading">📋</span>
         {{ isLoading ? 'Planificando...' : 'Planificar' }}
@@ -90,21 +114,35 @@
     <div class="execution-card">
       <div class="execution-header">
         <span class="execution-id">ID: {{ executionResult.executionId }}</span>
-        <span class="execution-status" [class]="'status-' + executionResult.status.toLowerCase()">
-          {{ executionResult.status }}
+        <span class="execution-status" [class]="'status-' + executionResult.status.toLowerCase()" [style.color]="getStatusColor(executionResult.status)">
+          {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
         </span>
-        <span class="exit-code">Exit Code: {{ executionResult.exitCode }}</span>
+        <span class="exit-code" [class]="executionResult.exitCode === 0 ? 'success' : 'failure'">
+          Exit Code: {{ executionResult.exitCode }}
+        </span>
       </div>
       
       <div class="execution-details">
         <div class="output-section" *ngIf="executionResult.stdout">
           <h4>📤 Salida (STDOUT)</h4>
           <pre class="output-content">{{ getTruncatedStdout(executionResult.stdout) }}</pre>
+          <button class="btn btn-small" *ngIf="executionResult.stdout.length > 200" (click)="showFullOutput = !showFullOutput">
+            {{ showFullOutput ? 'Mostrar menos' : 'Mostrar completo' }}
+          </button>
+          <pre class="output-content" *ngIf="showFullOutput">{{ executionResult.stdout }}</pre>
         </div>
         
         <div class="error-section" *ngIf="executionResult.stderr">
           <h4>❌ Errores (STDERR)</h4>
           <pre class="error-content">{{ executionResult.stderr }}</pre>
+        </div>
+        
+        <div class="info-section" *ngIf="!executionResult.stdout && !executionResult.stderr">
+          <p class="info-message">
+            <span [class]="executionResult.status === 'SUCCESS' ? 'success' : 'warning'">
+              {{ executionResult.status === 'SUCCESS' ? '✅ Ejecución completada sin salida' : '⚠️ Ejecución falló sin mensajes de error' }}
+            </span>
+          </p>
         </div>
       </div>
     </div>

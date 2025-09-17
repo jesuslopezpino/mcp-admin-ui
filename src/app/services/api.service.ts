@@ -63,7 +63,7 @@ export class ApiService {
     const request: PlanRequest = {
       userId: 'admin', // Default user for admin UI
       message: message,
-      assetId: assetId || ''
+      assetId: assetId || 'admin-ui-asset'
     };
 
     return this.http.post<PlanResponse>(`${this.baseUrl}/ai/plan`, request, {

@@ -3,6 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Plan, ExecuteResult, Tool } from '../services/api.service';
 
+export interface ParameterDefinition {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'checkbox';
+  required: boolean;
+  options?: string[];
+  defaultValue?: any;
+  placeholder?: string;
+}
+
 @Component({
   selector: 'app-assistant',
   standalone: true,
@@ -21,6 +31,8 @@ export class AssistantComponent implements OnInit {
   availableTools: Tool[] = [];
   selectedTool: string = '';
   useManualSelection: boolean = false;
+  toolParameters: { [key: string]: any } = {};
+  parameterDefinitions: ParameterDefinition[] = [];
 
   constructor(private apiService: ApiService) {}
 
@@ -78,7 +90,7 @@ export class AssistantComponent implements OnInit {
       this.plan = {
         id: 'manual-' + Date.now(),
         toolName: this.selectedTool,
-        arguments: {},
+        arguments: this.toolParameters,
         riskScore: 5, // Default risk score
         rationale: `Herramienta seleccionada manualmente: ${selectedToolObj.description}`,
         requiresConfirmation: selectedToolObj.requiresConfirmation,
@@ -88,6 +100,139 @@ export class AssistantComponent implements OnInit {
       this.isLoading = false;
       console.log('Plan manual creado:', this.plan);
     }
+  }
+
+  onToolSelected() {
+    this.parameterDefinitions = this.getToolParameters(this.selectedTool);
+    this.toolParameters = {};
+    
+    // Initialize parameters with default values
+    this.parameterDefinitions.forEach(param => {
+      if (param.defaultValue !== undefined) {
+        this.toolParameters[param.name] = param.defaultValue;
+      }
+    });
+  }
+
+  getToolParameters(toolName: string): ParameterDefinition[] {
+    const parameterMap: { [key: string]: ParameterDefinition[] } = {
+      'apps.install': [
+        { 
+          name: 'name', 
+          label: 'Nombre de la aplicación', 
+          type: 'select', 
+          required: true,
+          options: [
+            'Microsoft.VisualStudioCode',
+            'Google.Chrome',
+            'Mozilla.Firefox',
+            'Microsoft.Edge',
+            'Notepad++.Notepad++',
+            '7zip.7zip',
+            'Git.Git',
+            'Python.Python.3.12',
+            'Node.js.NodeJS',
+            'Microsoft.WindowsTerminal',
+            'Microsoft.PowerToys',
+            'OBSProject.OBSStudio',
+            'Discord.Discord',
+            'Spotify.Spotify',
+            'Adobe.Acrobat.Reader.DC'
+          ],
+          placeholder: 'Selecciona una aplicación...'
+        },
+        { 
+          name: 'silent', 
+          label: 'Instalación silenciosa', 
+          type: 'checkbox', 
+          required: false,
+          defaultValue: true
+        }
+      ],
+      'system.restart_service': [
+        { 
+          name: 'name', 
+          label: 'Nombre del servicio', 
+          type: 'select', 
+          required: true,
+          options: [
+            'Spooler',
+            'BITS',
+            'Windows Update',
+            'Windows Search',
+            'Print Spooler',
+            'Windows Audio',
+            'Windows Audio Endpoint Builder',
+            'Themes',
+            'Desktop Window Manager Session Manager',
+            'User Profile Service'
+          ],
+          placeholder: 'Selecciona un servicio...'
+        },
+        { 
+          name: 'timeoutSec', 
+          label: 'Timeout (segundos)', 
+          type: 'number', 
+          required: false,
+          defaultValue: 30
+        }
+      ],
+      'security.quick_scan_defender': [
+        { 
+          name: 'scanType', 
+          label: 'Tipo de escaneo', 
+          type: 'select', 
+          required: false,
+          options: ['QuickScan', 'FullScan'],
+          defaultValue: 'QuickScan'
+        }
+      ],
+      'files.backup_user_docs': [
+        { 
+          name: 'user', 
+          label: 'Usuario', 
+          type: 'text', 
+          required: true,
+          placeholder: 'Nombre de usuario'
+        },
+        { 
+          name: 'destZip', 
+          label: 'Archivo ZIP destino', 
+          type: 'text', 
+          required: true,
+          defaultValue: 'C:\\Temp\\user-docs.zip'
+        },
+        { 
+          name: 'includeDesktop', 
+          label: 'Incluir Escritorio', 
+          type: 'checkbox', 
+          required: false,
+          defaultValue: true
+        },
+        { 
+          name: 'includeDocuments', 
+          label: 'Incluir Documentos', 
+          type: 'checkbox', 
+          required: false,
+          defaultValue: true
+        },
+        { 
+          name: 'includeDownloads', 
+          label: 'Incluir Descargas', 
+          type: 'checkbox', 
+          required: false,
+          defaultValue: false
+        }
+      ]
+    };
+    
+    return parameterMap[toolName] || [];
+  }
+
+  isParameterValid(): boolean {
+    return this.parameterDefinitions.every(param => 
+      !param.required || (this.toolParameters[param.name] && this.toolParameters[param.name] !== '')
+    );
   }
 
   onExecute() {
@@ -127,12 +272,16 @@ export class AssistantComponent implements OnInit {
     this.selectedTool = '';
     this.useManualSelection = false;
     this.showFullOutput = false;
+    this.toolParameters = {};
+    this.parameterDefinitions = [];
   }
 
   toggleManualSelection() {
     this.useManualSelection = !this.useManualSelection;
     if (!this.useManualSelection) {
       this.selectedTool = '';
+      this.toolParameters = {};
+      this.parameterDefinitions = [];
     }
   }
 

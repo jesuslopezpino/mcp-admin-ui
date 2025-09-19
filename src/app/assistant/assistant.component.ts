@@ -33,6 +33,7 @@ export class AssistantComponent implements OnInit {
   useManualSelection: boolean = false;
   toolParameters: { [key: string]: any } = {};
   parameterDefinitions: ParameterDefinition[] = [];
+  showConfirmation: boolean = false;
 
   constructor(private apiService: ApiService) {}
 
@@ -238,6 +239,27 @@ export class AssistantComponent implements OnInit {
   onExecute() {
     if (!this.plan) return;
 
+    // Check if the tool requires confirmation
+    const tool = this.availableTools.find(t => t.name === this.plan?.toolName);
+    if (tool?.requiresConfirmation) {
+      this.showConfirmation = true;
+    } else {
+      this.executePlan();
+    }
+  }
+
+  onConfirmExecution() {
+    this.showConfirmation = false;
+    this.executePlan();
+  }
+
+  onCancelExecution() {
+    this.showConfirmation = false;
+  }
+
+  private executePlan() {
+    if (!this.plan) return;
+
     this.isLoading = true;
     this.error = '';
     this.executionResult = null;
@@ -247,7 +269,7 @@ export class AssistantComponent implements OnInit {
         this.executionResult = result;
         this.isLoading = false;
         console.log('Ejecución completada:', result);
-        
+
         // Show success/warning message based on result
         if (result.status === 'SUCCESS') {
           console.log('✅ Ejecución exitosa');

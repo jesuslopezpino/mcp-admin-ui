@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Tool, Plan, ExecuteResult } from '../services/api.service';
+import { ApiService, Tool, ToolDetails } from '../services/api.service';
+import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RunToolModalComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss'
 })
@@ -14,8 +15,9 @@ export class CatalogComponent implements OnInit {
   tools: Tool[] = [];
   isLoading: boolean = false;
   error: string = '';
-  executingTool: string | null = null;
-  executionResults: { [toolName: string]: ExecuteResult } = {};
+  selectedTool: ToolDetails | null = null;
+  showModal = false;
+  assetId: string = '';
 
   constructor(private apiService: ApiService) {}
 
@@ -39,47 +41,30 @@ export class CatalogComponent implements OnInit {
     });
   }
 
-  executeTool(tool: Tool) {
-    this.executingTool = tool.name;
+  openToolModal(tool: Tool) {
+    this.isLoading = true;
     this.error = '';
-    this.executionResults[tool.name] = null as any;
 
-    // Crear un mensaje genérico para ejecutar la herramienta
-    const message = `Ejecutar herramienta ${tool.name}`;
-
-    this.apiService.plan(message).subscribe({
-      next: (response) => {
-        const plan = response.plan;
-        
-        // Ejecutar directamente sin confirmación
-        this.apiService.execute(plan.id, true).subscribe({
-          next: (result) => {
-            this.executionResults[tool.name] = result;
-            this.executingTool = null;
-          },
-          error: (err) => {
-            this.error = `Error al ejecutar ${tool.name}: ` + (err.error?.message || err.message || 'Error desconocido');
-            this.executingTool = null;
-          }
-        });
+    this.apiService.getTool(tool.name).subscribe({
+      next: (toolDetails) => {
+        this.selectedTool = toolDetails;
+        this.showModal = true;
+        this.isLoading = false;
       },
       error: (err) => {
-        this.error = `Error al planificar ${tool.name}: ` + (err.error?.message || err.message || 'Error desconocido');
-        this.executingTool = null;
+        this.error = `Error al cargar detalles de ${tool.name}: ` + (err.error?.message || err.message || 'Error desconocido');
+        this.isLoading = false;
       }
     });
   }
 
-  getTruncatedStdout(stdout: string): string {
-    if (stdout.length <= 150) return stdout;
-    return stdout.substring(0, 150) + '...';
+  onModalClose() {
+    this.showModal = false;
+    this.selectedTool = null;
   }
 
-  hasResult(toolName: string): boolean {
-    return this.executionResults[toolName] != null;
-  }
-
-  getResult(toolName: string): ExecuteResult {
-    return this.executionResults[toolName];
+  onToolExecute(event: {toolName: string, arguments: any, userConfirmed: boolean}) {
+    console.log('Tool executed:', event);
+    // El modal maneja la ejecución, aquí solo podemos hacer logging o notificaciones
   }
 }

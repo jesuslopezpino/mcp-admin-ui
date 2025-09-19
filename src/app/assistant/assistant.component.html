@@ -204,4 +204,20 @@
       </div>
     </div>
   </div>
+
+  <!-- Confirmation Modal -->
+  <div class="confirmation-overlay" *ngIf="showConfirmation">
+    <div class="confirmation-modal">
+      <h3>⚠️ Confirmación Requerida</h3>
+      <p>Esta herramienta puede realizar cambios en el sistema. ¿Estás seguro de que quieres continuar?</p>
+      <div class="confirmation-actions">
+        <button class="btn btn-secondary" (click)="onCancelExecution()">
+          Cancelar
+        </button>
+        <button class="btn btn-danger" (click)="onConfirmExecution()">
+          ✅ Confirmar y Ejecutar
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

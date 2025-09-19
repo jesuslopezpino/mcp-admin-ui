@@ -41,6 +41,31 @@ export interface Tool {
   name: string;
   description: string;
   requiresConfirmation: boolean;
+  osSupport?: string[];
+  parameters?: any; // JSON Schema
+}
+
+export interface ToolDetails {
+  name: string;
+  description: string;
+  requiresConfirmation: boolean;
+  osSupport: string[];
+  jsonSchema: any;
+}
+
+export interface Suggestion {
+  id: string;
+  name: string;
+  version?: string;
+  source?: string;
+}
+
+export interface ExecuteDirectRequest {
+  toolName: string;
+  arguments: any;
+  userConfirmed: boolean;
+  userId?: string;
+  assetId?: string;
 }
 
 @Injectable({
@@ -85,6 +110,33 @@ export class ApiService {
   tools(): Observable<Tool[]> {
     return this.http.get<Tool[]>(`${this.baseUrl}/tools`, {
       headers: this.getHeaders()
+    });
+  }
+
+  getTool(name: string): Observable<ToolDetails> {
+    return this.http.get<ToolDetails>(`${this.baseUrl}/tools/${name}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  executeDirect(toolName: string, toolArguments: any, userConfirmed: boolean, assetId?: string): Observable<ExecuteResult> {
+    const request: ExecuteDirectRequest = {
+      toolName: toolName,
+      arguments: toolArguments,
+      userConfirmed: userConfirmed,
+      userId: 'admin',
+      assetId: assetId || 'admin-ui-asset'
+    };
+
+    return this.http.post<ExecuteResult>(`${this.baseUrl}/recipes/executeDirect`, request, {
+      headers: this.getHeaders()
+    });
+  }
+
+  suggestWinget(query: string): Observable<Suggestion[]> {
+    return this.http.get<Suggestion[]>(`${this.baseUrl}/tools/apps.install/suggest`, {
+      headers: this.getHeaders(),
+      params: { q: query }
     });
   }
 }

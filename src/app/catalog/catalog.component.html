@@ -44,39 +44,12 @@
 
       <div class="tool-actions">
         <button 
-          class="btn btn-success" 
-          (click)="executeTool(tool)" 
-          [disabled]="isLoading || executingTool === tool.name">
-          <span *ngIf="executingTool === tool.name">⏳</span>
-          <span *ngIf="executingTool !== tool.name">▶️</span>
-          {{ executingTool === tool.name ? 'Ejecutando...' : 'Ejecutar' }}
+          class="btn btn-primary" 
+          (click)="openToolModal(tool)" 
+          [disabled]="isLoading">
+          <span>🔧</span>
+          Configurar y Ejecutar
         </button>
-      </div>
-
-      <div class="execution-result" *ngIf="hasResult(tool.name)">
-        <div class="result-header">
-          <h4>📊 Resultado</h4>
-          <span class="result-status" [class]="'status-' + getResult(tool.name).status.toLowerCase()">
-            {{ getResult(tool.name).status }}
-          </span>
-        </div>
-        
-        <div class="result-details">
-          <div class="result-info">
-            <span class="execution-id">ID: {{ getResult(tool.name).executionId }}</span>
-            <span class="exit-code">Exit Code: {{ getResult(tool.name).exitCode }}</span>
-          </div>
-          
-          <div class="result-output" *ngIf="getResult(tool.name).stdout">
-            <h5>📤 Salida</h5>
-            <pre class="output-content">{{ getTruncatedStdout(getResult(tool.name).stdout) }}</pre>
-          </div>
-          
-          <div class="result-error" *ngIf="getResult(tool.name).stderr">
-            <h5>❌ Errores</h5>
-            <pre class="error-content">{{ getResult(tool.name).stderr }}</pre>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -91,4 +64,13 @@
       </button>
     </div>
   </div>
+
+  <!-- Tool Execution Modal -->
+  <app-run-tool-modal
+    *ngIf="showModal"
+    [tool]="selectedTool"
+    [assetId]="assetId"
+    (close)="onModalClose()"
+    (execute)="onToolExecute($event)">
+  </app-run-tool-modal>
 </div>

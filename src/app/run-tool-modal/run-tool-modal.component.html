@@ -108,51 +108,14 @@
         </div>
       </form>
 
-      <!-- Execution Result -->
+      <!-- Execution Result with Terminal Output -->
       <div class="execution-result" *ngIf="executionResult">
-        <h4>📊 Resultado de Ejecución</h4>
-        <div class="result-header">
-          <span class="result-status" [class]="'status-' + executionResult.status.toLowerCase()">
-            {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
-          </span>
-          <span class="result-exit-code" [class]="executionResult.exitCode === 0 ? 'success' : 'failure'">
-            Exit Code: {{ executionResult.exitCode }}
-          </span>
-        </div>
-
-        <div class="result-content" *ngIf="executionResult.stdout">
-          <div class="result-section">
-            <h5>📤 Salida (STDOUT)</h5>
-            <pre class="output-content">{{ getTruncatedOutput(executionResult.stdout) }}</pre>
-            <div class="output-actions">
-              <button class="btn btn-small" (click)="onToggleOutput()">
-                {{ showFullOutput ? 'Mostrar menos' : 'Mostrar completo' }}
-              </button>
-              <button class="btn btn-small" (click)="onCopyOutput()">
-                📋 Copiar
-              </button>
-              <button class="btn btn-small" (click)="onDownloadOutput()">
-                💾 Descargar
-              </button>
-            </div>
-            <pre *ngIf="showFullOutput" class="output-content full">{{ executionResult.stdout }}</pre>
-          </div>
-        </div>
-
-        <div class="result-content" *ngIf="executionResult.stderr">
-          <div class="result-section">
-            <h5>❌ Errores (STDERR)</h5>
-            <pre class="error-content">{{ executionResult.stderr }}</pre>
-          </div>
-        </div>
-
-        <div class="result-content" *ngIf="!executionResult.stdout && !executionResult.stderr">
-          <p class="info-message">
-            <span [class]="executionResult.status === 'SUCCESS' ? 'success' : 'warning'">
-              {{ executionResult.status === 'SUCCESS' ? '✅ Ejecución completada sin salida' : '⚠️ Ejecución falló sin mensajes de error' }}
-            </span>
-          </p>
-        </div>
+        <app-terminal-output
+          [stdout]="executionResult.stdout"
+          [stderr]="executionResult.stderr"
+          [exitCode]="executionResult.exitCode"
+          [status]="executionResult.status">
+        </app-terminal-output>
       </div>
     </div>
 

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService, ToolDetails, ExecuteResult, Suggestion } from '../services/api.service';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil, of } from 'rxjs';
+import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
 
 @Component({
   selector: 'app-run-tool-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TerminalOutputComponent],
   templateUrl: './run-tool-modal.component.html',
   styleUrl: './run-tool-modal.component.scss'
 })
@@ -23,7 +24,6 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   isExecuting = false;
   executionResult: ExecuteResult | null = null;
   showConfirmation = false;
-  showFullOutput = false;
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
@@ -188,27 +188,6 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     this.close.emit();
   }
 
-  onToggleOutput() {
-    this.showFullOutput = !this.showFullOutput;
-  }
-
-  onCopyOutput() {
-    if (this.executionResult?.stdout) {
-      navigator.clipboard.writeText(this.executionResult.stdout);
-    }
-  }
-
-  onDownloadOutput() {
-    if (this.executionResult?.stdout) {
-      const blob = new Blob([this.executionResult.stdout], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `output-${this.tool?.name}-${Date.now()}.txt`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }
-  }
 
   getFieldType(prop: any): string {
     if (prop.enum) return 'select';
@@ -246,10 +225,6 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     return prop?.description || fieldName;
   }
 
-  getTruncatedOutput(output: string): string {
-    if (output.length <= 500) return output;
-    return output.substring(0, 500) + '...';
-  }
 
   getStatusIcon(status: string): string {
     switch (status) {

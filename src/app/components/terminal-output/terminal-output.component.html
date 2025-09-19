@@ -1,0 +1,67 @@
+<div class="terminal-container">
+  <div class="terminal-header">
+    <div class="terminal-title">
+      <span class="terminal-icon">⚡</span>
+      Terminal Output
+    </div>
+    <div class="terminal-status" [style.color]="getStatusColor()">
+      <span class="status-icon">{{ getStatusIcon() }}</span>
+      {{ status }} (Exit Code: {{ exitCode }})
+    </div>
+  </div>
+  
+  <div class="terminal-body">
+    <pre class="terminal-output">{{ formattedOutput }}</pre>
+  </div>
+  
+  <div class="terminal-footer">
+    <div class="terminal-actions">
+      <button class="btn-copy" (click)="copyToClipboard()" title="Copy to clipboard">
+        📋 Copy
+      </button>
+      <button class="btn-download" (click)="downloadOutput()" title="Download output">
+        💾 Download
+      </button>
+      <button class="btn-fullscreen" (click)="toggleFullscreen()" title="Toggle fullscreen">
+        🔍 Fullscreen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Modal -->
+<div class="fullscreen-overlay" *ngIf="isFullscreen" (click)="closeFullscreen()">
+  <div class="fullscreen-terminal" (click)="$event.stopPropagation()">
+    <div class="fullscreen-header">
+      <div class="fullscreen-title">
+        <span class="terminal-icon">⚡</span>
+        Terminal Output - Fullscreen
+      </div>
+      <div class="fullscreen-status" [style.color]="getStatusColor()">
+        <span class="status-icon">{{ getStatusIcon() }}</span>
+        {{ status }} (Exit Code: {{ exitCode }})
+      </div>
+      <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
+        ✕
+      </button>
+    </div>
+    
+    <div class="fullscreen-body">
+      <pre class="terminal-output fullscreen">{{ formattedOutput }}</pre>
+    </div>
+    
+    <div class="fullscreen-footer">
+      <div class="fullscreen-actions">
+        <button class="btn-copy" (click)="copyToClipboard()" title="Copy to clipboard">
+          📋 Copy
+        </button>
+        <button class="btn-download" (click)="downloadOutput()" title="Download output">
+          💾 Download
+        </button>
+        <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
+          ✕ Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

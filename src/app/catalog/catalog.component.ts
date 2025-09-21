@@ -63,7 +63,7 @@ export class CatalogComponent implements OnInit {
     this.selectedTool = null;
   }
 
-  onToolExecute(event: {toolName: string, arguments: any, userConfirmed: boolean}) {
+  onToolExecute(event: {tool: ToolDetails, arguments: any, userConfirmed: boolean}) {
     console.log('Tool executed:', event);
     // El modal maneja la ejecución, aquí solo podemos hacer logging o notificaciones
   }

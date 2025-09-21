@@ -16,7 +16,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   @Input() tool: ToolDetails | null = null;
   @Input() assetId: string = '';
   @Output() close = new EventEmitter<void>();
-  @Output() execute = new EventEmitter<{toolName: string, arguments: any, userConfirmed: boolean}>();
+  @Output() execute = new EventEmitter<{tool: ToolDetails, arguments: any, userConfirmed: boolean}>();
 
   form: FormGroup;
   suggestions: Suggestion[] = [];
@@ -171,7 +171,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
         this.executionResult = result;
         this.isExecuting = false;
         this.execute.emit({
-          toolName: this.tool!.name,
+          tool: this.tool!,
           arguments: this.form.value,
           userConfirmed: true
         });

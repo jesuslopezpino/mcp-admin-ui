@@ -6,6 +6,8 @@ Panel de administración Angular 17 para la plataforma MCP (Model Context Protoc
 
 - **🤖 AI Assistant**: Interfaz conversacional para crear planes de ejecución
 - **🛠️ Catálogo de Herramientas**: Tabla con herramientas disponibles y ejecución directa
+- **📦 Inventario de Equipos**: Gestión de assets de red con descubrimiento automático
+- **🌐 Ejecución Remota**: Ejecutar herramientas en equipos específicos via WinRM
 - **📊 Resultados en Tiempo Real**: Visualización de resultados de ejecución
 - **🔒 Seguridad**: Autenticación por API Key
 - **📱 Responsive**: Diseño adaptativo para móviles y desktop
@@ -65,6 +67,19 @@ Asset ID: "WIN-123"
 2. **Ejecutar directamente**: Botón "Ejecutar" para cada herramienta
 3. **Ver resultados**: Resultados de ejecución en tiempo real
 
+### Inventory (/inventory)
+
+1. **Ver equipos**: Tabla con todos los assets descubiertos en la red
+2. **Descubrir equipos**: Botón "Descubrir ahora" para escanear la red
+3. **Ejecutar en equipo**: Botón "Ejecutar Tool" para ejecutar herramientas en equipos específicos
+4. **Estado de equipos**: Visualización de estado, WinRM y última vez visto
+
+**Funcionalidades del Inventario:**
+- **Descubrimiento automático**: Escanea rangos de red configurados
+- **Detección WinRM**: Identifica equipos con WinRM habilitado
+- **Ejecución remota**: Ejecuta herramientas en equipos específicos
+- **Gestión de estado**: Seguimiento de equipos online/offline
+
 ## 🔧 Configuración
 
 ### Environment
@@ -95,6 +110,9 @@ El frontend consume estos endpoints del backend:
 - `POST /ai/plan` - Crear plan de ejecución
 - `POST /recipes/execute` - Ejecutar plan
 - `GET /tools` - Obtener catálogo de herramientas
+- `GET /assets` - Obtener inventario de equipos
+- `POST /assets/discover` - Descubrir equipos en la red
+- `POST /recipes/executeForAsset` - Ejecutar herramienta en equipo específico
 
 Todos los requests incluyen:
 - Header `X-API-Key: dev-token`
@@ -106,7 +124,8 @@ Todos los requests incluyen:
 src/
 ├── app/
 │   ├── assistant/           # Componente Assistant
-│   ├── catalog/            # Componente Catalog  
+│   ├── catalog/            # Componente Catalog
+│   ├── inventory/          # Componente Inventory
 │   ├── services/
 │   │   └── api.service.ts  # Servicio API central
 │   ├── app.component.*     # Componente raíz
@@ -146,10 +165,19 @@ npm run lint
 - `executeTool()` - Ejecutar herramienta
 - `getResult()` - Obtener resultados
 
+**InventoryComponent:**
+- `loadAssets()` - Cargar inventario de equipos
+- `discoverAssets()` - Descubrir equipos en la red
+- `openRunToolModal()` - Abrir modal de ejecución en equipo
+- `executeTool()` - Ejecutar herramienta en equipo específico
+
 **ApiService:**
 - `plan()` - POST /ai/plan
 - `execute()` - POST /recipes/execute  
 - `tools()` - GET /tools
+- `getAssets()` - GET /assets
+- `discoverAssets()` - POST /assets/discover
+- `executeForAsset()` - POST /recipes/executeForAsset
 
 ## 🐛 Troubleshooting
 

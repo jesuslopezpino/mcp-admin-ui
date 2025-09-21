@@ -68,6 +68,32 @@ export interface ExecuteDirectRequest {
   assetId?: string;
 }
 
+export interface Asset {
+  id: string;
+  hostname: string;
+  ip: string;
+  os: string;
+  status: string;
+  winrmEnabled: boolean;
+  lastSeen: string;
+}
+
+export interface DiscoveryResult {
+  started: boolean;
+  cidrs: string[];
+  countOnline: number;
+  countWinRm: number;
+  durationMs: number;
+}
+
+export interface ExecuteForAssetRequest {
+  assetId: string;
+  toolName: string;
+  arguments: any;
+  userConfirmed: boolean;
+  userId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -137,6 +163,32 @@ export class ApiService {
     return this.http.get<Suggestion[]>(`${this.baseUrl}/tools/apps.install/suggest`, {
       headers: this.getHeaders(),
       params: { q: query }
+    });
+  }
+
+  getAssets(): Observable<Asset[]> {
+    return this.http.get<Asset[]>(`${this.baseUrl}/assets`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  discoverAssets(): Observable<DiscoveryResult> {
+    return this.http.post<DiscoveryResult>(`${this.baseUrl}/assets/discover`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  executeForAsset(assetId: string, toolName: string, args: any, userConfirmed: boolean): Observable<ExecuteResult> {
+    const request: ExecuteForAssetRequest = {
+      assetId: assetId,
+      toolName: toolName,
+      arguments: args,
+      userConfirmed: userConfirmed,
+      userId: 'admin'
+    };
+
+    return this.http.post<ExecuteResult>(`${this.baseUrl}/recipes/executeForAsset`, request, {
+      headers: this.getHeaders()
     });
   }
 }

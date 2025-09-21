@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Asset, DiscoveryResult, Tool, ExecuteResult } from '../services/api.service';
+import { ApiService, Asset, DiscoveryResult, Tool, ToolDetails, ExecuteResult } from '../services/api.service';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
 
 @Component({
@@ -124,7 +124,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
     <app-run-tool-modal
       *ngIf="showRunToolModal"
       [tool]="selectedTool"
-      [assetId]="selectedAsset?.id"
+      [assetId]="selectedAsset?.id || ''"
       (close)="closeRunToolModal()"
       (execute)="executeTool($event)">
     </app-run-tool-modal>
@@ -160,7 +160,7 @@ export class InventoryComponent implements OnInit {
   
   // Modal state
   showRunToolModal = false;
-  selectedTool: Tool | null = null;
+  selectedTool: ToolDetails | null = null;
   selectedAsset: Asset | null = null;
 
   constructor(private apiService: ApiService) {}
@@ -219,9 +219,17 @@ export class InventoryComponent implements OnInit {
     // For now, we'll use the first available tool
     // In a real implementation, you might want to show a tool selection dialog
     if (this.tools.length > 0) {
-      this.selectedTool = this.tools[0];
-      this.selectedAsset = asset;
-      this.showRunToolModal = true;
+      // Get tool details for the first tool
+      this.apiService.getTool(this.tools[0].name).subscribe({
+        next: (toolDetails) => {
+          this.selectedTool = toolDetails;
+          this.selectedAsset = asset;
+          this.showRunToolModal = true;
+        },
+        error: (error) => {
+          console.error('Error loading tool details:', error);
+        }
+      });
     }
   }
 
@@ -231,7 +239,7 @@ export class InventoryComponent implements OnInit {
     this.selectedAsset = null;
   }
 
-  executeTool(event: { tool: Tool; arguments: any; userConfirmed: boolean }) {
+  executeTool(event: { tool: ToolDetails; arguments: any; userConfirmed: boolean }) {
     if (!this.selectedAsset) return;
 
     this.apiService.executeForAsset(

@@ -14,7 +14,7 @@ import { TerminalOutputComponent } from '../components/terminal-output/terminal-
 })
 export class RunToolModalComponent implements OnInit, OnDestroy {
   @Input() tool: ToolDetails | null = null;
-  @Input() assetId: string = '';
+  @Input() assetId?: string | null;
   @Output() close = new EventEmitter<void>();
   @Output() execute = new EventEmitter<{tool: ToolDetails, arguments: any, userConfirmed: boolean}>();
 
@@ -161,12 +161,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     this.isExecuting = true;
     this.executionResult = null;
 
-    this.apiService.executeDirect(
-      this.tool.name,
-      this.form.value,
-      true,
-      this.assetId
-    ).subscribe({
+    const execution$ = this.assetId 
+      ? this.apiService.executeForAsset(this.assetId, this.tool.name, this.form.value, true)
+      : this.apiService.executeDirect(this.tool.name, this.form.value, true);
+
+    execution$.subscribe({
       next: (result) => {
         this.executionResult = result;
         this.isExecuting = false;
@@ -233,5 +232,9 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       case 'ERROR': return '⚠️';
       default: return '❓';
     }
+  }
+
+  getDestinationDisplay(): string {
+    return this.assetId ? `Asset: ${this.assetId}` : 'Servidor (local)';
   }
 }

@@ -2,6 +2,10 @@
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>🔧 Ejecutar Herramienta</h2>
+      <div class="destination-info">
+        <span class="destination-label">Destino:</span>
+        <span class="destination-value">{{ getDestinationDisplay() }}</span>
+      </div>
       <button class="close-btn" (click)="onClose()">×</button>
     </div>
 

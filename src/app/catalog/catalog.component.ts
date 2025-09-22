@@ -1,28 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Tool, ToolDetails } from '../services/api.service';
+import { ApiService, Tool, ToolDetails, Asset } from '../services/api.service';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
+import { TargetSelectorComponent } from '../components/target-selector/target-selector.component';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule, RunToolModalComponent],
+  imports: [CommonModule, FormsModule, RunToolModalComponent, TargetSelectorComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss'
 })
 export class CatalogComponent implements OnInit {
   tools: Tool[] = [];
+  assets: Asset[] = [];
   isLoading: boolean = false;
   error: string = '';
   selectedTool: ToolDetails | null = null;
   showModal = false;
-  assetId: string = '';
+  selectedAssetId: string | null = null;
 
   constructor(private apiService: ApiService) {}
 
   ngOnInit() {
     this.loadTools();
+    this.loadAssets();
   }
 
   loadTools() {
@@ -37,6 +40,18 @@ export class CatalogComponent implements OnInit {
       error: (err) => {
         this.error = 'Error al cargar herramientas: ' + (err.error?.message || err.message || 'Error desconocido');
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadAssets() {
+    this.apiService.getAssets().subscribe({
+      next: (assets) => {
+        this.assets = assets;
+      },
+      error: (err) => {
+        console.warn('Error loading assets:', err);
+        // Don't show error to user, just log it
       }
     });
   }

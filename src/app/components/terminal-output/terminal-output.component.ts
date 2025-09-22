@@ -24,6 +24,14 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.formatOutput();
+    
+    // Auto-fullscreen when execution is successful
+    if (this.isSuccess && this.formattedOutput && this.formattedOutput.trim()) {
+      // Small delay to ensure the UI has updated
+      setTimeout(() => {
+        this.isFullscreen = true;
+      }, 100);
+    }
   }
 
   private formatOutput() {

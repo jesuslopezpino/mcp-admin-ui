@@ -63,9 +63,18 @@ Asset ID: "WIN-123"
 
 ### Catalog (/catalog)
 
-1. **Ver herramientas**: Tabla con todas las herramientas disponibles
-2. **Ejecutar directamente**: Botón "Ejecutar" para cada herramienta
-3. **Ver resultados**: Resultados de ejecución en tiempo real
+1. **Seleccionar destino**: Usa el selector de destino para elegir entre:
+   - **Servidor (local)**: Ejecuta en el backend local
+   - **Asset remoto**: Ejecuta en un equipo específico de la red
+2. **Ver herramientas**: Tabla con todas las herramientas disponibles
+3. **Ejecutar directamente**: Botón "Configurar y Ejecutar" para cada herramienta
+4. **Ver resultados**: Resultados de ejecución en tiempo real con indicación del destino
+
+**Funcionalidades del Catálogo:**
+- **Selector de destino**: Permite elegir entre ejecución local o remota
+- **Persistencia**: Recuerda la última selección de destino
+- **Ejecución unificada**: Mismo flujo para ejecución local y remota
+- **Indicador de destino**: Muestra claramente dónde se ejecutará la herramienta
 
 ### Inventory (/inventory)
 
@@ -162,8 +171,14 @@ npm run lint
 
 **CatalogComponent:**
 - `loadTools()` - Cargar catálogo
-- `executeTool()` - Ejecutar herramienta
-- `getResult()` - Obtener resultados
+- `loadAssets()` - Cargar inventario de equipos
+- `openToolModal()` - Abrir modal de ejecución
+- `onToolExecute()` - Manejar resultado de ejecución
+
+**TargetSelectorComponent:**
+- `onSelectionChange()` - Manejar cambio de destino
+- `getDisplayName()` - Formatear nombre del asset
+- Persistencia automática en localStorage
 
 **InventoryComponent:**
 - `loadAssets()` - Cargar inventario de equipos
@@ -177,7 +192,8 @@ npm run lint
 - `tools()` - GET /tools
 - `getAssets()` - GET /assets
 - `discoverAssets()` - POST /assets/discover
-- `executeForAsset()` - POST /recipes/executeForAsset
+- `executeDirect()` - POST /recipes/executeDirect (local o con assetId)
+- `executeForAsset()` - POST /recipes/executeForAsset (remoto)
 
 ## 🐛 Troubleshooting
 

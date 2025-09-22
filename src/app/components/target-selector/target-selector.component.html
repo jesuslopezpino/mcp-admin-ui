@@ -1,0 +1,42 @@
+<div class="target-selector">
+  <div class="selector-header">
+    <div class="selector-icon">🎯</div>
+    <div class="selector-info">
+      <h3 class="selector-title">Destino de Ejecución</h3>
+      <p class="selector-description">Selecciona el equipo donde ejecutar las herramientas</p>
+    </div>
+  </div>
+  
+  <div class="selector-content">
+    <div class="custom-select">
+      <select 
+        id="target-select"
+        class="target-select"
+        [ngModel]="selectedAssetId"
+        (ngModelChange)="onSelectionChange($event)">
+        
+        <option value="">— Servidor (local) —</option>
+        
+        <option 
+          *ngFor="let asset of assets" 
+          [value]="asset.id">
+          {{ getDisplayName(asset) }}
+          <span *ngIf="!asset.winrmEnabled"> (WinRM deshabilitado)</span>
+        </option>
+      </select>
+      
+      <div class="select-arrow">
+        <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+          <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    
+    <div class="selector-status" *ngIf="selectedAssetId">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span class="status-text">Destino seleccionado</span>
+      </div>
+    </div>
+  </div>
+</div>

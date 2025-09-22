@@ -33,6 +33,29 @@
     color: #333;
   }
   
+  .destination-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 20px;
+    margin-right: auto;
+    
+    .destination-label {
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .destination-value {
+      font-size: 14px;
+      color: #333;
+      font-weight: 600;
+      background: #e9ecef;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+  }
+  
   .close-btn {
     background: none;
     border: none;

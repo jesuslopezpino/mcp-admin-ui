@@ -15,6 +15,12 @@
     </button>
   </div>
 
+  <!-- Target Selector -->
+  <app-target-selector 
+    [assets]="assets" 
+    [(selectedAssetId)]="selectedAssetId">
+  </app-target-selector>
+
   <div class="error-message" *ngIf="error">
     <div class="error-content">
       <span class="error-icon">⚠️</span>
@@ -69,7 +75,7 @@
   <app-run-tool-modal
     *ngIf="showModal"
     [tool]="selectedTool"
-    [assetId]="assetId"
+    [assetId]="selectedAssetId"
     (close)="onModalClose()"
     (execute)="onToolExecute($event)">
   </app-run-tool-modal>

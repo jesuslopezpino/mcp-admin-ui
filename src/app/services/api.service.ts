@@ -76,6 +76,16 @@ export interface Asset {
   status: string;
   winrmEnabled: boolean;
   lastSeen: string;
+  pingResult?: {
+    status: string;
+    message: string;
+    timestamp: Date;
+    details: {
+      exitCode: number;
+      stdout: string;
+      stderr: string;
+    };
+  };
 }
 
 export interface DiscoveryResult {

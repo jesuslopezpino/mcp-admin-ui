@@ -193,25 +193,47 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Execution error:', error);
+        console.error('Error details:', {
+          status: error.status,
+          error: error.error,
+          message: error.message,
+          url: error.url
+        });
         this.isExecuting = false;
         
         // Show error notification with detailed message
         let errorMessage = 'Error desconocido';
-        if (error.error?.message) {
+        let errorTitle = '❌ Error ejecutando herramienta';
+        
+        if (error.status === 400) {
+          errorTitle = '❌ Error de validación (400)';
+          
+          if (error.error?.fieldErrors) {
+            // Handle validation errors from backend
+            const fieldErrors = Object.entries(error.error.fieldErrors)
+              .map(([field, message]) => `${field}: ${message}`)
+              .join('\n');
+            errorMessage = `Errores de validación:\n${fieldErrors}`;
+          } else if (error.error?.message) {
+            errorMessage = `Error de validación: ${error.error.message}`;
+          } else {
+            errorMessage = 'Error de validación en la request';
+          }
+        } else if (error.status === 404) {
+          errorTitle = '❌ Herramienta no encontrada (404)';
+          errorMessage = `La herramienta ${this.tool!.name} no existe en el backend`;
+        } else if (error.status === 500) {
+          errorTitle = '❌ Error interno del servidor (500)';
+          errorMessage = error.error?.message || 'Error interno del servidor';
+        } else if (error.error?.message) {
           errorMessage = error.error.message;
         } else if (error.message) {
           errorMessage = error.message;
-        } else if (error.error?.fieldErrors) {
-          // Handle validation errors
-          const fieldErrors = Object.entries(error.error.fieldErrors)
-            .map(([field, message]) => `${field}: ${message}`)
-            .join(', ');
-          errorMessage = `Errores de validación: ${fieldErrors}`;
         }
         
         this.notificationService.error(
-          '❌ Error ejecutando herramienta',
-          `Error en ${this.tool!.name}: ${errorMessage}`
+          errorTitle,
+          `Error en ${this.tool!.name}:\n${errorMessage}`
         );
       }
     });

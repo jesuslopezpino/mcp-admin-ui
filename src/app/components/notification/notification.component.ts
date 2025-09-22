@@ -47,4 +47,13 @@ export class NotificationComponent implements OnInit, OnDestroy {
   trackByNotificationId(index: number, notification: Notification): string {
     return notification.id;
   }
+
+  formatMessage(message: string): string {
+    // Convert newlines to <br> tags and escape HTML
+    return message
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
 }

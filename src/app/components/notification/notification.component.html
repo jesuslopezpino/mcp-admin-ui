@@ -12,7 +12,7 @@
       
       <div class="notification-body">
         <div class="notification-title">{{ notification.title }}</div>
-        <div class="notification-message">{{ notification.message }}</div>
+        <div class="notification-message" [innerHTML]="formatMessage(notification.message)"></div>
         <div class="notification-time">
           {{ notification.timestamp | date:'HH:mm:ss' }}
         </div>

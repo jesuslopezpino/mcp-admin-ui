@@ -8,27 +8,40 @@
   </div>
   
   <div class="selector-content">
-    <div class="custom-select">
-      <select 
-        id="target-select"
-        class="target-select"
-        [ngModel]="selectedAssetId"
-        (ngModelChange)="onSelectionChange($event)">
-        
-        <option value="">— Servidor (local) —</option>
-        
-        <option 
-          *ngFor="let asset of assets" 
-          [value]="asset.id">
-          {{ getDisplayName(asset) }}
-          <span *ngIf="!asset.winrmEnabled"> (WinRM deshabilitado)</span>
-        </option>
-      </select>
+    <div class="custom-dropdown" [class.open]="isOpen">
+      <div class="dropdown-trigger" (click)="toggleDropdown()">
+        <div class="selected-value">
+          <span class="value-text">{{ getSelectedDisplayName() }}</span>
+          <span class="value-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.ip }}</span>
+        </div>
+        <div class="dropdown-arrow" [class.rotated]="isOpen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
       
-      <div class="select-arrow">
-        <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-          <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+             <div class="dropdown-menu" *ngIf="isOpen">
+               <div class="dropdown-option"
+                    *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
+                    [class.selected]="selectedAssetId === asset.id"
+                    [class.disabled]="!asset.winrmEnabled"
+                    (click)="selectOption(asset.id)">
+          <div class="option-content">
+            <div class="option-icon">🖥️</div>
+            <div class="option-text">
+              <span class="option-title">{{ asset.hostname || asset.ip }}</span>
+              <span class="option-subtitle">{{ asset.ip }}</span>
+            </div>
+            <div class="option-badges">
+              <span class="status-badge" [class]="'status-' + asset.status">{{ asset.status }}</span>
+              <span class="winrm-badge" [class]="asset.winrmEnabled ? 'enabled' : 'disabled'">
+                {{ asset.winrmEnabled ? 'WinRM' : 'Sin WinRM' }}
+              </span>
+            </div>
+          </div>
+          <div class="option-status" *ngIf="selectedAssetId === asset.id">✓</div>
+        </div>
       </div>
     </div>
     

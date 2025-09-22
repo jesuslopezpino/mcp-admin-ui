@@ -167,7 +167,9 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       ? this.apiService.executeForAsset(this.assetId, this.tool.name, this.form.value, true)
       : this.apiService.executeDirect(this.tool.name, this.form.value, true);
 
-    execution$.subscribe({
+    execution$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (result) => {
         this.executionResult = result;
         this.isExecuting = false;

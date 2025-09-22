@@ -192,13 +192,14 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
         });
       },
       error: (error) => {
-        console.error('Execution error:', error);
-        console.error('Error details:', {
-          status: error.status,
-          error: error.error,
-          message: error.message,
-          url: error.url
-        });
+        console.error('=== EXECUTION ERROR DEBUG ===');
+        console.error('Full error object:', error);
+        console.error('Error status:', error.status);
+        console.error('Error error:', error.error);
+        console.error('Error message:', error.message);
+        console.error('Error url:', error.url);
+        console.error('Error headers:', error.headers);
+        console.error('================================');
         this.isExecuting = false;
         
         // Show error notification with detailed message
@@ -230,6 +231,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
         } else if (error.message) {
           errorMessage = error.message;
         }
+        
+        console.log('=== SHOWING NOTIFICATION ===');
+        console.log('Error title:', errorTitle);
+        console.log('Error message:', `Error en ${this.tool!.name}:\n${errorMessage}`);
+        console.log('============================');
         
         this.notificationService.error(
           errorTitle,

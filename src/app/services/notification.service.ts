@@ -27,8 +27,15 @@ export class NotificationService {
       timestamp: new Date()
     };
 
+    console.log('=== NOTIFICATION SERVICE SHOW ===');
+    console.log('Creating notification:', fullNotification);
+    console.log('Current notifications count:', this.notifications.value.length);
+    console.log('==================================');
+
     const current = this.notifications.value;
     this.notifications.next([...current, fullNotification]);
+    
+    console.log('After adding notification, count:', this.notifications.value.length);
 
     // Auto-dismiss if duration is specified
     if (notification.duration && notification.duration > 0) {
@@ -45,6 +52,11 @@ export class NotificationService {
   }
 
   error(title: string, message: string, duration: number = 0): string {
+    console.log('=== NOTIFICATION SERVICE ERROR ===');
+    console.log('Title:', title);
+    console.log('Message:', message);
+    console.log('Duration:', duration);
+    console.log('===================================');
     return this.show({ type: 'error', title, message, duration });
   }
 

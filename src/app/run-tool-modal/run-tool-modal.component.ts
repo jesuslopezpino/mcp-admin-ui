@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ApiService, ToolDetails, ExecuteResult, Suggestion } from '../services/api.service';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil, of } from 'rxjs';
 import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-run-tool-modal',
@@ -30,7 +31,8 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private notificationService: NotificationService
   ) {
     this.form = this.fb.group({});
   }
@@ -169,6 +171,20 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       next: (result) => {
         this.executionResult = result;
         this.isExecuting = false;
+        
+        // Show success notification
+        if (result.status === 'SUCCESS') {
+          this.notificationService.success(
+            '✅ Herramienta ejecutada',
+            `La herramienta ${this.tool!.name} se ejecutó correctamente`
+          );
+        } else {
+          this.notificationService.warning(
+            '⚠️ Ejecución completada con advertencias',
+            `La herramienta ${this.tool!.name} se ejecutó pero con código de salida ${result.exitCode}`
+          );
+        }
+        
         this.execute.emit({
           tool: this.tool!,
           arguments: this.form.value,
@@ -178,7 +194,25 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Execution error:', error);
         this.isExecuting = false;
-        alert(`Error ejecutando herramienta: ${error.message || 'Error desconocido'}`);
+        
+        // Show error notification with detailed message
+        let errorMessage = 'Error desconocido';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (error.error?.fieldErrors) {
+          // Handle validation errors
+          const fieldErrors = Object.entries(error.error.fieldErrors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join(', ');
+          errorMessage = `Errores de validación: ${fieldErrors}`;
+        }
+        
+        this.notificationService.error(
+          '❌ Error ejecutando herramienta',
+          `Error en ${this.tool!.name}: ${errorMessage}`
+        );
       }
     });
   }

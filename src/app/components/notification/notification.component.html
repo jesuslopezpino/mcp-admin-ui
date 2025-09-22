@@ -1,0 +1,29 @@
+<div class="notification-container">
+  <div 
+    *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+    class="notification"
+    [class]="getTypeClass(notification.type)"
+    [@slideInOut]>
+    
+    <div class="notification-content">
+      <div class="notification-icon">
+        {{ getIcon(notification.type) }}
+      </div>
+      
+      <div class="notification-body">
+        <div class="notification-title">{{ notification.title }}</div>
+        <div class="notification-message">{{ notification.message }}</div>
+        <div class="notification-time">
+          {{ notification.timestamp | date:'HH:mm:ss' }}
+        </div>
+      </div>
+      
+      <button 
+        class="notification-close"
+        (click)="dismiss(notification.id)"
+        aria-label="Cerrar notificación">
+        ✕
+      </button>
+    </div>
+  </div>
+</div>

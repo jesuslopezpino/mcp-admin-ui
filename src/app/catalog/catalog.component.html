@@ -1,9 +1,17 @@
 <div class="catalog-container">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb 
+    [items]="breadcrumbItems"
+    (itemClicked)="onBreadcrumbItemClicked($event)">
+  </app-breadcrumb>
+
+  <!-- Header -->
   <div class="header">
     <h2>🛠️ Catálogo de Herramientas</h2>
     <p>Explora y ejecuta herramientas MCP disponibles</p>
   </div>
 
+  <!-- Actions Bar -->
   <div class="actions-bar">
     <button 
       class="btn btn-primary" 
@@ -21,6 +29,7 @@
     [(selectedAssetId)]="selectedAssetId">
   </app-target-selector>
 
+  <!-- Error Message -->
   <div class="error-message" *ngIf="error">
     <div class="error-content">
       <span class="error-icon">⚠️</span>
@@ -28,6 +37,7 @@
     </div>
   </div>
 
+  <!-- Loading Message -->
   <div class="loading-message" *ngIf="isLoading && tools.length === 0">
     <div class="loading-content">
       <span class="loading-icon">⏳</span>
@@ -35,31 +45,23 @@
     </div>
   </div>
 
-  <div class="tools-grid" *ngIf="tools.length > 0">
-    <div class="tool-card" *ngFor="let tool of tools">
-      <div class="tool-header">
-        <h3 class="tool-name">{{ tool.name }}</h3>
-        <span class="confirmation-badge" [class]="tool.requiresConfirmation ? 'requires-confirmation' : 'no-confirmation'">
-          {{ tool.requiresConfirmation ? 'Requiere confirmación' : 'Automático' }}
-        </span>
-      </div>
-      
-      <div class="tool-description">
-        <p>{{ tool.description }}</p>
-      </div>
+  <!-- Categories View -->
+  <app-category-grid 
+    *ngIf="currentView === 'categories' && !isLoading && tools.length > 0"
+    [categories]="categories"
+    (categorySelected)="onCategorySelected($event)">
+  </app-category-grid>
 
-      <div class="tool-actions">
-        <button 
-          class="btn btn-primary" 
-          (click)="openToolModal(tool)" 
-          [disabled]="isLoading">
-          <span>🔧</span>
-          Configurar y Ejecutar
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- Category Tools View -->
+  <app-category-tools 
+    *ngIf="currentView === 'tools' && selectedCategory"
+    [categoryId]="selectedCategory"
+    [tools]="getCurrentCategoryTools()"
+    (toolSelected)="onToolSelected($event)"
+    (backToCategories)="onBackToCategories()">
+  </app-category-tools>
 
+  <!-- Empty State -->
   <div class="empty-state" *ngIf="!isLoading && tools.length === 0 && !error">
     <div class="empty-content">
       <span class="empty-icon">🔧</span>

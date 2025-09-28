@@ -240,25 +240,20 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     execution$.pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (result) => {
-        this.executionResult = result;
-        this.isExecuting = false;
-        
-        // Show success notification
-        if (result.status === 'SUCCESS') {
-          this.notificationService.success(
-            '✅ Herramienta ejecutada',
-            `La herramienta ${this.tool!.name} se ejecutó correctamente`
-          );
-        } else {
-          this.notificationService.warning(
-            '⚠️ Ejecución completada con advertencias',
-            `La herramienta ${this.tool!.name} se ejecutó pero con código de salida ${result.exitCode}`
-          );
-        }
-        
-        // Note: Removed execute.emit() to prevent duplicate notifications
-      },
+             next: (result) => {
+               this.executionResult = result;
+               this.isExecuting = false;
+
+               // Only show notifications for non-success cases
+               if (result.status !== 'SUCCESS') {
+                 this.notificationService.warning(
+                   '⚠️ Ejecución completada con advertencias',
+                   `La herramienta ${this.tool!.name} se ejecutó pero con código de salida ${result.exitCode}`
+                 );
+               }
+
+               // Note: Removed execute.emit() to prevent duplicate notifications
+             },
       error: (error) => {
         console.error('=== EXECUTION ERROR DEBUG ===');
         console.error('Full error object:', error);

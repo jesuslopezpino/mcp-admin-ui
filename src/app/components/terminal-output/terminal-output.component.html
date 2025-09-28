@@ -1,23 +1,17 @@
 <div class="terminal-container">
   <div class="terminal-header">
-    <div class="terminal-title">
-      <span class="terminal-icon">⚡</span>
-      Terminal Output
-    </div>
-    <div class="terminal-info">
-      <div class="info-row">
-        <div class="target-info" *ngIf="targetHostname || targetIp">
-          <span class="info-label">🎯 Destino:</span>
-          <span class="info-value">{{ getTargetDisplayName() }}</span>
-        </div>
-        <div class="command-info" *ngIf="commandName">
-          <span class="info-label">🔧 Comando:</span>
-          <span class="info-value">{{ getCommandDisplayName() }}</span>
-        </div>
-        <div class="terminal-status" [style.color]="getStatusColor()">
-          <span class="status-icon">{{ getStatusIcon() }}</span>
-          {{ status }} (Exit Code: {{ exitCode }})
-        </div>
+    <div class="terminal-info-row">
+      <div class="target-info" *ngIf="targetHostname || targetIp">
+        <span class="info-label">🎯 Destino:</span>
+        <span class="info-value">{{ getTargetDisplayName() }}</span>
+      </div>
+      <div class="command-info" *ngIf="commandName">
+        <span class="info-label">🔧 Comando:</span>
+        <span class="info-value">{{ getCommandDisplayName() }}</span>
+      </div>
+      <div class="terminal-status" [style.color]="getStatusColor()">
+        <span class="status-icon">{{ getStatusIcon() }}</span>
+        {{ status }} (Exit Code: {{ exitCode }})
       </div>
     </div>
   </div>
@@ -45,25 +39,19 @@
 <div class="fullscreen-overlay" *ngIf="isFullscreen" (click)="closeFullscreen()">
   <div class="fullscreen-terminal" (click)="$event.stopPropagation()">
     <div class="fullscreen-header">
-      <div class="fullscreen-title">
-        <span class="terminal-icon">⚡</span>
-        Terminal Output
-      </div>
-      <div class="fullscreen-info">
-        <div class="info-row">
-          <div class="target-info" *ngIf="targetHostname || targetIp">
-            <span class="info-label">🎯 Destino:</span>
-            <span class="info-value">{{ getTargetDisplayName() }}</span>
-          </div>
-          <div class="command-info" *ngIf="commandName">
-            <span class="info-label">🔧 Comando:</span>
-            <span class="info-value">{{ getCommandDisplayName() }}</span>
-          </div>
+      <div class="fullscreen-info-row">
+        <div class="target-info" *ngIf="targetHostname || targetIp">
+          <span class="info-label">🎯 Destino:</span>
+          <span class="info-value">{{ getTargetDisplayName() }}</span>
         </div>
-      </div>
-      <div class="fullscreen-status" [style.color]="getStatusColor()">
-        <span class="status-icon">{{ getStatusIcon() }}</span>
-        {{ status }} (Exit Code: {{ exitCode }})
+        <div class="command-info" *ngIf="commandName">
+          <span class="info-label">🔧 Comando:</span>
+          <span class="info-value">{{ getCommandDisplayName() }}</span>
+        </div>
+        <div class="terminal-status" [style.color]="getStatusColor()">
+          <span class="status-icon">{{ getStatusIcon() }}</span>
+          {{ status }} (Exit Code: {{ exitCode }})
+        </div>
       </div>
       <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
         ✕

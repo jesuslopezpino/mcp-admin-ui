@@ -17,13 +17,23 @@ export class TargetSelectorComponent implements OnInit, OnChanges {
 
   isOpen = false;
   sortedAssets: Asset[] = []; // Sorted assets with WinRM first
+  isRemembered = false; // Track if the selection is remembered
 
   ngOnInit() {
-    // Load saved selection from localStorage
-    const saved = localStorage.getItem('mcp.ui.selectedAsset');
-    if (saved && saved !== 'null') {
-      this.selectedAssetId = saved;
-      this.selectedAssetIdChange.emit(this.selectedAssetId);
+    // Load saved selection from localStorage (only if available)
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('mcp.ui.selectedAsset');
+      const remembered = localStorage.getItem('mcp.ui.rememberedAsset');
+      
+      if (saved && saved !== 'null') {
+        this.selectedAssetId = saved;
+        this.isRemembered = remembered === 'true';
+        
+        // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.selectedAssetIdChange.emit(this.selectedAssetId);
+        }, 0);
+      }
     }
     this.sortAssets();
   }
@@ -61,8 +71,29 @@ export class TargetSelectorComponent implements OnInit, OnChanges {
     this.selectedAssetIdChange.emit(assetId);
     this.isOpen = false;
     
-    // Save to localStorage
-    localStorage.setItem('mcp.ui.selectedAsset', assetId);
+    // Save to localStorage (only if available)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('mcp.ui.selectedAsset', assetId);
+    }
+  }
+
+  toggleRemember() {
+    if (!this.selectedAssetId) return;
+
+    this.isRemembered = !this.isRemembered;
+    
+    if (typeof localStorage !== 'undefined') {
+      if (this.isRemembered) {
+        // Remember the current selection
+        localStorage.setItem('mcp.ui.rememberedAsset', 'true');
+      } else {
+        // Forget the selection
+        localStorage.removeItem('mcp.ui.rememberedAsset');
+        localStorage.removeItem('mcp.ui.selectedAsset');
+        this.selectedAssetId = null;
+        this.selectedAssetIdChange.emit(null);
+      }
+    }
   }
 
   getSelectedDisplayName(): string {

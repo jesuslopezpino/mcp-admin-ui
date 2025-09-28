@@ -2,8 +2,7 @@
   <div 
     *ngFor="let notification of notifications; trackBy: trackByNotificationId"
     class="notification"
-    [class]="getTypeClass(notification.type)"
-    [@slideInOut]>
+    [class]="getTypeClass(notification.type)">
     
     <div class="notification-content">
       <div class="notification-icon">

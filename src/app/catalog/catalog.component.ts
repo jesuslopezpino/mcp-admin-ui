@@ -154,4 +154,8 @@ export class CatalogComponent implements OnInit {
     }
     return [];
   }
+
+  onAssetSelected(assetId: string | null) {
+    this.selectedAssetId = assetId;
+  }
 }

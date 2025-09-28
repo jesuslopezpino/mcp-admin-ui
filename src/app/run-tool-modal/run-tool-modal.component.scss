@@ -109,6 +109,42 @@
   }
 }
 
+.target-selection {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  
+  h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .target-description {
+    margin: 0 0 15px 0;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .target-validation {
+    margin-top: 10px;
+    
+    .validation-error {
+      color: #dc3545;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+}
+
 .tool-form {
   .form-fields {
     display: grid;

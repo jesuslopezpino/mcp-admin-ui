@@ -13,6 +13,9 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
   @Input() stderr: string = '';
   @Input() exitCode: number = 0;
   @Input() status: string = '';
+  @Input() targetHostname: string = '';
+  @Input() targetIp: string = '';
+  @Input() commandName: string = '';
 
   formattedOutput: string = '';
   isSuccess: boolean = false;
@@ -104,5 +107,16 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
 
   closeFullscreen() {
     this.isFullscreen = false;
+  }
+
+  getTargetDisplayName(): string {
+    if (this.targetHostname) {
+      return `${this.targetHostname} (${this.targetIp})`;
+    }
+    return this.targetIp || 'Servidor local';
+  }
+
+  getCommandDisplayName(): string {
+    return this.commandName || 'Comando ejecutado';
   }
 }

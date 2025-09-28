@@ -1,55 +1,59 @@
-<div class="target-selector">
-  <div class="selector-header">
-    <div class="selector-icon">🎯</div>
+<div class="target-selector-compact">
+  <div class="selector-row">
     <div class="selector-info">
-      <h3 class="selector-title">Destino de Ejecución</h3>
-      <p class="selector-description">Selecciona el equipo donde ejecutar las herramientas</p>
-    </div>
-  </div>
-  
-  <div class="selector-content">
-    <div class="custom-dropdown" [class.open]="isOpen">
-      <div class="dropdown-trigger" (click)="toggleDropdown()">
-        <div class="selected-value">
-          <span class="value-text">{{ getSelectedDisplayName() }}</span>
-          <span class="value-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.ip }}</span>
-        </div>
-        <div class="dropdown-arrow" [class.rotated]="isOpen">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+      <div class="selector-icon">🎯</div>
+      <div class="selector-label">
+        <span class="label-text">Destino de Ejecución</span>
+        <span class="label-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.hostname || getSelectedAsset()?.ip }}</span>
       </div>
-      
-             <div class="dropdown-menu" *ngIf="isOpen">
-               <div class="dropdown-option"
-                    *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
-                    [class.selected]="selectedAssetId === asset.id"
-                    [class.disabled]="!asset.winrmEnabled"
-                    (click)="selectOption(asset.id)">
-          <div class="option-content">
-            <div class="option-icon">🖥️</div>
-            <div class="option-text">
-              <span class="option-title">{{ asset.hostname || asset.ip }}</span>
-              <span class="option-subtitle">{{ asset.ip }}</span>
-            </div>
-            <div class="option-badges">
-              <span class="status-badge" [class]="'status-' + asset.status">{{ asset.status }}</span>
-              <span class="winrm-badge" [class]="asset.winrmEnabled ? 'enabled' : 'disabled'">
-                {{ asset.winrmEnabled ? 'WinRM' : 'Sin WinRM' }}
-              </span>
-            </div>
+    </div>
+
+    <div class="selector-controls">
+      <div class="custom-dropdown" [class.open]="isOpen" [class.disabled]="isRemembered">
+        <div class="dropdown-trigger" (click)="!isRemembered && toggleDropdown()">
+          <div class="selected-value">
+            <span class="value-text">{{ getSelectedDisplayName() }}</span>
+            <span class="value-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.ip }}</span>
           </div>
-          <div class="option-status" *ngIf="selectedAssetId === asset.id">✓</div>
+          <div class="dropdown-arrow" [class.rotated]="isOpen" [class.disabled]="isRemembered">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="dropdown-menu" *ngIf="isOpen && !isRemembered">
+          <div class="dropdown-option"
+               *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
+               [class.selected]="selectedAssetId === asset.id"
+               [class.disabled]="!asset.winrmEnabled"
+               (click)="selectOption(asset.id)">
+            <div class="option-content">
+              <div class="option-icon">🖥️</div>
+              <div class="option-text">
+                <span class="option-title">{{ asset.hostname || asset.ip }}</span>
+                <span class="option-subtitle">{{ asset.ip }}</span>
+              </div>
+              <div class="option-badges">
+                <span class="status-badge" [class]="'status-' + asset.status">{{ asset.status }}</span>
+                <span class="winrm-badge" [class]="asset.winrmEnabled ? 'enabled' : 'disabled'">
+                  {{ asset.winrmEnabled ? 'WinRM' : 'Sin WinRM' }}
+                </span>
+              </div>
+            </div>
+            <div class="option-status" *ngIf="selectedAssetId === asset.id">✓</div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="selector-status" *ngIf="selectedAssetId">
-      <div class="status-indicator">
-        <div class="status-dot"></div>
-        <span class="status-text">Destino seleccionado</span>
-      </div>
+
+      <button class="remember-button" 
+              [class.remembered]="isRemembered"
+              [disabled]="!selectedAssetId"
+              (click)="toggleRemember()">
+        <span class="button-icon">{{ isRemembered ? '🔒' : '💾' }}</span>
+        <span class="button-text">{{ isRemembered ? 'Olvidar' : 'Recordar' }}</span>
+      </button>
     </div>
   </div>
+
 </div>

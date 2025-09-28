@@ -26,7 +26,8 @@
   <!-- Target Selector -->
   <app-target-selector 
     [assets]="assets" 
-    [(selectedAssetId)]="selectedAssetId">
+    [selectedAssetId]="selectedAssetId"
+    (selectedAssetIdChange)="onAssetSelected($event)">
   </app-target-selector>
 
   <!-- Error Message -->

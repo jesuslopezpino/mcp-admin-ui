@@ -1,15 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ApiService, ToolDetails, ExecuteResult, Suggestion } from '../services/api.service';
+import { ApiService, ToolDetails, ExecuteResult, Suggestion, Asset } from '../services/api.service';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil, of } from 'rxjs';
 import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
 import { NotificationService } from '../services/notification.service';
+import { TargetSelectorComponent } from '../components/target-selector/target-selector.component';
 
 @Component({
   selector: 'app-run-tool-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TerminalOutputComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
   templateUrl: './run-tool-modal.component.html',
   styleUrl: './run-tool-modal.component.scss'
 })
@@ -25,6 +26,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   isExecuting = false;
   executionResult: ExecuteResult | null = null;
   showConfirmation = false;
+  
+  // Target selection properties
+  assets: Asset[] = [];
+  selectedAssetId: string | null = null;
+  isTargetRequired = true;
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
@@ -32,7 +38,8 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({});
   }
@@ -42,6 +49,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       this.buildForm();
       this.setupAutocomplete();
       this.loadSavedArguments();
+      this.loadAssets();
     }
   }
 
@@ -104,13 +112,15 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   private loadSavedArguments() {
     if (!this.tool) return;
 
-    const saved = localStorage.getItem(`mcp.ui.lastArgs.${this.tool.name}`);
-    if (saved) {
-      try {
-        const args = JSON.parse(saved);
-        this.form.patchValue(args);
-      } catch (e) {
-        console.warn('Error loading saved arguments:', e);
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem(`mcp.ui.lastArgs.${this.tool.name}`);
+      if (saved) {
+        try {
+          const args = JSON.parse(saved);
+          this.form.patchValue(args);
+        } catch (e) {
+          console.warn('Error loading saved arguments:', e);
+        }
       }
     }
   }
@@ -118,11 +128,59 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   private saveArguments() {
     if (!this.tool) return;
 
-    try {
-      localStorage.setItem(`mcp.ui.lastArgs.${this.tool.name}`, JSON.stringify(this.form.value));
-    } catch (e) {
-      console.warn('Error saving arguments:', e);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(`mcp.ui.lastArgs.${this.tool.name}`, JSON.stringify(this.form.value));
+      } catch (e) {
+        console.warn('Error saving arguments:', e);
+      }
     }
+  }
+
+  private loadAssets() {
+    this.apiService.getAssets().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (assets) => {
+        this.assets = assets;
+        // If assetId is provided, use it as default selection
+        if (this.assetId) {
+          this.selectedAssetId = this.assetId;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading assets:', error);
+        this.notificationService.error(
+          'Error cargando assets',
+          'No se pudieron cargar los destinos disponibles'
+        );
+      }
+    });
+  }
+
+  onTargetSelected(assetId: string | null) {
+    this.selectedAssetId = assetId;
+    this.cdr.detectChanges();
+  }
+
+  getSelectedAsset(): Asset | null {
+    if (!this.selectedAssetId) return null;
+    return this.assets.find(asset => asset.id === this.selectedAssetId) || null;
+  }
+
+  getTargetDisplayName(): string {
+    if (!this.selectedAssetId) {
+      return 'Seleccionar destino';
+    }
+    const asset = this.getSelectedAsset();
+    if (asset) {
+      return asset.hostname || asset.ip;
+    }
+    return 'Seleccionar destino';
+  }
+
+  isTargetValid(): boolean {
+    return this.selectedAssetId !== null && this.selectedAssetId !== '';
   }
 
   onSearch(query: string) {
@@ -138,6 +196,15 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
 
   onExecute() {
     if (!this.tool || this.form.invalid) return;
+
+    // Validate target selection
+    if (this.isTargetRequired && !this.isTargetValid()) {
+      this.notificationService.error(
+        'Destino requerido',
+        'Debes seleccionar un destino antes de ejecutar la herramienta'
+      );
+      return;
+    }
 
     this.saveArguments();
 
@@ -163,8 +230,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     this.isExecuting = true;
     this.executionResult = null;
 
-    const execution$ = this.assetId 
-      ? this.apiService.executeForAsset(this.assetId, this.tool.name, this.form.value, true)
+    // Use selected target or fallback to provided assetId
+    const targetAssetId = this.selectedAssetId || this.assetId;
+    
+    const execution$ = targetAssetId 
+      ? this.apiService.executeForAsset(targetAssetId, this.tool.name, this.form.value, true)
       : this.apiService.executeDirect(this.tool.name, this.form.value, true);
 
     execution$.pipe(
@@ -187,11 +257,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
           );
         }
         
-        this.execute.emit({
-          tool: this.tool!,
-          arguments: this.form.value,
-          userConfirmed: true
-        });
+        // Note: Removed execute.emit() to prevent duplicate notifications
       },
       error: (error) => {
         console.error('=== EXECUTION ERROR DEBUG ===');
@@ -299,6 +365,10 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   }
 
   getDestinationDisplay(): string {
+    if (this.selectedAssetId) {
+      const asset = this.getSelectedAsset();
+      return asset ? `${asset.hostname || asset.ip} (${asset.ip})` : `Asset: ${this.selectedAssetId}`;
+    }
     return this.assetId ? `Asset: ${this.assetId}` : 'Servidor (local)';
   }
 }

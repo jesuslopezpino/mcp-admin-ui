@@ -4,9 +4,21 @@
       <span class="terminal-icon">⚡</span>
       Terminal Output
     </div>
-    <div class="terminal-status" [style.color]="getStatusColor()">
-      <span class="status-icon">{{ getStatusIcon() }}</span>
-      {{ status }} (Exit Code: {{ exitCode }})
+    <div class="terminal-info">
+      <div class="info-row">
+        <div class="target-info" *ngIf="targetHostname || targetIp">
+          <span class="info-label">🎯 Destino:</span>
+          <span class="info-value">{{ getTargetDisplayName() }}</span>
+        </div>
+        <div class="command-info" *ngIf="commandName">
+          <span class="info-label">🔧 Comando:</span>
+          <span class="info-value">{{ getCommandDisplayName() }}</span>
+        </div>
+        <div class="terminal-status" [style.color]="getStatusColor()">
+          <span class="status-icon">{{ getStatusIcon() }}</span>
+          {{ status }} (Exit Code: {{ exitCode }})
+        </div>
+      </div>
     </div>
   </div>
   
@@ -35,7 +47,19 @@
     <div class="fullscreen-header">
       <div class="fullscreen-title">
         <span class="terminal-icon">⚡</span>
-        Terminal Output - Fullscreen
+        Terminal Output
+      </div>
+      <div class="fullscreen-info">
+        <div class="info-row">
+          <div class="target-info" *ngIf="targetHostname || targetIp">
+            <span class="info-label">🎯 Destino:</span>
+            <span class="info-value">{{ getTargetDisplayName() }}</span>
+          </div>
+          <div class="command-info" *ngIf="commandName">
+            <span class="info-label">🔧 Comando:</span>
+            <span class="info-value">{{ getCommandDisplayName() }}</span>
+          </div>
+        </div>
       </div>
       <div class="fullscreen-status" [style.color]="getStatusColor()">
         <span class="status-icon">{{ getStatusIcon() }}</span>

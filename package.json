@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:mcp-admin-ui": "node dist/mcp-admin-ui/server/server.mjs"
+    "serve:ssr:mcp-admin-ui": "node dist/mcp-admin-ui/server/server.mjs",
+    "clean": "rimraf node_modules dist .angular && npm cache clean --force"
   },
   "private": true,
   "dependencies": {
@@ -39,6 +40,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "rimraf": "^5.0.5",
     "typescript": "~5.4.2"
   }
 }

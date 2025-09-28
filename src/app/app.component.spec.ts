@@ -1,10 +1,22 @@
 import { TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ActivatedRoute } from '@angular/router';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      imports: [AppComponent, RouterTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { params: {}, queryParams: {} },
+            params: { subscribe: () => {} },
+            queryParams: { subscribe: () => {} }
+          }
+        }
+      ]
     }).compileComponents();
   });
 
@@ -24,6 +36,6 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, mcp-admin-ui');
+    expect(compiled.querySelector('h1')?.textContent).toContain('🤖 MCP Admin Panel');
   });
 });

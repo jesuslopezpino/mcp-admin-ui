@@ -145,7 +145,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
       <div class="assets-grid" *ngIf="filteredAssets.length > 0">
         <div class="asset-card" *ngFor="let asset of paginatedAssets" 
              [class.selected]="selectedAssets.includes(asset.id)"
-             [data-testid]="'asset-card-' + asset.id">
+             [attr.data-testid]="'asset-card-' + asset.id">
           <div class="asset-header">
             <div class="asset-info">
               <h3 class="asset-name">
@@ -200,7 +200,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
               <button 
                 class="btn btn-sm btn-outline" 
                 (click)="viewAssetDetails(asset)"
-                [data-testid]="'view-details-' + asset.id"
+                 [attr.data-testid]="'view-details-' + asset.id"
                 title="Ver detalles">
                 👁️
               </button>
@@ -209,7 +209,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
                 class="btn btn-sm btn-primary" 
                 (click)="openRunToolModal(asset)"
                 [disabled]="asset.status !== 'online'"
-                [data-testid]="'execute-tool-' + asset.id"
+                 [attr.data-testid]="'execute-tool-' + asset.id"
                 title="Ejecutar herramienta">
                 ⚡
               </button>
@@ -217,7 +217,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
               <button 
                 class="btn btn-sm btn-secondary" 
                 (click)="pingAsset(asset)"
-                [data-testid]="'ping-asset-' + asset.id"
+                 [attr.data-testid]="'ping-asset-' + asset.id"
                 title="Hacer ping">
                 📡
               </button>

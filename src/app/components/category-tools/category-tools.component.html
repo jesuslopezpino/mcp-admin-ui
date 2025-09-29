@@ -20,7 +20,7 @@
     <div class="tool-card" 
          *ngFor="let tool of tools" 
          (click)="selectTool(tool.id)"
-         [data-testid]="'tool-card-' + tool.id"
+         [attr.data-testid]="'tool-card-' + tool.id"
          [class.requires-confirmation]="tool.requiresConfirmation">
       
       <div class="tool-header">

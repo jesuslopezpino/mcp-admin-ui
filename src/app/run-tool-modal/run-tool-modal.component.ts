@@ -160,7 +160,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
 
   onTargetSelected(assetId: string | null) {
     this.selectedAssetId = assetId;
-    this.cdr.detectChanges();
+    // Only trigger change detection if we're actually selecting an asset
+    // Don't trigger when clearing selection (null) to avoid re-execution
+    if (assetId !== null) {
+      this.cdr.detectChanges();
+    }
   }
 
   getSelectedAsset(): Asset | null {

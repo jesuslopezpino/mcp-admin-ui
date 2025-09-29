@@ -1,13 +1,14 @@
-<div class="category-grid">
-  <div class="grid-header">
+<div class="category-grid" data-testid="category-grid">
+  <div class="grid-header" data-testid="category-grid-header">
     <h2>🛠️ Categorías de Herramientas</h2>
     <p>Selecciona una categoría para ver las herramientas disponibles</p>
   </div>
   
-  <div class="categories-container">
+  <div class="categories-container" data-testid="categories-container">
     <div class="category-card" 
          *ngFor="let category of categories" 
          (click)="selectCategory(category.id)"
+         [data-testid]="'category-card-' + category.id"
          [style.background]="'linear-gradient(135deg, ' + category.color + ' 0%, ' + category.color + '80 100%)'">
       
       <div class="category-icon">{{ category.icon }}</div>

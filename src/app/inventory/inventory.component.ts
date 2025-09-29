@@ -11,29 +11,30 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
   template: `
     <div class="inventory-container">
       <!-- Header Section -->
-      <div class="header">
+      <div class="header" data-testid="inventory-header">
         <h2>🔍 Inventario de Equipos</h2>
         <p>Descubre y gestiona equipos en tu red</p>
       </div>
 
       <!-- Actions Bar -->
-      <div class="actions-bar">
-        <div class="search-filters">
+      <div class="actions-bar" data-testid="actions-bar">
+        <div class="search-filters" data-testid="search-filters">
           <input 
             type="text" 
             class="search-input" 
             placeholder="🔍 Buscar por hostname o IP..."
             [(ngModel)]="searchTerm"
-            (input)="filterAssets()">
+            (input)="filterAssets()"
+            data-testid="search-input">
           
-          <select class="filter-select" [(ngModel)]="statusFilter" (change)="filterAssets()">
+          <select class="filter-select" [(ngModel)]="statusFilter" (change)="filterAssets()" data-testid="status-filter">
             <option value="">Todos los estados</option>
             <option value="online">🟢 Online</option>
             <option value="offline">🔴 Offline</option>
             <option value="unknown">🟡 Desconocido</option>
           </select>
           
-          <select class="filter-select" [(ngModel)]="osFilter" (change)="filterAssets()">
+          <select class="filter-select" [(ngModel)]="osFilter" (change)="filterAssets()" data-testid="os-filter">
             <option value="">Todos los OS</option>
             <option value="windows">🪟 Windows</option>
             <option value="linux">🐧 Linux</option>
@@ -41,11 +42,12 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
           </select>
         </div>
         
-        <div class="action-buttons">
+        <div class="action-buttons" data-testid="action-buttons">
           <button 
             class="btn btn-primary" 
             (click)="discoverAssets()" 
-            [disabled]="isDiscovering">
+            [disabled]="isDiscovering"
+            data-testid="discover-button">
             <span *ngIf="isDiscovering">⏳</span>
             <span *ngIf="!isDiscovering">🔍</span>
             {{ isDiscovering ? 'Escaneando...' : 'Descubrir ahora' }}
@@ -54,7 +56,8 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
           <button 
             class="btn btn-secondary" 
             (click)="loadAssets()" 
-            [disabled]="isLoading">
+            [disabled]="isLoading"
+            data-testid="refresh-button">
             <span *ngIf="isLoading">⏳</span>
             <span *ngIf="!isLoading">🔄</span>
             {{ isLoading ? 'Cargando...' : 'Actualizar' }}
@@ -141,7 +144,8 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
       <!-- Assets Grid -->
       <div class="assets-grid" *ngIf="filteredAssets.length > 0">
         <div class="asset-card" *ngFor="let asset of paginatedAssets" 
-             [class.selected]="selectedAssets.includes(asset.id)">
+             [class.selected]="selectedAssets.includes(asset.id)"
+             [data-testid]="'asset-card-' + asset.id">
           <div class="asset-header">
             <div class="asset-info">
               <h3 class="asset-name">
@@ -192,10 +196,11 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
                 (change)="toggleAssetSelection(asset.id)">
             </div>
             
-            <div class="action-buttons">
+            <div class="action-buttons" data-testid="asset-actions">
               <button 
                 class="btn btn-sm btn-outline" 
                 (click)="viewAssetDetails(asset)"
+                [data-testid]="'view-details-' + asset.id"
                 title="Ver detalles">
                 👁️
               </button>
@@ -204,6 +209,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
                 class="btn btn-sm btn-primary" 
                 (click)="openRunToolModal(asset)"
                 [disabled]="asset.status !== 'online'"
+                [data-testid]="'execute-tool-' + asset.id"
                 title="Ejecutar herramienta">
                 ⚡
               </button>
@@ -211,6 +217,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
               <button 
                 class="btn btn-sm btn-secondary" 
                 (click)="pingAsset(asset)"
+                [data-testid]="'ping-asset-' + asset.id"
                 title="Hacer ping">
                 📡
               </button>
@@ -233,7 +240,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
       </div>
 
       <!-- Empty State -->
-      <div class="empty-state" *ngIf="filteredAssets.length === 0 && !isLoading">
+      <div class="empty-state" *ngIf="filteredAssets.length === 0 && !isLoading" data-testid="empty-state">
         <div class="empty-content">
           <span class="empty-icon">🔍</span>
           <h3 *ngIf="searchTerm || statusFilter || osFilter">No se encontraron equipos</h3>

@@ -6,17 +6,18 @@
   </app-breadcrumb>
 
   <!-- Header -->
-  <div class="header">
+  <div class="header" data-testid="catalog-header">
     <h2>🛠️ Catálogo de Herramientas</h2>
     <p>Explora y ejecuta herramientas MCP disponibles</p>
   </div>
 
   <!-- Actions Bar -->
-  <div class="actions-bar">
+  <div class="actions-bar" data-testid="catalog-actions">
     <button 
       class="btn btn-primary" 
       (click)="loadTools()" 
-      [disabled]="isLoading">
+      [disabled]="isLoading"
+      data-testid="refresh-tools-button">
       <span *ngIf="isLoading">⏳</span>
       <span *ngIf="!isLoading">🔄</span>
       {{ isLoading ? 'Cargando...' : 'Actualizar' }}

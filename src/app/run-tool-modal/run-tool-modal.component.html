@@ -1,16 +1,16 @@
-<div class="modal-overlay" (click)="onClose()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
+<div class="modal-overlay" (click)="onClose()" data-testid="run-tool-modal-overlay">
+  <div class="modal-content" (click)="$event.stopPropagation()" data-testid="run-tool-modal">
+    <div class="modal-header" data-testid="modal-header">
       <h2>🔧 Ejecutar Herramienta</h2>
-      <div class="destination-info">
+      <div class="destination-info" data-testid="destination-info">
         <span class="destination-label">Destino:</span>
         <span class="destination-value">{{ getTargetDisplayName() }}</span>
       </div>
-      <button class="close-btn" (click)="onClose()">×</button>
+      <button class="close-btn" (click)="onClose()" data-testid="close-modal">×</button>
     </div>
 
-    <div class="modal-body" *ngIf="tool">
-      <div class="tool-info">
+    <div class="modal-body" *ngIf="tool" data-testid="modal-body">
+      <div class="tool-info" data-testid="tool-info">
         <h3>{{ tool.name }}</h3>
         <p>{{ tool.description }}</p>
         <div class="tool-meta">
@@ -118,7 +118,8 @@
           </button>
           <button type="submit" 
                   class="btn btn-primary"
-                  [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())">
+                  [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                  data-testid="execute-tool-button">
             <span *ngIf="isExecuting">⏳</span>
             <span *ngIf="!isExecuting">🚀</span>
             {{ isExecuting ? 'Ejecutando...' : 'Ejecutar' }}

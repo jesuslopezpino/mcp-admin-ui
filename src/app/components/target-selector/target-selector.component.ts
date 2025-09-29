@@ -77,8 +77,14 @@ export class TargetSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  toggleRemember() {
+  toggleRemember(event?: Event) {
     if (!this.selectedAssetId) return;
+
+    // Prevent event propagation to avoid triggering other click handlers
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     this.isRemembered = !this.isRemembered;
     
@@ -91,7 +97,10 @@ export class TargetSelectorComponent implements OnInit, OnChanges {
         localStorage.removeItem('mcp.ui.rememberedAsset');
         localStorage.removeItem('mcp.ui.selectedAsset');
         this.selectedAssetId = null;
-        this.selectedAssetIdChange.emit(null);
+        // Use setTimeout to avoid immediate re-execution
+        setTimeout(() => {
+          this.selectedAssetIdChange.emit(null);
+        }, 0);
       }
     }
   }

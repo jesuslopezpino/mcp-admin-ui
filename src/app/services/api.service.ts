@@ -35,6 +35,8 @@ export interface ExecuteResult {
   stdout: string;
   stderr: string;
   status: string;
+  targetHostname?: string;
+  targetIp?: string;
 }
 
 export interface Tool {

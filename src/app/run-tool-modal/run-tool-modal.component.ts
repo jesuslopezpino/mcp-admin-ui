@@ -245,7 +245,13 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
              next: (result) => {
-               this.executionResult = result;
+               // Add target information to the result
+               const selectedAsset = this.getSelectedAsset();
+               this.executionResult = {
+                 ...result,
+                 targetHostname: selectedAsset?.hostname || '',
+                 targetIp: selectedAsset?.ip || ''
+               };
                this.isExecuting = false;
 
                // Only show notifications for non-success cases

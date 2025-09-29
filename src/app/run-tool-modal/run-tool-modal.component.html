@@ -134,8 +134,8 @@
           [stderr]="executionResult.stderr"
           [exitCode]="executionResult.exitCode"
           [status]="executionResult.status"
-          [targetHostname]="getSelectedAsset()?.hostname || ''"
-          [targetIp]="getSelectedAsset()?.ip || ''"
+          [targetHostname]="executionResult.targetHostname || getSelectedAsset()?.hostname || ''"
+          [targetIp]="executionResult.targetIp || getSelectedAsset()?.ip || ''"
           [commandName]="tool.name || ''">
         </app-terminal-output>
       </div>

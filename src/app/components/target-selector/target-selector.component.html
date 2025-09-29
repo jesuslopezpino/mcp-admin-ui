@@ -49,7 +49,7 @@
       <button class="remember-button" 
               [class.remembered]="isRemembered"
               [disabled]="!selectedAssetId"
-              (click)="toggleRemember()">
+              (click)="toggleRemember($event)">
         <span class="button-icon">{{ isRemembered ? '🔒' : '💾' }}</span>
         <span class="button-text">{{ isRemembered ? 'Olvidar' : 'Recordar' }}</span>
       </button>

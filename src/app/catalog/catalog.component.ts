@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Tool, ToolDetails, Asset } from '../services/api.service';
+import { ApiService, ToolDetails } from '../services/api.service';
+import { Tool, Asset } from '../models/api';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
 import { TargetSelectorComponent } from '../components/target-selector/target-selector.component';
 import { CategoryGridComponent } from '../components/category-grid/category-grid.component';

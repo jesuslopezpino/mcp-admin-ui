@@ -471,4 +471,151 @@ describe('ApiService', () => {
       expect(headers.get('Content-Type')).toBe('application/json');
     });
   });
+
+  describe('scheduled tasks methods', () => {
+    describe('getSchedules', () => {
+      it('should fetch all scheduled tasks', () => {
+        const mockSchedules = [
+          {
+            id: 'schedule-1',
+            name: 'Daily Backup',
+            toolName: 'files.backup_user_docs',
+            assetId: null,
+            arguments: { destination: '/backup' },
+            cronExpr: '0 2 * * *',
+            enabled: true,
+            lastRunAt: '2025-10-02T02:00:00Z',
+            nextRunAt: '2025-10-03T02:00:00Z'
+          },
+          {
+            id: 'schedule-2',
+            name: 'System Health Check',
+            toolName: 'system.get_disk_info',
+            assetId: 'asset-123',
+            arguments: {},
+            cronExpr: '*/30 * * * *',
+            enabled: false,
+            lastRunAt: null,
+            nextRunAt: null
+          }
+        ];
+
+        service.getSchedules().subscribe(schedules => {
+          expect(schedules).toEqual(mockSchedules);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules`);
+        expect(req.request.method).toBe('GET');
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(mockSchedules);
+      });
+    });
+
+    describe('getSchedule', () => {
+      it('should fetch specific scheduled task by ID', () => {
+        const scheduleId = 'schedule-123';
+        const mockSchedule = {
+          id: scheduleId,
+          name: 'Weekly Maintenance',
+          toolName: 'system.cleanup_temp',
+          assetId: null,
+          arguments: { days: 7 },
+          cronExpr: '0 3 * * 0',
+          enabled: true,
+          lastRunAt: '2025-10-01T03:00:00Z',
+          nextRunAt: '2025-10-08T03:00:00Z'
+        };
+
+        service.getSchedule(scheduleId).subscribe(schedule => {
+          expect(schedule).toEqual(mockSchedule);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}`);
+        expect(req.request.method).toBe('GET');
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(mockSchedule);
+      });
+    });
+
+    describe('createSchedule', () => {
+      it('should create new scheduled task', () => {
+        const newTask = {
+          name: 'DNS Flush Every 5 Minutes',
+          toolName: 'network.flush_dns',
+          assetId: null,
+          arguments: {},
+          cronExpr: '*/5 * * * *',
+          enabled: true
+        };
+        const mockResponse = {
+          id: 'schedule-new-123',
+          ...newTask,
+          lastRunAt: null,
+          nextRunAt: '2025-10-02T10:05:00Z'
+        };
+
+        service.createSchedule(newTask).subscribe(schedule => {
+          expect(schedule).toEqual(mockResponse);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(newTask);
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+        expect(req.request.headers.get('Content-Type')).toBe('application/json');
+
+        req.flush(mockResponse);
+      });
+    });
+
+    describe('updateSchedule', () => {
+      it('should update existing scheduled task', () => {
+        const scheduleId = 'schedule-456';
+        const updateData = {
+          name: 'Updated Task Name',
+          enabled: false
+        };
+        const mockResponse = {
+          id: scheduleId,
+          name: 'Updated Task Name',
+          toolName: 'system.get_disk_info',
+          assetId: null,
+          arguments: {},
+          cronExpr: '0 */6 * * *',
+          enabled: false,
+          lastRunAt: '2025-10-02T06:00:00Z',
+          nextRunAt: null
+        };
+
+        service.updateSchedule(scheduleId, updateData).subscribe(schedule => {
+          expect(schedule).toEqual(mockResponse);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}`);
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toEqual(updateData);
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(mockResponse);
+      });
+    });
+
+    describe('deleteSchedule', () => {
+      it('should delete scheduled task', () => {
+        const scheduleId = 'schedule-789';
+
+        service.deleteSchedule(scheduleId).subscribe(() => {
+          // No response body expected for delete
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}`);
+        expect(req.request.method).toBe('DELETE');
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(null);
+      });
+    });
+  });
 });

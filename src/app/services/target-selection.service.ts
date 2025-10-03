@@ -16,6 +16,10 @@ export class TargetSelectionService {
    * @returns The persisted asset ID or null if none/invalid
    */
   load(): string | null {
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    
     const value = localStorage.getItem(this.key);
     
     // Normalize empty/invalid values to null
@@ -32,6 +36,10 @@ export class TargetSelectionService {
    * @param assetId The asset ID to persist, or null to clear
    */
   save(assetId: string | null): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    
     if (!assetId) {
       localStorage.removeItem(this.key);
       return;
@@ -44,6 +52,10 @@ export class TargetSelectionService {
    * Clear the persisted selection from localStorage.
    */
   clear(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    
     localStorage.removeItem(this.key);
   }
 }

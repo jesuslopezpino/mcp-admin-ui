@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ScheduledTask, Tool, Asset } from '../models/api';
 
 export interface PlanRequest {
   userId: string;
@@ -39,15 +40,6 @@ export interface ExecuteResult {
   targetIp?: string;
 }
 
-export interface Tool {
-  name: string;
-  description: string;
-  requiresConfirmation: boolean;
-  osSupport?: string[];
-  parameters?: any; // JSON Schema
-  command?: string; // PowerShell command
-}
-
 export interface ToolDetails {
   name: string;
   description: string;
@@ -72,25 +64,6 @@ export interface ExecuteDirectRequest {
   assetId?: string;
 }
 
-export interface Asset {
-  id: string;
-  hostname: string;
-  ip: string;
-  os: string;
-  status: string;
-  winrmEnabled: boolean;
-  lastSeen: string;
-  pingResult?: {
-    status: string;
-    message: string;
-    timestamp: Date;
-    details: {
-      exitCode: number;
-      stdout: string;
-      stderr: string;
-    };
-  };
-}
 
 export interface DiscoveryResult {
   started: boolean;
@@ -234,6 +207,62 @@ export class ApiService {
    */
   getExecution(executionId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/executions/${executionId}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // Scheduled tasks methods
+  /**
+   * Get all scheduled tasks
+   * @returns Observable with array of scheduled tasks
+   */
+  getSchedules(): Observable<ScheduledTask[]> {
+    return this.http.get<ScheduledTask[]>(`${this.baseUrl}/schedules`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Get a specific scheduled task by ID
+   * @param id Task ID
+   * @returns Observable with scheduled task details
+   */
+  getSchedule(id: string): Observable<ScheduledTask> {
+    return this.http.get<ScheduledTask>(`${this.baseUrl}/schedules/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Create a new scheduled task
+   * @param task Task data
+   * @returns Observable with created task
+   */
+  createSchedule(task: Partial<ScheduledTask>): Observable<ScheduledTask> {
+    return this.http.post<ScheduledTask>(`${this.baseUrl}/schedules`, task, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Update an existing scheduled task
+   * @param id Task ID
+   * @param task Updated task data
+   * @returns Observable with updated task
+   */
+  updateSchedule(id: string, task: Partial<ScheduledTask>): Observable<ScheduledTask> {
+    return this.http.put<ScheduledTask>(`${this.baseUrl}/schedules/${id}`, task, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Delete a scheduled task
+   * @param id Task ID
+   * @returns Observable with void
+   */
+  deleteSchedule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/schedules/${id}`, {
       headers: this.getHeaders()
     });
   }

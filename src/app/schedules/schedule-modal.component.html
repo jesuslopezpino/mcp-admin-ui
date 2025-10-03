@@ -1,0 +1,126 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()" data-testid="schedule-modal">
+    <div class="modal-header">
+      <h2>{{ modalTitle }}</h2>
+      <button class="modal-close" (click)="onCancel()" type="button">
+        <span>&times;</span>
+      </button>
+    </div>
+
+    <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="modal-body">
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-control"
+          [class.error]="getFieldError('name')"
+          placeholder="Enter task name">
+        <div *ngIf="getFieldError('name')" class="field-error">
+          {{ getFieldError('name') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="toolName">Tool *</label>
+        <select
+          id="toolName"
+          formControlName="toolName"
+          class="form-control"
+          [class.error]="getFieldError('toolName')">
+          <option value="">Select a tool</option>
+          <option *ngFor="let tool of tools" [value]="tool.name">
+            {{ tool.name }} - {{ tool.description }}
+          </option>
+        </select>
+        <div *ngIf="getFieldError('toolName')" class="field-error">
+          {{ getFieldError('toolName') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="assetId">Destination</label>
+        <select
+          id="assetId"
+          formControlName="assetId"
+          class="form-control">
+          <option [value]="null">Servidor (local)</option>
+          <option *ngFor="let asset of assets" [value]="asset.id">
+            {{ asset.hostname || asset.ip }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cronExpr">Cron Expression *</label>
+        <input
+          id="cronExpr"
+          type="text"
+          formControlName="cronExpr"
+          class="form-control"
+          [class.error]="getFieldError('cronExpr')"
+          placeholder="e.g., */5 * * * * (every 5 minutes)">
+        <div *ngIf="getFieldError('cronExpr')" class="field-error">
+          {{ getFieldError('cronExpr') }}
+        </div>
+        <small class="form-help">
+          Format: minute hour day month dayOfWeek (e.g., "0 2 * * *" for daily at 2 AM)
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="arguments">Arguments (JSON)</label>
+        <textarea
+          id="arguments"
+          formControlName="arguments"
+          class="form-control"
+          [class.error]="jsonError"
+          rows="6"
+          placeholder='{"param1": "value1", "param2": "value2"}'>
+        </textarea>
+        <div *ngIf="jsonError" class="field-error">
+          {{ jsonError }}
+        </div>
+        <small class="form-help">
+          Enter valid JSON for tool arguments. Use {} for no arguments.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="enabled"
+            class="form-checkbox">
+          <span class="checkmark"></span>
+          Enabled
+        </label>
+        <small class="form-help">
+          Disabled tasks will not be executed by the scheduler.
+        </small>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="isSubmitting">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="onSubmit()"
+        [disabled]="!isFormValid || isSubmitting"
+        data-testid="schedule-save">
+        <span *ngIf="isSubmitting" class="spinner"></span>
+        <span *ngIf="isSubmitting">Saving...</span>
+        <span *ngIf="!isSubmitting && isEditMode">Update</span>
+        <span *ngIf="!isSubmitting && !isEditMode">Create</span>
+      </button>
+    </div>
+  </div>
+</div>

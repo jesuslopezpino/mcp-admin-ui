@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Plan, ExecuteResult, Tool } from '../services/api.service';
+import { ApiService, Plan, ExecuteResult } from '../services/api.service';
+import { Tool } from '../models/api';
 
 export interface ParameterDefinition {
   name: string;

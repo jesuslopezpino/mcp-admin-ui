@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ToolDetails, Asset } from './api.service';
+import { ToolDetails } from './api.service';
+import { Asset } from '../models/api';
 import { PowerShellCommandService } from './powershell-command.service';
 
 @Injectable({

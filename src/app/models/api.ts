@@ -137,3 +137,16 @@ export interface ExecutePlanRequest {
   userConfirmed: boolean;
 }
 
+// Scheduled tasks types
+export interface ScheduledTask {
+  id: string;
+  name: string;
+  toolName: string;
+  assetId?: string | null;
+  arguments: any;
+  cronExpr: string;
+  enabled: boolean;
+  lastRunAt?: string;
+  nextRunAt?: string;
+}
+

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Asset, DiscoveryResult, Tool, ToolDetails, ExecuteResult } from '../services/api.service';
+import { ApiService, DiscoveryResult, ToolDetails, ExecuteResult } from '../services/api.service';
+import { Asset, Tool } from '../models/api';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
 
 @Component({

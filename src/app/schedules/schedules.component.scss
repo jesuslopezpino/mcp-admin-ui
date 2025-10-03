@@ -1,0 +1,258 @@
+.schedules-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.schedules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 28px;
+    font-weight: 600;
+  }
+}
+
+.schedules-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #4299e1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: #718096;
+    margin: 0;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.schedules-table-container {
+  overflow-x: auto;
+}
+
+.schedules-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  thead {
+    background: #f7fafc;
+    
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #4a5568;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+    }
+  }
+  
+  tbody {
+    tr {
+      border-bottom: 1px solid #e2e8f0;
+      
+      &:hover {
+        background: #f7fafc;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      color: #2d3748;
+    }
+  }
+}
+
+.task-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.task-tool {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #4a5568;
+}
+
+.task-destination {
+  color: #4a5568;
+}
+
+.task-cron {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #4a5568;
+  background: #f7fafc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.task-enabled {
+  .badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    
+    &.badge-success {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    &.badge-danger {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+  }
+}
+
+.task-next-run,
+.task-last-run {
+  font-size: 13px;
+  color: #718096;
+  white-space: nowrap;
+}
+
+.task-actions {
+  white-space: nowrap;
+  
+  .btn {
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.no-tasks {
+  text-align: center;
+  padding: 48px;
+  color: #718096;
+  font-style: italic;
+}
+
+// Button styles
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &.btn-primary {
+    background: #4299e1;
+    color: white;
+    border-color: #4299e1;
+    
+    &:hover:not(:disabled) {
+      background: #3182ce;
+      border-color: #3182ce;
+    }
+  }
+  
+  &.btn-outline-primary {
+    background: transparent;
+    color: #4299e1;
+    border-color: #4299e1;
+    
+    &:hover:not(:disabled) {
+      background: #4299e1;
+      color: white;
+    }
+  }
+  
+  &.btn-outline-danger {
+    background: transparent;
+    color: #e53e3e;
+    border-color: #e53e3e;
+    
+    &:hover:not(:disabled) {
+      background: #e53e3e;
+      color: white;
+    }
+  }
+  
+  &.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .schedules-container {
+    padding: 16px;
+  }
+  
+  .schedules-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    
+    h1 {
+      font-size: 24px;
+    }
+  }
+  
+  .schedules-table {
+    font-size: 14px;
+    
+    th, td {
+      padding: 8px 12px;
+    }
+  }
+  
+  .task-actions {
+    .btn {
+      margin-bottom: 4px;
+      margin-right: 4px;
+    }
+  }
+}
+

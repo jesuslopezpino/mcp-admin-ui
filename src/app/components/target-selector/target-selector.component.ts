@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { Asset } from '../../services/api.service';
+import { Asset } from '../../models/api';
 import { TargetSelectionService } from '../../services/target-selection.service';
 import { Subject, takeUntil } from 'rxjs';
 

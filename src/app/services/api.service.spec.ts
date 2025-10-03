@@ -366,6 +366,104 @@ describe('ApiService', () => {
     });
   });
 
+  describe('createExecution', () => {
+    it('should create async execution with required parameters', () => {
+      const toolName = 'system.flush_dns';
+      const args = { verbose: true };
+      const mockResponse = { executionId: 'exec-async-123' };
+
+      service.createExecution(toolName, args).subscribe(response => {
+        expect(response).toEqual(mockResponse);
+        expect(response.executionId).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${environment.baseUrl}/recipes/execute`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        toolName: toolName,
+        arguments: args,
+        assetId: undefined,
+        userId: 'admin'
+      });
+      expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+      req.flush(mockResponse);
+    });
+
+    it('should create async execution with assetId and userId', () => {
+      const toolName = 'apps.install';
+      const args = { name: 'vscode', silent: true };
+      const assetId = 'remote-asset-456';
+      const userId = 'test-user';
+      const mockResponse = { executionId: 'exec-async-456' };
+
+      service.createExecution(toolName, args, assetId, userId).subscribe(response => {
+        expect(response.executionId).toBe('exec-async-456');
+      });
+
+      const req = httpMock.expectOne(`${environment.baseUrl}/recipes/execute`);
+      expect(req.request.body).toEqual({
+        toolName: toolName,
+        arguments: args,
+        assetId: assetId,
+        userId: userId
+      });
+
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('getExecution', () => {
+    it('should fetch execution status by ID', () => {
+      const executionId = 'exec-123';
+      const mockExecution = {
+        id: executionId,
+        toolName: 'system.flush_dns',
+        status: 'SUCCESS',
+        exitCode: 0,
+        stdout: 'DNS cache flushed successfully',
+        stderr: '',
+        startedAt: '2025-10-02T10:00:00Z',
+        finishedAt: '2025-10-02T10:00:05Z',
+        createdAt: '2025-10-02T09:59:50Z'
+      };
+
+      service.getExecution(executionId).subscribe(execution => {
+        expect(execution).toEqual(mockExecution);
+        expect(execution.status).toBe('SUCCESS');
+      });
+
+      const req = httpMock.expectOne(`${environment.baseUrl}/executions/${executionId}`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+      req.flush(mockExecution);
+    });
+
+    it('should handle execution in PENDING state', () => {
+      const executionId = 'exec-pending-789';
+      const mockExecution = {
+        id: executionId,
+        toolName: 'apps.install',
+        status: 'PENDING',
+        exitCode: null,
+        stdout: null,
+        stderr: null,
+        startedAt: null,
+        finishedAt: null,
+        createdAt: '2025-10-02T10:00:00Z'
+      };
+
+      service.getExecution(executionId).subscribe(execution => {
+        expect(execution.status).toBe('PENDING');
+        expect(execution.exitCode).toBeNull();
+      });
+
+      const req = httpMock.expectOne(`${environment.baseUrl}/executions/${executionId}`);
+      req.flush(mockExecution);
+    });
+  });
+
   describe('getHeaders', () => {
     it('should return correct headers', () => {
       const headers = service['getHeaders']();

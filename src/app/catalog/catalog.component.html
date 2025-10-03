@@ -51,6 +51,7 @@
   <app-category-grid 
     *ngIf="currentView === 'categories' && !isLoading && tools.length > 0"
     [categories]="categories"
+    [categorizedTools]="categorizedTools"
     (categorySelected)="onCategorySelected($event)">
   </app-category-grid>
 
@@ -81,6 +82,6 @@
     [tool]="selectedTool"
     [assetId]="selectedAssetId"
     (close)="onModalClose()"
-    (execute)="onToolExecute($event)">
+    (result)="onToolExecute($event)">
   </app-run-tool-modal>
 </div>

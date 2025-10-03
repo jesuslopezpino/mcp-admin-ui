@@ -1,12 +1,20 @@
 <div class="modal-overlay" (click)="onClose()" data-testid="run-tool-modal-overlay">
   <div class="modal-content" (click)="$event.stopPropagation()" data-testid="run-tool-modal">
-    <div class="modal-header" data-testid="modal-header">
+    <div class="modal-header" data-testid="run-modal-title">
       <h2>🔧 Ejecutar Herramienta</h2>
       <div class="destination-info" data-testid="destination-info">
         <span class="destination-label">Destino:</span>
-        <span class="destination-value">{{ getTargetDisplayName() }}</span>
+        <span class="destination-value">{{ getDestinationDisplay() }}</span>
       </div>
-      <button class="close-btn" (click)="onClose()" data-testid="close-modal">×</button>
+      
+      <!-- Status indicator during execution -->
+      <div class="status-indicator" *ngIf="isExecuting || executionResult" data-testid="execution-status">
+        <span class="status-icon">{{ getStatusIcon(currentStatus || 'PENDING') }}</span>
+        <span class="status-text">{{ currentStatus || 'PENDING' }}</span>
+        <span class="spinner" *ngIf="isExecuting">⏳</span>
+      </div>
+      
+      <button class="close-btn" (click)="onClose()" data-testid="close-modal" [disabled]="isExecuting">×</button>
     </div>
 
     <div class="modal-body" *ngIf="tool" data-testid="modal-body">
@@ -35,42 +43,23 @@
         </div>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="onExecute()" class="tool-form">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tool-form">
         <div class="form-fields" *ngIf="tool.jsonSchema?.properties">
           <div *ngFor="let fieldName of getFieldNames()" class="form-field">
             <label [for]="fieldName" [class.required]="getFieldRequired(fieldName)">
               {{ getFieldLabel(fieldName) }}
+              <span class="required-mark" *ngIf="getFieldRequired(fieldName)">*</span>
             </label>
             
-            <!-- String input with autocomplete for apps.install -->
-            <div *ngIf="tool.name === 'apps.install' && fieldName === 'name'" class="autocomplete-container">
-              <input
-                type="text"
-                [id]="fieldName"
-                [formControlName]="fieldName"
-                [placeholder]="getFieldPlaceholder(tool.jsonSchema.properties[fieldName])"
-                (input)="onSearch($any($event.target).value)"
-                class="form-input"
-                [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched">
-              
-              <div class="suggestions" *ngIf="suggestions.length > 0">
-                <div *ngFor="let suggestion of suggestions" 
-                     class="suggestion-item"
-                     (click)="onSuggestionSelect(suggestion)">
-                  <strong>{{ suggestion.name }}</strong>
-                  <small>{{ suggestion.id }} - {{ suggestion.version }}</small>
-                </div>
-              </div>
-            </div>
-
             <!-- Regular string input -->
-            <input *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'text' && !(tool.name === 'apps.install' && fieldName === 'name')"
+            <input *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'text'"
                    type="text"
                    [id]="fieldName"
                    [formControlName]="fieldName"
                    [placeholder]="getFieldPlaceholder(tool.jsonSchema.properties[fieldName])"
                    class="form-input"
-                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched">
+                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                   [attr.data-testid]="'input-' + fieldName">
 
             <!-- Number input -->
             <input *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'number'"
@@ -80,14 +69,16 @@
                    [min]="getFieldMin(tool.jsonSchema.properties[fieldName])"
                    [max]="getFieldMax(tool.jsonSchema.properties[fieldName])"
                    class="form-input"
-                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched">
+                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                   [attr.data-testid]="'input-' + fieldName">
 
             <!-- Boolean input -->
             <label *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'checkbox'" 
                    class="checkbox-label">
               <input type="checkbox" 
                      [id]="fieldName"
-                     [formControlName]="fieldName">
+                     [formControlName]="fieldName"
+                     [attr.data-testid]="'input-' + fieldName">
               <span class="checkbox-text">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</span>
             </label>
 
@@ -96,7 +87,8 @@
                     [id]="fieldName"
                     [formControlName]="fieldName"
                     class="form-select"
-                    [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched">
+                    [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                    [attr.data-testid]="'input-' + fieldName">
               <option value="">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</option>
               <option *ngFor="let option of getFieldOptions(tool.jsonSchema.properties[fieldName])" 
                       [value]="option">
@@ -107,50 +99,92 @@
             <!-- Error message -->
             <div *ngIf="form.get(fieldName)?.invalid && form.get(fieldName)?.touched" 
                  class="error-message">
-              Campo requerido
+              <span *ngIf="form.get(fieldName)?.errors?.['required']">Campo obligatorio</span>
+              <span *ngIf="form.get(fieldName)?.errors?.['minLength']">Longitud mínima no alcanzada</span>
+              <span *ngIf="form.get(fieldName)?.errors?.['maxLength']">Longitud máxima excedida</span>
             </div>
           </div>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="onClose()">
-            Cancelar
+          <button type="button" 
+                  class="btn btn-secondary" 
+                  (click)="onClose()"
+                  [disabled]="isExecuting"
+                  data-testid="cancel-button">
+            {{ isExecuting ? 'Cerrar' : 'Cancelar' }}
+          </button>
+          <button type="button" 
+                  class="btn btn-info"
+                  (click)="onPreview()"
+                  [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                  data-testid="preview-button">
+            👁️ Previsualizar
           </button>
           <button type="submit" 
                   class="btn btn-primary"
                   [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
-                  data-testid="execute-tool-button">
-            <span *ngIf="isExecuting">⏳</span>
+                  data-testid="run-modal-submit">
+            <span *ngIf="isExecuting" class="spinner-icon">⏳</span>
             <span *ngIf="!isExecuting">🚀</span>
             {{ isExecuting ? 'Ejecutando...' : 'Ejecutar' }}
           </button>
         </div>
       </form>
 
-      <!-- Execution Result with Terminal Output -->
-      <div class="execution-result" *ngIf="executionResult">
+      <!-- Preview Command Section -->
+      <div class="preview-section" *ngIf="showPreview">
+        <div class="preview-header">
+          <h4>👁️ Previsualización del Comando</h4>
+          <button class="btn btn-secondary btn-sm" (click)="onClosePreview()">
+            ✕ Cerrar
+          </button>
+        </div>
         <app-terminal-output
-          [stdout]="executionResult.stdout"
-          [stderr]="executionResult.stderr"
-          [exitCode]="executionResult.exitCode"
-          [status]="executionResult.status"
-          [targetHostname]="executionResult.targetHostname || getSelectedAsset()?.hostname || ''"
-          [targetIp]="executionResult.targetIp || getSelectedAsset()?.ip || ''"
+          [stdout]="previewCommand"
+          [stderr]="''"
+          [exitCode]="0"
+          [status]="'PREVIEW'"
+          [targetHostname]="getSelectedAsset()?.hostname || ''"
+          [targetIp]="getSelectedAsset()?.ip || ''"
           [commandName]="tool.name || ''">
+        </app-terminal-output>
+      </div>
+
+      <!-- Execution Result with Terminal Output -->
+      <div class="execution-result" *ngIf="executionResult" data-testid="run-modal-result">
+        <h4 class="result-title">
+          <span data-testid="run-modal-result-status">{{ getStatusIcon(executionResult.status) }} Resultado</span>
+          <span class="execution-id" *ngIf="executionId">ID: {{ executionId.substring(0, 8) }}...</span>
+        </h4>
+        <app-terminal-output
+          [stdout]="executionResult.stdout || ''"
+          [stderr]="executionResult.stderr || ''"
+          [exitCode]="executionResult.exitCode || 0"
+          [status]="executionResult.status"
+          [targetHostname]="getSelectedAsset()?.hostname || ''"
+          [targetIp]="getSelectedAsset()?.ip || ''"
+          [commandName]="tool.name || ''"
+          [executionId]="executionId || undefined">
         </app-terminal-output>
       </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="confirmation-overlay" *ngIf="showConfirmation">
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-overlay" *ngIf="showConfirmationDialog" data-testid="run-modal-confirm">
       <div class="confirmation-modal">
         <h3>⚠️ Confirmación Requerida</h3>
-        <p>Esta herramienta puede realizar cambios en el sistema. ¿Estás seguro de que quieres continuar?</p>
+        <p>Esta herramienta requiere confirmación. ¿Estás seguro de que quieres ejecutar <strong>{{ tool?.name }}</strong>?</p>
+        <p class="confirmation-warning">Esta acción puede realizar cambios en el sistema.</p>
         <div class="confirmation-actions">
-          <button class="btn btn-secondary" (click)="onCancel()">
+          <button class="btn btn-secondary" 
+                  (click)="onCancelConfirmation()"
+                  data-testid="confirm-cancel">
             Cancelar
           </button>
-          <button class="btn btn-danger" (click)="onConfirm()">
+          <button class="btn btn-danger" 
+                  (click)="onConfirm()"
+                  data-testid="confirm-execute">
             ✅ Confirmar y Ejecutar
           </button>
         </div>

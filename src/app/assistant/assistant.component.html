@@ -1,4 +1,4 @@
-<div class="assistant-container">
+<div class="assistant-container" ngSkipHydration>
   <div class="header">
     <h2>🤖 MCP Assistant</h2>
     <p>Planifica y ejecuta tareas usando herramientas MCP</p>
@@ -12,8 +12,7 @@
         [(ngModel)]="message" 
         placeholder="Describe la tarea que quieres realizar..."
         rows="4"
-        [disabled]="isLoading"
-        ngSkipHydration></textarea>
+        [disabled]="isLoading"></textarea>
     </div>
 
     <div class="form-group">

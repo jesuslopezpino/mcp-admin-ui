@@ -16,20 +16,30 @@
     </div>
   </div>
   
-  <div class="terminal-body">
-    <pre class="terminal-output">{{ formattedOutput }}</pre>
+  <div class="terminal-body" data-testid="run-modal-stdout">
+    <pre class="terminal-output">{{ getDisplayOutput() }}</pre>
+    <div class="truncate-notice" *ngIf="isTruncated && !showFullOutput">
+      <button class="btn-expand" (click)="toggleOutput()" data-testid="terminal-expand">
+        👁️ Ver todo ({{formattedOutput.length}} caracteres)
+      </button>
+    </div>
+    <div class="truncate-notice" *ngIf="isTruncated && showFullOutput">
+      <button class="btn-collapse" (click)="toggleOutput()">
+        🔼 Ocultar
+      </button>
+    </div>
   </div>
   
   <div class="terminal-footer">
     <div class="terminal-actions">
-      <button class="btn-copy" (click)="copyToClipboard()" title="Copy to clipboard">
-        📋 Copy
+      <button class="btn-copy" (click)="copyToClipboard()" title="Copiar al portapapeles" data-testid="terminal-output-copy">
+        📋 Copiar
       </button>
-      <button class="btn-download" (click)="downloadOutput()" title="Download output">
-        💾 Download
+      <button class="btn-download" (click)="downloadOutput()" title="Descargar como archivo" data-testid="terminal-output-download">
+        💾 Descargar
       </button>
-      <button class="btn-fullscreen" (click)="toggleFullscreen()" title="Toggle fullscreen">
-        🔍 Fullscreen
+      <button class="btn-fullscreen" (click)="toggleFullscreen()" title="Ver en pantalla completa">
+        🔍 Pantalla completa
       </button>
     </div>
   </div>

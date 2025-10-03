@@ -1,55 +1,70 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ApiService, ToolDetails, ExecuteResult, Suggestion, Asset } from '../services/api.service';
-import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil, of } from 'rxjs';
-import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ApiService } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
+import { ExecutionPollingService } from '../services/execution-polling.service';
+import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
 import { TargetSelectorComponent } from '../components/target-selector/target-selector.component';
+import { CommandPreviewService } from '../services/command-preview.service';
+import { FormHandlerService } from '../services/form-handler.service';
+import { Subject, takeUntil } from 'rxjs';
+import { ToolDetails, Asset, Execution, ExecStatus } from '../models/api';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-run-tool-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
+  imports: [CommonModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
   templateUrl: './run-tool-modal.component.html',
   styleUrl: './run-tool-modal.component.scss'
 })
 export class RunToolModalComponent implements OnInit, OnDestroy {
   @Input() tool: ToolDetails | null = null;
-  @Input() assetId?: string | null;
+  @Input() assetId: string | null = null;
+  @Input() destinationLabel: string | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() execute = new EventEmitter<{tool: ToolDetails, arguments: any, userConfirmed: boolean}>();
+  @Output() result = new EventEmitter<Execution>();
 
   form: FormGroup;
-  suggestions: Suggestion[] = [];
-  isLoading = false;
   isExecuting = false;
-  executionResult: ExecuteResult | null = null;
-  showConfirmation = false;
+  executionResult: Execution | null = null;
+  executionId: string | null = null;
+  currentStatus: ExecStatus | null = null;
   
-  // Target selection properties
   assets: Asset[] = [];
   selectedAssetId: string | null = null;
-  isTargetRequired = true;
+  isTargetRequired = false;
+  
+  // Preview properties
+  showPreview = false;
+  previewCommand: string = '';
+  
+  // Confirmation
+  showConfirmationDialog = false;
 
   private destroy$ = new Subject<void>();
-  private searchSubject = new Subject<string>();
 
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
     private notificationService: NotificationService,
+    private pollingService: ExecutionPollingService,
+    private commandPreviewService: CommandPreviewService,
+    private formHandlerService: FormHandlerService,
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({});
   }
 
   ngOnInit() {
-    if (this.tool) {
-      this.buildForm();
-      this.setupAutocomplete();
-      this.loadSavedArguments();
-      this.loadAssets();
+    this.loadAssets();
+    this.setupForm();
+    this.checkTargetRequirement();
+    
+    // Set assetId if provided
+    if (this.assetId) {
+      this.selectedAssetId = this.assetId;
     }
   }
 
@@ -58,113 +73,226 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private buildForm() {
-    if (!this.tool?.jsonSchema) return;
-
-    const schema = this.tool.jsonSchema;
-    const controls: any = {};
-
-    if (schema.properties) {
-      Object.keys(schema.properties).forEach(key => {
-        const prop = schema.properties[key];
-        const validators = [];
-        
-        if (schema.required?.includes(key)) {
-          validators.push(Validators.required);
-        }
-
-        // Set default value
-        const defaultValue = prop.default || this.getDefaultValue(prop.type);
-        controls[key] = [defaultValue, validators];
-      });
-    }
-
-    this.form = this.fb.group(controls);
-  }
-
-  private getDefaultValue(type: string): any {
-    switch (type) {
-      case 'boolean': return false;
-      case 'integer': return 0;
-      case 'string': return '';
-      default: return null;
-    }
-  }
-
-  private setupAutocomplete() {
-    if (this.tool?.name !== 'apps.install') return;
-
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (!query || query.length < 2) {
-          return of([]);
-        }
-        return this.apiService.suggestWinget(query);
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe(suggestions => {
-      this.suggestions = suggestions;
-    });
-  }
-
-  private loadSavedArguments() {
-    if (!this.tool) return;
-
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem(`mcp.ui.lastArgs.${this.tool.name}`);
-      if (saved) {
-        try {
-          const args = JSON.parse(saved);
-          this.form.patchValue(args);
-        } catch (e) {
-          console.warn('Error loading saved arguments:', e);
-        }
-      }
-    }
-  }
-
-  private saveArguments() {
-    if (!this.tool) return;
-
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem(`mcp.ui.lastArgs.${this.tool.name}`, JSON.stringify(this.form.value));
-      } catch (e) {
-        console.warn('Error saving arguments:', e);
-      }
-    }
-  }
-
-  private loadAssets() {
-    this.apiService.getAssets().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
+  loadAssets() {
+    this.apiService.getAssets().subscribe({
       next: (assets) => {
         this.assets = assets;
-        // If assetId is provided, use it as default selection
-        if (this.assetId) {
-          this.selectedAssetId = this.assetId;
+        
+        // Load saved selection from localStorage if feature enabled
+        if (environment.featureFlags.rememberArgs && typeof localStorage !== 'undefined') {
+          const savedAssetId = localStorage.getItem('mcp.ui.selectedAsset');
+          const isRemembered = localStorage.getItem('mcp.ui.rememberedAsset') === 'true';
+          
+          if (savedAssetId && savedAssetId !== 'null' && isRemembered) {
+            const savedAsset = assets.find(asset => asset.id === savedAssetId);
+            if (savedAsset && !this.assetId) {
+              this.selectedAssetId = savedAssetId;
+            }
+          }
         }
       },
-      error: (error) => {
-        console.error('Error loading assets:', error);
-        this.notificationService.error(
-          'Error cargando assets',
-          'No se pudieron cargar los destinos disponibles'
-        );
+      error: (err) => {
+        console.warn('Error loading assets:', err);
       }
     });
   }
 
-  onTargetSelected(assetId: string | null) {
-    this.selectedAssetId = assetId;
-    // Only trigger change detection if we're actually selecting an asset
-    // Don't trigger when clearing selection (null) to avoid re-execution
-    if (assetId !== null) {
-      this.cdr.detectChanges();
+  setupForm() {
+    if (!this.tool?.jsonSchema?.properties) {
+      this.form = this.fb.group({});
+      return;
     }
+
+    const formControls: any = {};
+    const properties = this.tool.jsonSchema.properties;
+    const required = this.tool.jsonSchema.required || [];
+
+    Object.keys(properties).forEach(key => {
+      const prop = properties[key];
+      const validators = [];
+      
+      if (required.includes(key)) {
+        validators.push(Validators.required);
+      }
+      
+      if (prop.type === 'string' && prop.minLength) {
+        validators.push(Validators.minLength(prop.minLength));
+      }
+      
+      if (prop.type === 'string' && prop.maxLength) {
+        validators.push(Validators.maxLength(prop.maxLength));
+      }
+
+      formControls[key] = [prop.default || '', validators];
+    });
+
+    this.form = this.fb.group(formControls);
+  }
+
+  checkTargetRequirement() {
+    if (!this.tool) return;
+    
+    const properties = this.tool.jsonSchema?.properties || {};
+    this.isTargetRequired = 'targetHostname' in properties || 'targetIp' in properties;
+  }
+
+  onClose() {
+    if (this.isExecuting) {
+      const confirmClose = confirm('Hay una ejecución en progreso. ¿Seguro que quieres cerrar?');
+      if (!confirmClose) return;
+    }
+    this.close.emit();
+  }
+
+  onSubmit() {
+    if (this.form.invalid) {
+      this.notificationService.error('Formulario inválido', 'Por favor, completa todos los campos requeridos');
+      Object.keys(this.form.controls).forEach(key => {
+        const control = this.form.get(key);
+        if (control?.invalid) {
+          control.markAsTouched();
+        }
+      });
+      return;
+    }
+
+    if (this.isTargetRequired && !this.isTargetValid()) {
+      this.notificationService.error('Destino requerido', 'Debes seleccionar un destino antes de ejecutar la herramienta');
+      return;
+    }
+
+    // Show confirmation dialog if required
+    if (this.tool?.requiresConfirmation) {
+      this.showConfirmationDialog = true;
+      return;
+    }
+
+    this.executeTool();
+  }
+
+  onConfirm() {
+    this.showConfirmationDialog = false;
+    this.executeTool();
+  }
+
+  onCancelConfirmation() {
+    this.showConfirmationDialog = false;
+  }
+
+  executeTool() {
+    if (!this.tool) return;
+
+    this.isExecuting = true;
+    this.executionResult = null;
+    this.executionId = null;
+    this.currentStatus = 'PENDING';
+    
+    // Disable form inputs
+    this.form.disable();
+
+    const formValue = this.form.value;
+    const selectedAsset = this.getSelectedAsset();
+    
+    // Add target information if required
+    if (this.isTargetRequired && selectedAsset) {
+      if ('targetHostname' in this.tool.jsonSchema?.properties || {}) {
+        formValue.targetHostname = selectedAsset.hostname || selectedAsset.ip;
+      }
+      if ('targetIp' in this.tool.jsonSchema?.properties || {}) {
+        formValue.targetIp = selectedAsset.ip;
+      }
+    }
+
+    // Create async execution
+    this.apiService.createExecution(
+      this.tool.name, 
+      formValue, 
+      this.selectedAssetId || undefined
+    ).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.executionId = response.executionId;
+        this.notificationService.info('Ejecución iniciada', `Ejecución ${this.executionId.substring(0, 8)}... en progreso`);
+        
+        // Start polling for results
+        this.pollExecution(this.executionId);
+      },
+      error: (err) => {
+        this.isExecuting = false;
+        this.form.enable();
+        this.currentStatus = 'ERROR';
+        
+        const errorMsg = err.error?.message || err.message || 'Error desconocido';
+        this.executionResult = {
+          id: '',
+          status: 'ERROR',
+          exitCode: -1,
+          stdout: '',
+          stderr: errorMsg
+        };
+        
+        this.notificationService.error('Error al crear ejecución', errorMsg);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  pollExecution(executionId: string) {
+    this.pollingService.poll(executionId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (execution) => {
+        this.currentStatus = execution.status;
+        this.executionResult = execution;
+        this.cdr.detectChanges();
+        
+        // Check if final state
+        if (this.isFinalState(execution.status)) {
+          this.isExecuting = false;
+          this.form.enable();
+          
+          if (execution.status === 'SUCCESS') {
+            this.notificationService.success(
+              'Ejecución completada', 
+              `La herramienta ${this.tool?.name} se ejecutó correctamente`
+            );
+          } else {
+            this.notificationService.error(
+              'Ejecución fallida', 
+              `Error ejecutando ${this.tool?.name}: ${execution.stderr || 'Error desconocido'}`
+            );
+          }
+          
+          this.result.emit(execution);
+        }
+      },
+      error: (err) => {
+        this.isExecuting = false;
+        this.form.enable();
+        this.currentStatus = 'ERROR';
+        
+        this.executionResult = {
+          id: executionId,
+          status: 'ERROR',
+          exitCode: -1,
+          stdout: '',
+          stderr: err.message || 'Error durante el polling'
+        };
+        
+        this.notificationService.error('Error de polling', err.message || 'Error desconocido');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  isFinalState(status: ExecStatus): boolean {
+    return status === 'SUCCESS' || status === 'FAILED' || status === 'ERROR' || status === 'CANCELLED';
+  }
+
+  isTargetValid(): boolean {
+    if (!this.isTargetRequired) return true;
+    return this.selectedAssetId !== null && this.selectedAssetId !== '';
   }
 
   getSelectedAsset(): Asset | null {
@@ -172,208 +300,103 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     return this.assets.find(asset => asset.id === this.selectedAssetId) || null;
   }
 
-  getTargetDisplayName(): string {
-    if (!this.selectedAssetId) {
-      return 'Seleccionar destino';
+  onTargetSelected(assetId: string | null) {
+    this.selectedAssetId = assetId;
+    
+    if (environment.featureFlags.rememberArgs && typeof localStorage !== 'undefined') {
+      if (assetId) {
+        localStorage.setItem('mcp.ui.selectedAsset', assetId);
+        localStorage.setItem('mcp.ui.rememberedAsset', 'true');
+      } else {
+        localStorage.removeItem('mcp.ui.selectedAsset');
+        localStorage.removeItem('mcp.ui.rememberedAsset');
+      }
     }
-    const asset = this.getSelectedAsset();
-    if (asset) {
-      return asset.hostname || asset.ip;
-    }
-    return 'Seleccionar destino';
+    
+    this.cdr.detectChanges();
   }
 
-  isTargetValid(): boolean {
-    return this.selectedAssetId !== null && this.selectedAssetId !== '';
-  }
-
-  onSearch(query: string) {
-    if (this.tool?.name === 'apps.install') {
-      this.searchSubject.next(query);
-    }
-  }
-
-  onSuggestionSelect(suggestion: Suggestion) {
-    this.form.patchValue({ name: suggestion.id });
-    this.suggestions = [];
-  }
-
-  onExecute() {
+  onPreview() {
     if (!this.tool || this.form.invalid) return;
-
-    // Validate target selection
     if (this.isTargetRequired && !this.isTargetValid()) {
       this.notificationService.error(
         'Destino requerido',
-        'Debes seleccionar un destino antes de ejecutar la herramienta'
+        'Debes seleccionar un destino antes de previsualizar la herramienta'
       );
       return;
     }
-
-    this.saveArguments();
-
-    if (this.tool.requiresConfirmation) {
-      this.showConfirmation = true;
-    } else {
-      this.executeTool();
-    }
+    this.generatePreviewCommand();
+    this.showPreview = true;
   }
 
-  onConfirm() {
-    this.showConfirmation = false;
-    this.executeTool();
+  onClosePreview() {
+    this.showPreview = false;
+    this.previewCommand = '';
   }
 
-  onCancel() {
-    this.showConfirmation = false;
-  }
-
-  private executeTool() {
+  private generatePreviewCommand() {
     if (!this.tool) return;
-
-    this.isExecuting = true;
-    this.executionResult = null;
-
-    // Use selected target or fallback to provided assetId
-    const targetAssetId = this.selectedAssetId || this.assetId;
     
-    const execution$ = targetAssetId 
-      ? this.apiService.executeForAsset(targetAssetId, this.tool.name, this.form.value, true)
-      : this.apiService.executeDirect(this.tool.name, this.form.value, true);
-
-    execution$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-             next: (result) => {
-               // Add target information to the result
-               const selectedAsset = this.getSelectedAsset();
-               this.executionResult = {
-                 ...result,
-                 targetHostname: selectedAsset?.hostname || '',
-                 targetIp: selectedAsset?.ip || ''
-               };
-               this.isExecuting = false;
-
-               // Only show notifications for non-success cases
-               if (result.status !== 'SUCCESS') {
-                 this.notificationService.warning(
-                   '⚠️ Ejecución completada con advertencias',
-                   `La herramienta ${this.tool!.name} se ejecutó pero con código de salida ${result.exitCode}`
-                 );
-               }
-
-               // Note: Removed execute.emit() to prevent duplicate notifications
-             },
-      error: (error) => {
-        console.error('=== EXECUTION ERROR DEBUG ===');
-        console.error('Full error object:', error);
-        console.error('Error status:', error.status);
-        console.error('Error error:', error.error);
-        console.error('Error message:', error.message);
-        console.error('Error url:', error.url);
-        console.error('Error headers:', error.headers);
-        console.error('================================');
-        this.isExecuting = false;
-        
-        // Show error notification with detailed message
-        let errorMessage = 'Error desconocido';
-        let errorTitle = '❌ Error ejecutando herramienta';
-        
-        if (error.status === 400) {
-          errorTitle = '❌ Error de validación (400)';
-          
-          if (error.error?.fieldErrors) {
-            // Handle validation errors from backend
-            const fieldErrors = Object.entries(error.error.fieldErrors)
-              .map(([field, message]) => `${field}: ${message}`)
-              .join('\n');
-            errorMessage = `Errores de validación:\n${fieldErrors}`;
-          } else if (error.error?.message) {
-            errorMessage = `Error de validación: ${error.error.message}`;
-          } else {
-            errorMessage = 'Error de validación en la request';
-          }
-        } else if (error.status === 404) {
-          errorTitle = '❌ Herramienta no encontrada (404)';
-          errorMessage = `La herramienta ${this.tool!.name} no existe en el backend`;
-        } else if (error.status === 500) {
-          errorTitle = '❌ Error interno del servidor (500)';
-          errorMessage = error.error?.message || 'Error interno del servidor';
-        } else if (error.error?.message) {
-          errorMessage = error.error.message;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        console.log('=== SHOWING NOTIFICATION ===');
-        console.log('Error title:', errorTitle);
-        console.log('Error message:', `Error en ${this.tool!.name}:\n${errorMessage}`);
-        console.log('============================');
-        
-        this.notificationService.error(
-          errorTitle,
-          `Error en ${this.tool!.name}:\n${errorMessage}`
-        );
-      }
-    });
-  }
-
-  onClose() {
-    this.close.emit();
-  }
-
-
-  getFieldType(prop: any): string {
-    if (prop.enum) return 'select';
-    if (prop.type === 'boolean') return 'checkbox';
-    if (prop.type === 'integer') return 'number';
-    return 'text';
-  }
-
-  getFieldOptions(prop: any): any[] {
-    return prop.enum || [];
-  }
-
-  getFieldPlaceholder(prop: any): string {
-    return prop.description || '';
-  }
-
-  getFieldMin(prop: any): number | null {
-    return prop.minimum || null;
-  }
-
-  getFieldMax(prop: any): number | null {
-    return prop.maximum || null;
+    const selectedAsset = this.getSelectedAsset();
+    const formValue = this.form.value;
+    
+    this.previewCommand = this.commandPreviewService.generatePreview(this.tool, formValue, selectedAsset || undefined);
   }
 
   getFieldRequired(prop: any): boolean {
-    return this.tool?.jsonSchema?.required?.includes(prop) || false;
+    return this.formHandlerService.getFieldRequired(this.tool, prop);
   }
 
   getFieldNames(): string[] {
-    return this.tool?.jsonSchema?.properties ? Object.keys(this.tool.jsonSchema.properties) : [];
+    return this.formHandlerService.getFieldNames(this.tool);
   }
 
   getFieldLabel(fieldName: string): string {
-    const prop = this.tool?.jsonSchema?.properties?.[fieldName];
-    return prop?.description || fieldName;
+    return this.formHandlerService.getFieldLabel(this.tool, fieldName);
   }
-
 
   getStatusIcon(status: string): string {
     switch (status) {
       case 'SUCCESS': return '✅';
-      case 'FAILURE': return '❌';
+      case 'PENDING': return '⏳';
+      case 'RUNNING': return '▶️';
+      case 'FAILED': return '❌';
       case 'ERROR': return '⚠️';
+      case 'CANCELLED': return '🚫';
       default: return '❓';
     }
   }
 
   getDestinationDisplay(): string {
+    if (this.destinationLabel) {
+      return this.destinationLabel;
+    }
+    
     if (this.selectedAssetId) {
       const asset = this.getSelectedAsset();
       return asset ? `${asset.hostname || asset.ip} (${asset.ip})` : `Asset: ${this.selectedAssetId}`;
     }
+    
     return this.assetId ? `Asset: ${this.assetId}` : 'Servidor (local)';
+  }
+
+  getFieldPlaceholder(prop: any): string {
+    return this.formHandlerService.getFieldPlaceholder(prop);
+  }
+
+  getFieldType(prop: any): string {
+    return this.formHandlerService.getFieldType(prop);
+  }
+
+  getFieldMin(prop: any): number | null {
+    return this.formHandlerService.getFieldMin(prop);
+  }
+
+  getFieldMax(prop: any): number | null {
+    return this.formHandlerService.getFieldMax(prop);
+  }
+
+  getFieldOptions(prop: any): string[] {
+    return this.formHandlerService.getFieldOptions(prop);
   }
 }

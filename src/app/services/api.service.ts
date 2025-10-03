@@ -45,6 +45,7 @@ export interface Tool {
   requiresConfirmation: boolean;
   osSupport?: string[];
   parameters?: any; // JSON Schema
+  command?: string; // PowerShell command
 }
 
 export interface ToolDetails {
@@ -53,6 +54,7 @@ export interface ToolDetails {
   requiresConfirmation: boolean;
   osSupport: string[];
   jsonSchema: any;
+  command?: string; // PowerShell command
 }
 
 export interface Suggestion {
@@ -200,6 +202,38 @@ export class ApiService {
     };
 
     return this.http.post<ExecuteResult>(`${this.baseUrl}/recipes/executeForAsset`, request, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Create an async execution (new async endpoint)
+   * @param toolName Tool name to execute
+   * @param args Tool arguments
+   * @param assetId Optional asset ID for remote execution
+   * @param userId Optional user ID (defaults to 'admin')
+   * @returns Observable with executionId
+   */
+  createExecution(toolName: string, args: any, assetId?: string, userId?: string): Observable<{executionId: string}> {
+    const request = {
+      toolName: toolName,
+      arguments: args,
+      assetId: assetId || undefined,
+      userId: userId || 'admin'
+    };
+
+    return this.http.post<{executionId: string}>(`${this.baseUrl}/recipes/execute`, request, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Get execution status and results
+   * @param executionId Execution UUID
+   * @returns Observable with execution details
+   */
+  getExecution(executionId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/executions/${executionId}`, {
       headers: this.getHeaders()
     });
   }

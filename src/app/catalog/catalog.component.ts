@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Tool, ToolDetails, Asset } from '../services/api.service';
@@ -8,6 +8,7 @@ import { CategoryGridComponent } from '../components/category-grid/category-grid
 import { CategoryToolsComponent } from '../components/category-tools/category-tools.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '../components/breadcrumb/breadcrumb.component';
 import { CategoryService, Category, CategorizedTool } from '../services/category.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-catalog',
@@ -16,7 +17,7 @@ import { CategoryService, Category, CategorizedTool } from '../services/category
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss'
 })
-export class CatalogComponent implements OnInit {
+export class CatalogComponent implements OnInit, OnDestroy {
   tools: Tool[] = [];
   assets: Asset[] = [];
   isLoading: boolean = false;
@@ -31,6 +32,8 @@ export class CatalogComponent implements OnInit {
   currentView: 'categories' | 'tools' = 'categories';
   selectedCategory: string = '';
   breadcrumbItems: BreadcrumbItem[] = [];
+  
+  private destroy$ = new Subject<void>();
 
   constructor(
     private apiService: ApiService,
@@ -42,6 +45,12 @@ export class CatalogComponent implements OnInit {
     this.loadAssets();
     this.initializeCategories();
     this.updateBreadcrumb();
+    this.setupStorageListener();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initializeCategories() {
@@ -99,9 +108,9 @@ export class CatalogComponent implements OnInit {
     this.selectedTool = null;
   }
 
-  onToolExecute(event: {tool: ToolDetails, arguments: any, userConfirmed: boolean}) {
-    console.log('Tool executed:', event);
-    // El modal maneja la ejecución, aquí solo podemos hacer logging o notificaciones
+  onToolExecute(execution: any) {
+    console.log('Tool execution completed:', execution);
+    // El modal maneja la ejecución asíncrona, aquí solo podemos hacer logging o notificaciones
   }
 
   // Category navigation methods
@@ -157,5 +166,45 @@ export class CatalogComponent implements OnInit {
 
   onAssetSelected(assetId: string | null) {
     this.selectedAssetId = assetId;
+  }
+
+  private setupStorageListener() {
+    // Listen for storage changes to sync with modal
+    if (typeof window !== 'undefined') {
+      // Listen for cross-tab storage changes
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'mcp.ui.selectedAsset' || event.key === 'mcp.ui.rememberedAsset') {
+          this.syncWithStorage();
+        }
+      });
+      
+      // Listen for custom events from the same tab (modal changes)
+      window.addEventListener('mcp-storage-change', (event: any) => {
+        if (event.detail && event.detail.key === 'mcp.ui.selectedAsset') {
+          this.syncWithStorage();
+        }
+      });
+    }
+    
+    // Also check storage on initialization
+    this.syncWithStorage();
+  }
+
+  private syncWithStorage() {
+    if (typeof localStorage !== 'undefined') {
+      const savedAssetId = localStorage.getItem('mcp.ui.selectedAsset');
+      const isRemembered = localStorage.getItem('mcp.ui.rememberedAsset') === 'true';
+      
+      if (savedAssetId && savedAssetId !== 'null' && isRemembered) {
+        // Verify the saved asset still exists in the current assets list
+        const savedAsset = this.assets.find(asset => asset.id === savedAssetId);
+        if (savedAsset) {
+          this.selectedAssetId = savedAssetId;
+        }
+      } else if (!isRemembered) {
+        // If not remembered, clear the selection
+        this.selectedAssetId = null;
+      }
+    }
   }
 }

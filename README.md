@@ -8,9 +8,11 @@ Panel de administración Angular 17 para la plataforma MCP (Model Context Protoc
 - **🛠️ Catálogo de Herramientas**: Tabla con herramientas disponibles y ejecución directa
 - **📦 Inventario de Equipos**: Gestión de assets de red con descubrimiento automático
 - **🌐 Ejecución Remota**: Ejecutar herramientas en equipos específicos via WinRM
-- **📊 Resultados en Tiempo Real**: Visualización de resultados de ejecución
-- **🔒 Seguridad**: Autenticación por API Key
+- **⚡ Ejecución Asíncrona**: Sistema de jobs con polling automático para herramientas de larga duración
+- **📊 Resultados en Tiempo Real**: Visualización de resultados de ejecución con estados PENDING/RUNNING/SUCCESS
+- **🔒 Seguridad**: Autenticación por API Key y validación por allowlist
 - **📱 Responsive**: Diseño adaptativo para móviles y desktop
+- **💾 Descarga de Resultados**: Copiar y descargar salidas con metadatos completos
 
 ## 🛠️ Tecnologías
 
@@ -24,7 +26,8 @@ Panel de administración Angular 17 para la plataforma MCP (Model Context Protoc
 
 - Node.js 18+ 
 - npm 9+
-- Backend MCP Controller corriendo en `http://localhost:8080`
+- Backend MCP Controller corriendo en `http://localhost:8081` con PostgreSQL
+- Docker y Docker Compose (para PostgreSQL del backend)
 
 ## 🚀 Instalación y Arranque
 
@@ -89,6 +92,73 @@ Asset ID: "WIN-123"
 - **Ejecución remota**: Ejecuta herramientas en equipos específicos
 - **Gestión de estado**: Seguimiento de equipos online/offline
 
+## ⚡ Ejecución Asíncrona (Nuevo)
+
+La UI ahora soporta ejecución asíncrona con polling automático para herramientas de larga duración.
+
+### Flujo de Ejecución
+
+1. **Crear Ejecución**: Al hacer clic en "Ejecutar", se llama a `POST /recipes/execute`
+2. **Recibir Execution ID**: El backend devuelve inmediatamente un UUID de ejecución
+3. **Polling Automático**: La UI hace polling a `GET /executions/{id}` cada 1.5 segundos
+4. **Estados**:
+   - `PENDING` ⏳ - En cola, esperando procesamiento
+   - `RUNNING` ▶️ - Ejecutando actualmente
+   - `SUCCESS` ✅ - Completado exitosamente
+   - `FAILED` ❌ - Falló con error
+   - `ERROR` ⚠️ - Error del sistema
+5. **Resultado Final**: Al completar, muestra exitCode, stdout, stderr con opciones de copiar/descargar
+
+### Ventajas
+
+- **No-blocking**: La UI no se queda bloqueada durante ejecuciones largas
+- **Resistente**: Reintentos automáticos con exponential backoff (5s -> 30s -> 2m)
+- **Trazabilidad**: Cada ejecución tiene un UUID único para auditoría
+- **Seguridad**: Positive allowlist valida todos los comandos antes de ejecutar
+
+### Ejemplo de Uso
+
+```typescript
+// Desde Catálogo
+1. Seleccionar destino (local o asset remoto)
+2. Hacer clic en herramienta deseada
+3. Completar formulario (con validación JSON Schema)
+4. Confirmar si la tool lo requiere
+5. Ver progreso en tiempo real
+6. Copiar o descargar resultados
+
+// Desde Inventario
+1. Seleccionar asset en la tabla
+2. Hacer clic en "⚡ Ejecutar Tool"
+3. Mismo flujo que catálogo, con destino pre-seleccionado
+```
+
+### Requisitos Backend
+
+Para que la ejecución asíncrona funcione correctamente, asegúrate de:
+
+1. **Iniciar PostgreSQL**:
+   ```bash
+   cd mcp-controller-server
+   docker compose up -d
+   ```
+
+2. **Verificar Migraciones**: Flyway debe crear las tablas automáticamente:
+   - `tool` - Catálogo de herramientas
+   - `tool_version` - Versiones con scripts y allowlist
+   - `execution` - Registro de ejecuciones
+   - `job` - Cola de trabajos
+
+3. **Iniciar Backend**:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+4. **Verificar Endpoint**:
+   ```bash
+   curl -H "X-API-Key: dev-token" http://localhost:8081/tools
+   ```
+
 ## 🔧 Configuración
 
 ### Environment
@@ -98,8 +168,12 @@ Edita `src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
-  baseUrl: 'http://localhost:8080',  // URL del backend
-  apiKey: 'dev-token'                // API Key para autenticación
+  baseUrl: 'http://localhost:8081',  // URL del backend
+  apiKey: 'dev-token',                // API Key para autenticación
+  pollingIntervalMs: 1500,            // Intervalo de polling para ejecuciones async
+  featureFlags: {
+    rememberArgs: false  // Desactivar por ahora (feature inestable)
+  }
 };
 ```
 

@@ -1,374 +1,294 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TargetSelectorComponent } from './target-selector.component';
+import { TargetSelectionService } from '../../services/target-selection.service';
 import { Asset } from '../../services/api.service';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('TargetSelectorComponent', () => {
   let component: TargetSelectorComponent;
   let fixture: ComponentFixture<TargetSelectorComponent>;
+  let selectionService: TargetSelectionService;
+  let compiled: HTMLElement;
 
   const mockAssets: Asset[] = [
     {
       id: 'asset-1',
-      hostname: 'server1',
-      ip: '192.168.1.100',
-      os: 'Windows Server 2022',
+      hostname: 'server-1',
+      ip: '192.168.1.10',
+      os: 'windows',
       status: 'online',
       winrmEnabled: true,
-      lastSeen: '2024-01-01T00:00:00Z'
+      lastSeen: '2025-01-01T00:00:00Z'
     },
     {
       id: 'asset-2',
-      hostname: 'server2',
-      ip: '192.168.1.101',
-      os: 'Windows 11',
-      status: 'offline',
-      winrmEnabled: false,
-      lastSeen: '2024-01-01T00:00:00Z'
+      hostname: 'server-2',
+      ip: '192.168.1.11',
+      os: 'windows',
+      status: 'online',
+      winrmEnabled: true,
+      lastSeen: '2025-01-01T00:00:00Z'
     },
     {
       id: 'asset-3',
-      hostname: 'server3',
-      ip: '192.168.1.102',
-      os: 'Windows 10',
-      status: 'online',
-      winrmEnabled: true,
-      lastSeen: '2024-01-01T00:00:00Z'
+      hostname: 'server-3',
+      ip: '192.168.1.12',
+      os: 'windows',
+      status: 'offline',
+      winrmEnabled: false,
+      lastSeen: '2025-01-01T00:00:00Z'
     }
   ];
 
   beforeEach(async () => {
-    // Mock localStorage globally
-    const mockLocalStorage = {
-      getItem: jasmine.createSpy('getItem').and.returnValue(null),
-      setItem: jasmine.createSpy('setItem'),
-      removeItem: jasmine.createSpy('removeItem')
-    };
-    Object.defineProperty(window, 'localStorage', { 
-      value: mockLocalStorage, 
-      writable: true 
-    });
-
     await TestBed.configureTestingModule({
       imports: [TargetSelectorComponent]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TargetSelectorComponent);
     component = fixture.componentInstance;
-    component.assets = mockAssets;
-    fixture.detectChanges();
+    selectionService = TestBed.inject(TargetSelectionService);
+    compiled = fixture.nativeElement;
+    
+    // Clear localStorage before each test
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('ngOnInit', () => {
-    it('should initialize with empty assets array', () => {
-      component.assets = [];
-      component.ngOnInit();
-      
-      expect(component.sortedAssets).toEqual([]);
+  describe('Initial state', () => {
+    it('should have disabled control initially', () => {
+      expect(component.targetCtrl.disabled).toBe(true);
+      expect(component.assetsLoading).toBe(true);
     });
 
-    it('should sort assets on initialization', () => {
-      component.ngOnInit();
+    it('should show loading spinner when assets are loading', () => {
+      component.assetsLoading = true;
+      fixture.detectChanges();
       
-      expect(component.sortedAssets.length).toBe(3);
-      // WinRM enabled assets should come first
+      const spinner = compiled.querySelector('.loading-spinner');
+      expect(spinner).toBeTruthy();
+    });
+
+    it('should have null value initially', () => {
+      expect(component.targetCtrl.value).toBeNull();
+    });
+
+    it('should display local option by default', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      const select = compiled.querySelector('[data-testid="target-selector"]') as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      expect(select.value).toBe('null');
+    });
+  });
+
+  describe('Assets loading', () => {
+    it('should enable control after assets are loaded', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      
+      expect(component.assetsLoading).toBe(false);
+      expect(component.targetCtrl.disabled).toBe(false);
+    });
+
+    it('should render local option with correct data-testid', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      const localOption = compiled.querySelector('[data-testid="target-option-local"]');
+      expect(localOption).toBeTruthy();
+      expect(localOption?.textContent?.trim()).toContain('Servidor (local)');
+    });
+
+    it('should render all asset options', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      const select = compiled.querySelector('[data-testid="target-selector"]') as HTMLSelectElement;
+      const options = select.querySelectorAll('option');
+      
+      // 1 local + 3 assets = 4 options
+      expect(options.length).toBe(4);
+    });
+  });
+
+  describe('Persistence', () => {
+    it('should apply persisted selection when valid asset exists', () => {
+      // Save a valid asset ID
+      selectionService.save('asset-1');
+      
+      // Load component with assets
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      // Should restore the saved selection
+      expect(component.targetCtrl.value).toBe('asset-1');
+    });
+
+    it('should fallback to null when persisted asset no longer exists', () => {
+      // Save an asset ID that won't exist
+      selectionService.save('non-existent-asset');
+      
+      // Load component with assets
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      // Should fallback to null (local)
+      expect(component.targetCtrl.value).toBeNull();
+    });
+
+    it('should save selection when user changes it', (done) => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      // Change selection
+      component.targetCtrl.setValue('asset-2');
+      
+      // Give time for async operations
+      setTimeout(() => {
+        expect(selectionService.load()).toBe('asset-2');
+        done();
+      }, 10);
+    });
+
+    it('should clear localStorage when selecting local (null)', (done) => {
+      // First set a value
+      selectionService.save('asset-1');
+      
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      // Change to local (null)
+      component.targetCtrl.setValue(null);
+      
+      setTimeout(() => {
+        expect(selectionService.load()).toBeNull();
+        done();
+      }, 10);
+    });
+  });
+
+  describe('Selection display', () => {
+    it('should show "Servidor (local)" when nothing is selected', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      component.targetCtrl.setValue(null);
+      
+      expect(component.getSelectedDisplayName()).toBe('— Servidor (local) —');
+    });
+
+    it('should show asset hostname when selected', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      component.targetCtrl.setValue('asset-1');
+      
+      const displayName = component.getSelectedDisplayName();
+      expect(displayName).toContain('server-1');
+      expect(displayName).toContain('192.168.1.10');
+    });
+  });
+
+  describe('Disabled assets', () => {
+    it('should disable assets without WinRM', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      fixture.detectChanges();
+      
+      const options = compiled.querySelectorAll('option');
+      const asset3Option = Array.from(options).find(opt => 
+        opt.getAttribute('data-testid') === 'target-option-asset-3'
+      ) as HTMLOptionElement;
+      
+      expect(asset3Option?.disabled).toBe(true);
+    });
+  });
+
+  describe('Event emission', () => {
+    it('should emit selectedAssetIdChange when value changes', (done) => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      
+      component.selectedAssetIdChange.subscribe(value => {
+        expect(value).toBe('asset-1');
+        done();
+      });
+      
+      component.targetCtrl.setValue('asset-1');
+    });
+
+    it('should normalize empty string to null in emission', (done) => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      
+      component.selectedAssetIdChange.subscribe(value => {
+        expect(value).toBeNull();
+        done();
+      });
+      
+      component.targetCtrl.setValue('');
+    });
+  });
+
+  describe('Component reload scenario', () => {
+    it('should restore selection after component recreation', () => {
+      // Step 1: Select an asset and destroy component
+      selectionService.save('asset-2');
+      
+      // Step 2: Create new component instance (simulating page reload)
+      const newFixture = TestBed.createComponent(TargetSelectorComponent);
+      const newComponent = newFixture.componentInstance;
+      
+      // Step 3: Load assets
+      newComponent.assets = mockAssets;
+      newComponent.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      newFixture.detectChanges();
+      
+      // Step 4: Verify selection is restored
+      expect(newComponent.targetCtrl.value).toBe('asset-2');
+      
+      newFixture.destroy();
+    });
+
+    it('should handle disabled state during loading correctly', () => {
+      // Component starts with control disabled
+      expect(component.targetCtrl.disabled).toBe(true);
+      
+      // Simulate async asset loading
+      setTimeout(() => {
+        component.assets = mockAssets;
+        component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+        fixture.detectChanges();
+        
+        // Control should be enabled after assets load
+        expect(component.targetCtrl.disabled).toBe(false);
+      }, 0);
+    });
+  });
+
+  describe('Asset sorting', () => {
+    it('should sort WinRM-enabled assets first', () => {
+      component.assets = mockAssets;
+      component.ngOnChanges({ assets: { currentValue: mockAssets, previousValue: undefined, firstChange: true, isFirstChange: () => true } });
+      
       expect(component.sortedAssets[0].winrmEnabled).toBe(true);
       expect(component.sortedAssets[1].winrmEnabled).toBe(true);
       expect(component.sortedAssets[2].winrmEnabled).toBe(false);
-    });
-
-    it('should load saved selection from localStorage', () => {
-      (window.localStorage.getItem as jasmine.Spy).and.returnValue('asset-1');
-      
-      component.ngOnInit();
-      
-      expect(component.selectedAssetId).toBe('asset-1');
-    });
-
-    it('should handle null localStorage values', () => {
-      (window.localStorage.getItem as jasmine.Spy).and.returnValue(null);
-      
-      component.ngOnInit();
-      
-      expect(component.selectedAssetId).toBeUndefined();
-    });
-
-    it('should handle remembered state from localStorage', () => {
-      (window.localStorage.getItem as jasmine.Spy).and.callFake((key) => {
-        if (key === 'mcp.ui.selectedAsset') return 'asset-1';
-        if (key === 'mcp.ui.rememberedAsset') return 'true';
-        return null;
-      });
-      
-      component.ngOnInit();
-      
-      expect(component.isRemembered).toBe(true);
-    });
-  });
-
-  describe('ngOnChanges', () => {
-    it('should sort assets when assets input changes', () => {
-      const newAssets: Asset[] = [
-        {
-          id: 'asset-4',
-          hostname: 'server4',
-          ip: '192.168.1.103',
-          os: 'Windows 11',
-          status: 'online',
-          winrmEnabled: true,
-          lastSeen: '2024-01-01T00:00:00Z'
-        }
-      ];
-      
-      component.assets = newAssets;
-      component.ngOnChanges({ assets: { currentValue: newAssets, previousValue: mockAssets, firstChange: false, isFirstChange: () => false } });
-      
-      expect(component.sortedAssets.length).toBe(1);
-      expect(component.sortedAssets[0].id).toBe('asset-4');
-    });
-
-    it('should not sort assets when other properties change', () => {
-      const originalSortedAssets = [...component.sortedAssets];
-      
-      component.ngOnChanges({ selectedAssetId: { currentValue: 'asset-1', previousValue: undefined, firstChange: false, isFirstChange: () => false } });
-      
-      expect(component.sortedAssets).toEqual(originalSortedAssets);
-    });
-  });
-
-  describe('sortAssets', () => {
-    it('should prioritize WinRM enabled assets', () => {
-      component['sortAssets']();
-      
-      const winrmAssets = component.sortedAssets.filter(asset => asset.winrmEnabled);
-      const nonWinrmAssets = component.sortedAssets.filter(asset => !asset.winrmEnabled);
-      
-      expect(winrmAssets.length).toBe(2);
-      expect(nonWinrmAssets.length).toBe(1);
-      
-      // All WinRM assets should come before non-WinRM assets
-      const firstNonWinrmIndex = component.sortedAssets.findIndex(asset => !asset.winrmEnabled);
-      const lastWinrmIndex = component.sortedAssets.length - 1 - component.sortedAssets.slice().reverse().findIndex((asset: any) => asset.winrmEnabled);
-      
-      expect(firstNonWinrmIndex).toBeGreaterThan(lastWinrmIndex);
-    });
-
-    it('should prioritize online assets within same WinRM status', () => {
-      component['sortAssets']();
-      
-      const winrmAssets = component.sortedAssets.filter(asset => asset.winrmEnabled);
-      const onlineAssets = winrmAssets.filter(asset => asset.status === 'online');
-      const offlineAssets = winrmAssets.filter(asset => asset.status !== 'online');
-      
-      // Online assets should come before offline assets
-      if (onlineAssets.length > 0 && offlineAssets.length > 0) {
-        const firstOfflineIndex = winrmAssets.findIndex(asset => asset.status !== 'online');
-        const lastOnlineIndex = winrmAssets.length - 1 - winrmAssets.slice().reverse().findIndex((asset: any) => asset.status === 'online');
-        expect(firstOfflineIndex).toBeGreaterThan(lastOnlineIndex);
-      } else {
-        // If no offline assets or no online assets, test should pass
-        expect(winrmAssets.length).toBeGreaterThan(0);
-      }
-    });
-
-    it('should sort alphabetically by hostname or IP', () => {
-      component['sortAssets']();
-      
-      const winrmAssets = component.sortedAssets.filter(asset => asset.winrmEnabled);
-      
-      for (let i = 0; i < winrmAssets.length - 1; i++) {
-        const current = winrmAssets[i];
-        const next = winrmAssets[i + 1];
-        const currentName = (current.hostname || current.ip).toLowerCase();
-        const nextName = (next.hostname || next.ip).toLowerCase();
-        
-        expect(currentName <= nextName).toBe(true);
-      }
-    });
-  });
-
-  describe('toggleDropdown', () => {
-    it('should toggle dropdown state', () => {
-      expect(component.isOpen).toBe(false);
-      
-      component.toggleDropdown();
-      expect(component.isOpen).toBe(true);
-      
-      component.toggleDropdown();
-      expect(component.isOpen).toBe(false);
-    });
-  });
-
-  describe('selectOption', () => {
-    it('should select asset and emit change', () => {
-      spyOn(component.selectedAssetIdChange, 'emit');
-      
-      component.selectOption('asset-1');
-      
-      expect(component.selectedAssetId).toBe('asset-1');
-      expect(component.selectedAssetIdChange.emit).toHaveBeenCalledWith('asset-1');
-      expect(component.isOpen).toBe(false);
-    });
-
-    it('should save selection to localStorage', () => {
-      component.selectOption('asset-1');
-      
-      expect(window.localStorage.setItem).toHaveBeenCalledWith('mcp.ui.selectedAsset', 'asset-1');
-    });
-
-    it('should handle localStorage not available', () => {
-      // Mock localStorage as undefined
-      Object.defineProperty(window, 'localStorage', {
-        value: undefined,
-        writable: true
-      });
-      
-      // Should not throw error and should handle gracefully
-      expect(() => component.selectOption('asset-1')).not.toThrow();
-    });
-  });
-
-  describe('toggleRemember', () => {
-    it('should not toggle when no asset selected', () => {
-      component.selectedAssetId = null;
-      const originalRemembered = component.isRemembered;
-      
-      component.toggleRemember();
-      
-      expect(component.isRemembered).toBe(originalRemembered);
-    });
-
-    it('should remember current selection', () => {
-      component.selectedAssetId = 'asset-1';
-      component.isRemembered = false;
-      
-      component.toggleRemember();
-      
-      expect(component.isRemembered).toBe(true);
-      expect(window.localStorage.setItem).toHaveBeenCalledWith('mcp.ui.rememberedAsset', 'true');
-    });
-
-    it('should forget selection and clear localStorage', () => {
-      component.selectedAssetId = 'asset-1';
-      component.isRemembered = true;
-      spyOn(component.selectedAssetIdChange, 'emit');
-      
-      component.toggleRemember();
-      
-      expect(component.isRemembered).toBe(false);
-      expect(component.selectedAssetId).toBeNull();
-      expect(window.localStorage.removeItem).toHaveBeenCalledWith('mcp.ui.rememberedAsset');
-      expect(window.localStorage.removeItem).toHaveBeenCalledWith('mcp.ui.selectedAsset');
-      expect(component.selectedAssetIdChange.emit).toHaveBeenCalledWith(null);
-    });
-
-    it('should handle localStorage not available', () => {
-      component.selectedAssetId = 'asset-1';
-      // Mock localStorage as undefined
-      Object.defineProperty(window, 'localStorage', {
-        value: undefined,
-        writable: true
-      });
-      
-      // Should not throw error and should handle gracefully
-      expect(() => component.toggleRemember()).not.toThrow();
-      expect(component.isRemembered).toBe(true);
-    });
-  });
-
-  describe('getSelectedDisplayName', () => {
-    it('should return default text when no asset selected', () => {
-      component.selectedAssetId = null;
-      
-      expect(component.getSelectedDisplayName()).toBe('Seleccionar destino');
-    });
-
-    it('should return hostname when available', () => {
-      component.selectedAssetId = 'asset-1';
-      
-      expect(component.getSelectedDisplayName()).toBe('server1');
-    });
-
-    it('should return IP when hostname not available', () => {
-      component.selectedAssetId = 'asset-2';
-      
-      expect(component.getSelectedDisplayName()).toBe('server2');
-    });
-
-    it('should return default text when asset not found', () => {
-      component.selectedAssetId = 'non-existent';
-      
-      expect(component.getSelectedDisplayName()).toBe('Seleccionar destino');
-    });
-  });
-
-  describe('getSelectedAsset', () => {
-    it('should return null when no asset selected', () => {
-      component.selectedAssetId = null;
-      
-      expect(component.getSelectedAsset()).toBeNull();
-    });
-
-    it('should return selected asset', () => {
-      component.selectedAssetId = 'asset-1';
-      
-      const selectedAsset = component.getSelectedAsset();
-      expect(selectedAsset).toBeDefined();
-      expect(selectedAsset?.id).toBe('asset-1');
-      expect(selectedAsset?.hostname).toBe('server1');
-    });
-
-    it('should return null when asset not found', () => {
-      component.selectedAssetId = 'non-existent';
-      
-      expect(component.getSelectedAsset()).toBeNull();
-    });
-  });
-
-  describe('trackByAssetId', () => {
-    it('should return asset id for tracking', () => {
-      const asset = mockAssets[0];
-      
-      expect(component.trackByAssetId(0, asset)).toBe('asset-1');
-    });
-  });
-
-  describe('component state', () => {
-    it('should initialize with correct default values', () => {
-      expect(component.isOpen).toBe(false);
-      expect(component.isRemembered).toBe(false);
-      // sortedAssets will be populated by ngOnInit with mockAssets
-      expect(component.sortedAssets).toBeDefined();
-    });
-
-    it('should handle empty assets array', () => {
-      component.assets = [];
-      component.ngOnInit();
-      
-      expect(component.sortedAssets).toEqual([]);
-    });
-
-    it('should handle assets with missing properties', () => {
-      const incompleteAssets: Asset[] = [
-        {
-          id: 'incomplete-1',
-          hostname: '',
-          ip: '192.168.1.100',
-          os: 'Windows',
-          status: 'online',
-          winrmEnabled: true,
-          lastSeen: '2024-01-01T00:00:00Z'
-        }
-      ];
-      
-      component.assets = incompleteAssets;
-      component.ngOnInit();
-      
-      expect(component.sortedAssets.length).toBe(1);
-      expect(component.getSelectedDisplayName()).toBe('Seleccionar destino');
     });
   });
 });

@@ -1,4 +1,4 @@
-<div class="target-selector-compact" data-testid="target-selector">
+<div class="target-selector-compact" data-testid="target-selector-container">
   <div class="selector-row" data-testid="selector-row">
     <div class="selector-info" data-testid="selector-info">
       <div class="selector-icon">🎯</div>
@@ -9,51 +9,24 @@
     </div>
 
     <div class="selector-controls">
-      <div class="custom-dropdown" [class.open]="isOpen" [class.disabled]="isRemembered">
-        <div class="dropdown-trigger" (click)="!isRemembered && toggleDropdown()">
-          <div class="selected-value">
-            <span class="value-text">{{ getSelectedDisplayName() }}</span>
-            <span class="value-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.ip }}</span>
-          </div>
-          <div class="dropdown-arrow" [class.rotated]="isOpen" [class.disabled]="isRemembered">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="dropdown-menu" *ngIf="isOpen && !isRemembered">
-          <div class="dropdown-option"
-               *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
-               [class.selected]="selectedAssetId === asset.id"
-               [class.disabled]="!asset.winrmEnabled"
-               (click)="selectOption(asset.id)">
-            <div class="option-content">
-              <div class="option-icon">🖥️</div>
-              <div class="option-text">
-                <span class="option-title">{{ asset.hostname || asset.ip }}</span>
-                <span class="option-subtitle">{{ asset.ip }}</span>
-              </div>
-              <div class="option-badges">
-                <span class="status-badge" [class]="'status-' + asset.status">{{ asset.status }}</span>
-                <span class="winrm-badge" [class]="asset.winrmEnabled ? 'enabled' : 'disabled'">
-                  {{ asset.winrmEnabled ? 'WinRM' : 'Sin WinRM' }}
-                </span>
-              </div>
-            </div>
-            <div class="option-status" *ngIf="selectedAssetId === asset.id">✓</div>
-          </div>
-        </div>
+      <!-- Simple select with Reactive Forms -->
+      <div class="select-wrapper">
+        <select 
+          data-testid="target-selector"
+          [formControl]="targetCtrl"
+          class="target-select">
+          <option data-testid="target-option-local" [ngValue]="null">🖥️ — Servidor (local) —</option>
+          <option 
+            *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
+            [ngValue]="asset.id"
+            [disabled]="!asset.winrmEnabled"
+            [attr.data-testid]="'target-option-' + asset.id">
+            {{ asset.winrmEnabled ? '🟢' : '🔴' }} {{ asset.hostname || asset.ip }}{{ asset.ip && asset.hostname ? ' (' + asset.ip + ')' : '' }}
+            {{ !asset.winrmEnabled ? ' (Sin WinRM)' : '' }}
+          </option>
+        </select>
+        <span *ngIf="assetsLoading" class="loading-spinner">⏳</span>
       </div>
-
-      <button class="remember-button" 
-              [class.remembered]="isRemembered"
-              [disabled]="!selectedAssetId"
-              (click)="toggleRemember($event)">
-        <span class="button-icon">{{ isRemembered ? '🔒' : '💾' }}</span>
-        <span class="button-text">{{ isRemembered ? 'Olvidar' : 'Recordar' }}</span>
-      </button>
     </div>
   </div>
-
 </div>

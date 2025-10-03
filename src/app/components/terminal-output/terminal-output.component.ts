@@ -16,10 +16,14 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
   @Input() targetHostname: string = '';
   @Input() targetIp: string = '';
   @Input() commandName: string = '';
+  @Input() executionId?: string;
 
   formattedOutput: string = '';
   isSuccess: boolean = false;
   isFullscreen: boolean = false;
+  isTruncated: boolean = false;
+  showFullOutput: boolean = false;
+  private readonly MAX_CHARS = 500;
 
   ngOnInit() {
     this.formatOutput();
@@ -65,6 +69,9 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
         return line;
       })
       .join('\n');
+    
+    // Check if output should be truncated
+    this.isTruncated = this.formattedOutput.length > this.MAX_CHARS;
   }
 
   getStatusColor(): string {
@@ -90,15 +97,52 @@ export class TerminalOutputComponent implements OnInit, OnChanges {
   }
 
   downloadOutput() {
-    const blob = new Blob([this.formattedOutput], { type: 'text/plain' });
+    // Create content with metadata
+    const metadata = [
+      '='.repeat(50),
+      'MCP Execution Output',
+      '='.repeat(50),
+      `Tool: ${this.commandName || 'Unknown'}`,
+      `Execution ID: ${this.executionId || 'N/A'}`,
+      `Target: ${this.getTargetDisplayName()}`,
+      `Status: ${this.status}`,
+      `Exit Code: ${this.exitCode}`,
+      `Date: ${new Date().toISOString()}`,
+      '='.repeat(50),
+      '',
+      '--- STDOUT ---',
+      this.stdout || '(empty)',
+      '',
+      '--- STDERR ---',
+      this.stderr || '(empty)',
+      ''
+    ].join('\n');
+
+    const blob = new Blob([metadata], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `terminal-output-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    
+    const filename = this.commandName 
+      ? `${this.commandName.replace(/[^a-z0-9]/gi, '-')}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`
+      : `terminal-output-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+  }
+
+  toggleOutput() {
+    this.showFullOutput = !this.showFullOutput;
+  }
+
+  getDisplayOutput(): string {
+    if (this.showFullOutput || !this.isTruncated) {
+      return this.formattedOutput;
+    }
+    return this.formattedOutput.substring(0, this.MAX_CHARS) + '\n...[truncated]...';
   }
 
   toggleFullscreen() {

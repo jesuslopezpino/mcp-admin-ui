@@ -369,8 +369,9 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
         *ngIf="showRunToolModal"
         [tool]="selectedTool"
         [assetId]="selectedAsset?.id || ''"
+        [destinationLabel]="selectedAsset ? (selectedAsset.hostname + ' (' + selectedAsset.ip + ')') : ''"
         (close)="closeRunToolModal()"
-        (execute)="executeTool($event)">
+        (result)="executeTool($event)">
       </app-run-tool-modal>
     </div>
   `,
@@ -1416,25 +1417,19 @@ export class InventoryComponent implements OnInit {
     this.selectedAsset = null;
   }
 
-  executeTool(event: { tool: ToolDetails; arguments: any; userConfirmed: boolean }) {
-    if (!this.selectedAsset) return;
-
-    this.apiService.executeForAsset(
-      this.selectedAsset.id,
-      event.tool.name,
-      event.arguments,
-      event.userConfirmed
-    ).subscribe({
-      next: (result) => {
-        console.log('Tool executed successfully:', result);
-        this.showNotification(`Herramienta ejecutada exitosamente en ${this.selectedAsset?.hostname}`, 'success');
-        this.closeRunToolModal();
-      },
-      error: (error) => {
-        console.error('Error executing tool:', error);
-        this.showNotification('Error al ejecutar la herramienta: ' + error.message, 'error');
-      }
-    });
+  executeTool(execution: any) {
+    // The RunToolModal now handles async execution internally
+    // This is just the final result callback
+    console.log('Tool execution completed:', execution);
+    
+    if (execution.status === 'SUCCESS') {
+      this.showNotification(`Herramienta ejecutada exitosamente en ${this.selectedAsset?.hostname}`, 'success');
+    } else {
+      this.showNotification(`Error al ejecutar herramienta en ${this.selectedAsset?.hostname}`, 'error');
+    }
+    
+    // Don't automatically close modal - let user review results
+    // this.closeRunToolModal();
   }
 
   formatDate(dateString: string): string {

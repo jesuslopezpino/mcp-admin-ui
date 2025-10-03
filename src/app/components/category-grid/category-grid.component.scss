@@ -96,10 +96,36 @@
 
 .category-description {
   font-size: 0.95rem;
-  margin: 0;
+  margin: 0 0 8px 0;
   opacity: 0.9;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.4;
+}
+
+.tool-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  
+  .count-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 24px;
+    text-align: center;
+  }
+  
+  .count-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+  }
 }
 
 .category-arrow {

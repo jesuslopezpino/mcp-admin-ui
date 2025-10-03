@@ -11,6 +11,7 @@ import { Category, CategoryService } from '../../services/category.service';
 })
 export class CategoryGridComponent implements OnInit {
   @Input() categories: Category[] = [];
+  @Input() categorizedTools: Map<string, any[]> = new Map();
   @Output() categorySelected = new EventEmitter<string>();
 
   constructor(private categoryService: CategoryService) {}
@@ -23,5 +24,10 @@ export class CategoryGridComponent implements OnInit {
 
   selectCategory(categoryId: string) {
     this.categorySelected.emit(categoryId);
+  }
+
+  getToolCount(categoryId: string): number {
+    const tools = this.categorizedTools.get(categoryId);
+    return tools ? tools.length : 0;
   }
 }

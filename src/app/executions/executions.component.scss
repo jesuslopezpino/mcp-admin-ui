@@ -148,6 +148,12 @@
               background-color: #e9ecef;
             }
           }
+
+          &.non-sortable {
+            cursor: default;
+            color: #6c757d;
+            font-style: italic;
+          }
         }
       }
 
@@ -245,6 +251,24 @@
             &.exit-cell {
               font-family: monospace;
               font-weight: 600;
+            }
+
+            &.actions-cell {
+              text-align: center;
+              padding: 8px;
+              
+              .btn {
+                padding: 4px 8px;
+                font-size: 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                
+                &:hover {
+                  transform: translateY(-1px);
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+              }
             }
 
             &.error-cell {

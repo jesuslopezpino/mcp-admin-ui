@@ -6,12 +6,12 @@ import { Subject, debounceTime, takeUntil, distinctUntilChanged } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
 import { ExecutionListItem, ExecStatus, FailureStage, PageResponse } from '../models/api';
-import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
+import { ExecutionDetailsModalComponent } from './execution-details-modal.component';
 
 @Component({
   selector: 'app-executions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RunToolModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, ExecutionDetailsModalComponent],
   templateUrl: './executions.component.html',
   styleUrl: './executions.component.scss'
 })
@@ -28,7 +28,7 @@ export class ExecutionsComponent implements OnInit, OnDestroy {
   // UI state
   filtersExpanded = false;
   selectedExecution: ExecutionListItem | null = null;
-  showModal = false;
+  showExecutionModal = false;
   
   // Sorting
   sortFields: { [key: string]: 'asc' | 'desc' | null } = {};
@@ -336,14 +336,14 @@ export class ExecutionsComponent implements OnInit, OnDestroy {
    */
   showExecutionDetails(execution: ExecutionListItem): void {
     this.selectedExecution = execution;
-    this.showModal = true;
+    this.showExecutionModal = true;
   }
 
   /**
-   * Close modal
+   * Close execution modal
    */
-  closeModal(): void {
-    this.showModal = false;
+  closeExecutionModal(): void {
+    this.showExecutionModal = false;
     this.selectedExecution = null;
   }
 

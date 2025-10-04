@@ -19,7 +19,10 @@ export interface ParameterDefinition {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './assistant.component.html',
-  styleUrl: './assistant.component.scss'
+  styleUrl: './assistant.component.scss',
+  host: {
+    'ngSkipHydration': 'true'
+  }
 })
 export class AssistantComponent implements OnInit {
   message: string = '';

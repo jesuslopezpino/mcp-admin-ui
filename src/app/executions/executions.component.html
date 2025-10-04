@@ -219,26 +219,14 @@
           <th (click)="toggleSort('id')" class="sortable" data-testid="sort-header-id">
             ID {{ getSortIcon('id') }}
           </th>
-          <th (click)="toggleSort('toolName')" class="sortable" data-testid="sort-header-toolName">
-            Tool {{ getSortIcon('toolName') }}
-          </th>
-          <th (click)="toggleSort('userId')" class="sortable" data-testid="sort-header-userId">
-            User {{ getSortIcon('userId') }}
-          </th>
-          <th (click)="toggleSort('assetId')" class="sortable" data-testid="sort-header-assetId">
-            Asset {{ getSortIcon('assetId') }}
+          <th class="non-sortable" data-testid="sort-header-toolName">
+            Tool
           </th>
           <th (click)="toggleSort('status')" class="sortable" data-testid="sort-header-status">
             Status {{ getSortIcon('status') }}
           </th>
           <th (click)="toggleSort('exitCode')" class="sortable" data-testid="sort-header-exitCode">
             Exit {{ getSortIcon('exitCode') }}
-          </th>
-          <th (click)="toggleSort('failureStage')" class="sortable" data-testid="sort-header-failureStage">
-            Failure Stage {{ getSortIcon('failureStage') }}
-          </th>
-          <th (click)="toggleSort('errorCode')" class="sortable" data-testid="sort-header-errorCode">
-            Error Code {{ getSortIcon('errorCode') }}
           </th>
           <th (click)="toggleSort('startedAt')" class="sortable" data-testid="sort-header-startedAt">
             Started {{ getSortIcon('startedAt') }}
@@ -249,38 +237,47 @@
           <th (click)="toggleSort('durationMs')" class="sortable" data-testid="sort-header-durationMs">
             Duration {{ getSortIcon('durationMs') }}
           </th>
-          <th (click)="toggleSort('correlationId')" class="sortable" data-testid="sort-header-correlationId">
-            Correlation {{ getSortIcon('correlationId') }}
+          <th class="actions-header">
+            Actions
           </th>
         </tr>
       </thead>
       <tbody>
         <tr 
           *ngFor="let execution of executions" 
-          (click)="showExecutionDetails(execution)"
           class="execution-row"
           [attr.data-testid]="'executions-row-' + execution.id">
-          <td class="id-cell">{{ execution.id.substring(0, 8) }}...</td>
-          <td class="tool-cell">{{ execution.toolName || '-' }}</td>
-          <td class="user-cell">{{ execution.userId || '-' }}</td>
-          <td class="asset-cell">{{ execution.assetId ? execution.assetId.substring(0, 8) + '...' : '-' }}</td>
-          <td class="status-cell">
+          <td class="id-cell" (click)="showExecutionDetails(execution)">
+            {{ execution.id.substring(0, 8) }}...
+          </td>
+          <td class="tool-cell" (click)="showExecutionDetails(execution)">
+            {{ execution.toolName || '-' }}
+          </td>
+          <td class="status-cell" (click)="showExecutionDetails(execution)">
             <span class="status-badge" [ngClass]="getStatusClass(execution.status)">
               {{ execution.status }}
             </span>
           </td>
-          <td class="exit-cell">{{ execution.exitCode ?? '-' }}</td>
-          <td class="failure-cell">
-            <span *ngIf="execution.failureStage" class="failure-badge">
-              {{ execution.failureStage }}
-            </span>
-            <span *ngIf="!execution.failureStage">-</span>
+          <td class="exit-cell" (click)="showExecutionDetails(execution)">
+            {{ execution.exitCode ?? '-' }}
           </td>
-          <td class="error-cell">{{ execution.errorCode || '-' }}</td>
-          <td class="started-cell">{{ formatDate(execution.startedAt || null) }}</td>
-          <td class="finished-cell">{{ formatDate(execution.finishedAt || null) }}</td>
-          <td class="duration-cell">{{ formatDuration(execution.durationMs || null) }}</td>
-          <td class="correlation-cell">{{ execution.correlationId || '-' }}</td>
+          <td class="started-cell" (click)="showExecutionDetails(execution)">
+            {{ formatDate(execution.startedAt || null) }}
+          </td>
+          <td class="finished-cell" (click)="showExecutionDetails(execution)">
+            {{ formatDate(execution.finishedAt || null) }}
+          </td>
+          <td class="duration-cell" (click)="showExecutionDetails(execution)">
+            {{ formatDuration(execution.durationMs || null) }}
+          </td>
+          <td class="actions-cell">
+            <button 
+              class="btn btn-sm btn-primary" 
+              (click)="showExecutionDetails(execution)"
+              data-testid="view-execution">
+              👁️ View
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -349,8 +346,8 @@
 </div>
 
 <!-- Execution Details Modal -->
-<app-run-tool-modal
-  *ngIf="showModal && selectedExecution"
+<app-execution-details-modal
+  *ngIf="showExecutionModal && selectedExecution"
   [executionId]="selectedExecution.id"
-  (closed)="closeModal()">
-</app-run-tool-modal>
+  (close)="closeExecutionModal()">
+</app-execution-details-modal>

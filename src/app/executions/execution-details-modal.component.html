@@ -1,0 +1,150 @@
+<!-- Modal Backdrop -->
+<div class="modal-backdrop" (click)="onClose()" data-testid="execution-details-backdrop">
+  <div class="modal-container" (click)="$event.stopPropagation()" data-testid="execution-details-modal">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span class="modal-icon">📋</span>
+        Detalles de Ejecución
+      </h3>
+      <button class="close-btn" (click)="onClose()" data-testid="execution-details-close">
+        ✕
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state" data-testid="execution-details-loading">
+        <div class="loading-spinner">
+          <span class="spinner-icon">⏳</span>
+          <span class="loading-text">Cargando detalles de la ejecución...</span>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state" data-testid="execution-details-error">
+        <div class="error-content">
+          <span class="error-icon">⚠️</span>
+          <span class="error-message">{{ error }}</span>
+          <button class="btn btn-sm btn-secondary" (click)="onReload()" *ngIf="executionId">
+            🔄 Reintentar
+          </button>
+        </div>
+      </div>
+
+      <!-- Execution Details -->
+      <div *ngIf="execution && !loading" class="execution-details">
+        
+        <!-- Result Header -->
+        <div class="result-header">
+          <h4 class="result-title">
+            <span class="exec-status" 
+                  [class.exec-status--success]="execution.status === 'SUCCESS'"
+                  [class.exec-status--failed]="execution.status === 'FAILED'"
+                  [class.exec-status--error]="execution.status === 'ERROR'"
+                  data-testid="execution-details-status">
+              {{ getStatusIcon(execution.status) }} {{ execution.status }}
+            </span>
+            <span class="execution-id" *ngIf="execution.id">ID: {{ execution.id.substring(0, 8) }}...</span>
+          </h4>
+          
+          <!-- Exit Code and Duration -->
+          <div class="result-meta" *ngIf="execution.exitCode !== undefined || formatDuration(execution.startedAt, execution.finishedAt)">
+            <span *ngIf="execution.exitCode !== undefined" 
+                  class="exit-code"
+                  data-testid="execution-details-exitcode">
+              Exit Code: {{ execution.exitCode }}
+            </span>
+            <span *ngIf="formatDuration(execution.startedAt, execution.finishedAt)" 
+                  class="duration"
+                  data-testid="execution-details-duration">
+              Duración: {{ formatDuration(execution.startedAt, execution.finishedAt) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Execution Info -->
+        <div class="execution-info">
+          <div class="info-grid">
+            <div class="info-item" *ngIf="execution.toolName">
+              <span class="info-label">Herramienta:</span>
+              <span class="info-value">{{ execution.toolName }}</span>
+            </div>
+            <div class="info-item" *ngIf="execution.startedAt">
+              <span class="info-label">Iniciado:</span>
+              <span class="info-value">{{ execution.startedAt | date:'medium' }}</span>
+            </div>
+            <div class="info-item" *ngIf="execution.finishedAt">
+              <span class="info-label">Finalizado:</span>
+              <span class="info-value">{{ execution.finishedAt | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Details -->
+        <div class="exec-error__section" 
+             *ngIf="(execution.status === 'FAILED' || execution.status === 'ERROR') && (execution.errorCode || execution.failureStage)">
+          <h5>🔍 Detalles del Error</h5>
+          <div class="error-details">
+            <div *ngIf="execution.failureStage" class="error-item">
+              <span class="error-label">Etapa:</span>
+              <span class="failure-stage" data-testid="execution-details-failure-stage">{{ execution.failureStage }}</span>
+            </div>
+            <div *ngIf="execution.errorCode" class="error-item">
+              <span class="error-label">Código:</span>
+              <span class="error-code" data-testid="execution-details-error-code">{{ execution.errorCode }}</span>
+            </div>
+            <div *ngIf="execution.errorReason" class="error-item">
+              <span class="error-label">Motivo:</span>
+              <span class="error-reason">{{ execution.errorReason }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON Response Block -->
+        <div class="exec-json__section" *ngIf="execution.responseJson" data-testid="execution-details-json">
+          <h5>📄 Respuesta JSON</h5>
+          <div class="json-container">
+            <pre class="json-content">{{ getPrettyJson(execution.responseJson) }}</pre>
+            <div class="json-actions">
+              <button class="btn btn-sm btn-secondary" 
+                      (click)="copyJson(execution.responseJson)"
+                      data-testid="execution-details-json-copy">
+                📋 Copiar JSON
+              </button>
+              <button class="btn btn-sm btn-secondary" 
+                      (click)="downloadJson(execution.responseJson)"
+                      data-testid="execution-details-json-download">
+                💾 Descargar JSON
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal-block">
+          <app-terminal-output
+            [stdout]="execution.stdout || ''"
+            [stderr]="execution.stderr || ''"
+            [exitCode]="execution.exitCode || 0"
+            [status]="execution.status"
+            [targetHostname]="getSelectedAsset()?.hostname || ''"
+            [targetIp]="getSelectedAsset()?.ip || ''"
+            [commandName]="execution.toolName || ''"
+            [executionId]="execution.id">
+          </app-terminal-output>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onClose()" data-testid="execution-details-close-btn">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

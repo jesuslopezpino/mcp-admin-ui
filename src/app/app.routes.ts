@@ -9,6 +9,11 @@ export const routes: Routes = [
   { path: 'catalog', component: CatalogComponent },
   { path: 'inventory', component: InventoryComponent },
   { path: 'schedules', component: SchedulesComponent },
+  { 
+    path: 'executions', 
+    title: 'Executions',
+    loadComponent: () => import('./executions/executions.component').then(m => m.ExecutionsComponent)
+  },
   { path: '', redirectTo: '/assistant', pathMatch: 'full' },
   { path: '**', redirectTo: '/assistant' }
 ];

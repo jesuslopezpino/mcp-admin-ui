@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { ScheduledTask, Tool, Asset } from '../models/api';
+import { ScheduledTask, Tool, Asset, Execution } from '../models/api';
 
 export interface PlanRequest {
   userId: string;
@@ -205,8 +205,8 @@ export class ApiService {
    * @param executionId Execution UUID
    * @returns Observable with execution details
    */
-  getExecution(executionId: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/executions/${executionId}`, {
+  getExecution(executionId: string): Observable<Execution> {
+    return this.http.get<Execution>(`${this.baseUrl}/executions/${executionId}`, {
       headers: this.getHeaders()
     });
   }

@@ -151,22 +151,89 @@
         </app-terminal-output>
       </div>
 
-      <!-- Execution Result with Terminal Output -->
+      <!-- Execution Result with Enhanced Error Display -->
       <div class="execution-result" *ngIf="executionResult" data-testid="run-modal-result">
-        <h4 class="result-title">
-          <span data-testid="run-modal-result-status">{{ getStatusIcon(executionResult.status) }} Resultado</span>
-          <span class="execution-id" *ngIf="executionId">ID: {{ executionId.substring(0, 8) }}...</span>
-        </h4>
-        <app-terminal-output
-          [stdout]="executionResult.stdout || ''"
-          [stderr]="executionResult.stderr || ''"
-          [exitCode]="executionResult.exitCode || 0"
-          [status]="executionResult.status"
-          [targetHostname]="getSelectedAsset()?.hostname || ''"
-          [targetIp]="getSelectedAsset()?.ip || ''"
-          [commandName]="tool.name || ''"
-          [executionId]="executionId || undefined">
-        </app-terminal-output>
+        <!-- Result Header -->
+        <div class="result-header">
+          <h4 class="result-title">
+            <span class="exec-status" 
+                  [class.exec-status--success]="executionResult.status === 'SUCCESS'"
+                  [class.exec-status--failed]="executionResult.status === 'FAILED'"
+                  [class.exec-status--error]="executionResult.status === 'ERROR'"
+                  data-testid="run-modal-result-status">
+              {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
+            </span>
+            <span class="execution-id" *ngIf="executionId">ID: {{ executionId.substring(0, 8) }}...</span>
+          </h4>
+          
+          <!-- Exit Code and Duration -->
+          <div class="result-meta" *ngIf="executionResult.exitCode !== undefined || getExecutionDuration()">
+            <span *ngIf="executionResult.exitCode !== undefined" 
+                  class="exit-code"
+                  data-testid="run-modal-result-exitcode">
+              Exit Code: {{ executionResult.exitCode }}
+            </span>
+            <span *ngIf="getExecutionDuration()" 
+                  class="duration"
+                  data-testid="run-modal-result-duration">
+              Duración: {{ getExecutionDuration() }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Error Details (only for FAILED or ERROR) -->
+        <div class="exec-error__section" 
+             *ngIf="(executionResult.status === 'FAILED' || executionResult.status === 'ERROR') && (executionResult.errorCode || executionResult.failureStage)">
+          <h5>🔍 Detalles del Error</h5>
+          <div class="error-details">
+            <div *ngIf="executionResult.failureStage" class="error-item">
+              <span class="error-label">Etapa:</span>
+              <span class="failure-stage" data-testid="run-modal-failure-stage">{{ executionResult.failureStage }}</span>
+            </div>
+            <div *ngIf="executionResult.errorCode" class="error-item">
+              <span class="error-label">Código:</span>
+              <span class="error-code" data-testid="run-modal-error-code">{{ executionResult.errorCode }}</span>
+            </div>
+            <div *ngIf="executionResult.errorReason" class="error-item">
+              <span class="error-label">Motivo:</span>
+              <span class="error-reason" data-testid="run-modal-error-reason">{{ executionResult.errorReason }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON Response Block (only if responseJson exists) -->
+        <div class="exec-json__section" *ngIf="executionResult.responseJson" data-testid="run-modal-response-json">
+          <h5>📄 Respuesta JSON</h5>
+          <div class="json-container">
+            <pre class="json-content">{{ getPrettyJson(executionResult.responseJson) }}</pre>
+            <div class="json-actions">
+              <button class="btn btn-sm btn-secondary" 
+                      (click)="copyJson(executionResult.responseJson)"
+                      data-testid="run-modal-response-json-copy">
+                📋 Copiar JSON
+              </button>
+              <button class="btn btn-sm btn-secondary" 
+                      (click)="downloadJson(executionResult.responseJson, executionId)"
+                      data-testid="run-modal-response-json-download">
+                💾 Descargar JSON
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal-block">
+          <app-terminal-output
+            [stdout]="executionResult.stdout || ''"
+            [stderr]="executionResult.stderr || ''"
+            [exitCode]="executionResult.exitCode || 0"
+            [status]="executionResult.status"
+            [targetHostname]="getSelectedAsset()?.hostname || ''"
+            [targetIp]="getSelectedAsset()?.ip || ''"
+            [commandName]="tool.name || ''"
+            [executionId]="executionId || undefined">
+          </app-terminal-output>
+        </div>
       </div>
     </div>
 

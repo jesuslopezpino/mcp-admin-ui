@@ -399,4 +399,78 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   getFieldOptions(prop: any): string[] {
     return this.formHandlerService.getFieldOptions(prop);
   }
+
+  /**
+   * Calculate execution duration in a human-readable format
+   */
+  getExecutionDuration(): string | null {
+    if (!this.executionResult?.startedAt || !this.executionResult?.finishedAt) {
+      return null;
+    }
+
+    const start = new Date(this.executionResult.startedAt);
+    const end = new Date(this.executionResult.finishedAt);
+    const durationMs = end.getTime() - start.getTime();
+
+    if (durationMs < 1000) {
+      return `${durationMs}ms`;
+    } else if (durationMs < 60000) {
+      return `${(durationMs / 1000).toFixed(1)}s`;
+    } else {
+      const minutes = Math.floor(durationMs / 60000);
+      const seconds = Math.floor((durationMs % 60000) / 1000);
+      return `${minutes}m ${seconds}s`;
+    }
+  }
+
+  /**
+   * Format JSON for pretty printing
+   */
+  getPrettyJson(json: any): string {
+    try {
+      return JSON.stringify(json, null, 2);
+    } catch (error) {
+      return String(json);
+    }
+  }
+
+  /**
+   * Copy JSON to clipboard
+   */
+  async copyJson(json: any): Promise<void> {
+    try {
+      const jsonString = JSON.stringify(json, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+      this.notificationService.success('JSON copiado', 'El contenido JSON se ha copiado al portapapeles');
+    } catch (error) {
+      console.error('Error copying JSON:', error);
+      this.notificationService.error('Error al copiar', 'No se pudo copiar el JSON al portapapeles');
+    }
+  }
+
+  /**
+   * Download JSON as file
+   */
+  downloadJson(json: any, executionId: string | null): void {
+    try {
+      const jsonString = JSON.stringify(json, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const filename = executionId ? `execution_${executionId}.json` : 'execution_response.json';
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      this.notificationService.success('JSON descargado', `Archivo ${filename} descargado correctamente`);
+    } catch (error) {
+      console.error('Error downloading JSON:', error);
+      this.notificationService.error('Error al descargar', 'No se pudo descargar el archivo JSON');
+    }
+  }
 }

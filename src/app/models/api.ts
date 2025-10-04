@@ -64,6 +64,11 @@ export interface Execution {
   startedAt?: string;
   finishedAt?: string;
   createdAt?: string;
+  // NUEVOS del backend
+  errorCode?: string;
+  errorReason?: string;
+  failureStage?: 'VALIDATION'|'RENDER'|'ALLOWLIST'|'EXECUTOR'|'TIMEOUT'|'REMOTE'|'INTERNAL'|'NONZERO_EXIT';
+  responseJson?: any;
 }
 
 // Legacy sync execution types

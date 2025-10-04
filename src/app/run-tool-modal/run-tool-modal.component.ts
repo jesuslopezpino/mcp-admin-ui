@@ -23,13 +23,14 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   @Input() tool: ToolDetails | null = null;
   @Input() assetId: string | null = null;
   @Input() destinationLabel: string | null = null;
+  @Input() executionId: string | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() result = new EventEmitter<Execution>();
 
   form: FormGroup;
   isExecuting = false;
   executionResult: Execution | null = null;
-  executionId: string | null = null;
+  currentExecutionId: string | null = null;
   currentStatus: ExecStatus | null = null;
   
   assets: Asset[] = [];
@@ -58,6 +59,12 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // If executionId is provided, load execution details directly
+    if (this.executionId) {
+      this.loadExecutionDetails(this.executionId);
+      return;
+    }
+    
     this.loadAssets();
     this.setupForm();
     this.checkTargetRequirement();
@@ -71,6 +78,29 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Load execution details when executionId is provided
+   */
+  private loadExecutionDetails(executionId: string) {
+    this.isExecuting = true;
+    this.currentStatus = 'PENDING';
+    
+    this.apiService.getExecution(executionId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (execution) => {
+        this.executionResult = execution;
+        this.currentStatus = execution.status;
+        this.isExecuting = false;
+      },
+      error: (err) => {
+        this.isExecuting = false;
+        this.currentStatus = 'ERROR';
+        this.notificationService.error('Error loading execution', err.message || 'Unknown error');
+      }
+    });
   }
 
   loadAssets() {
@@ -184,7 +214,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
 
     this.isExecuting = true;
     this.executionResult = null;
-    this.executionId = null;
+    this.currentExecutionId = null;
     this.currentStatus = 'PENDING';
     
     // Disable form inputs
@@ -212,11 +242,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        this.executionId = response.executionId;
-        this.notificationService.info('Ejecución iniciada', `Ejecución ${this.executionId.substring(0, 8)}... en progreso`);
+        this.currentExecutionId = response.executionId;
+        this.notificationService.info('Ejecución iniciada', `Ejecución ${this.currentExecutionId.substring(0, 8)}... en progreso`);
         
         // Start polling for results
-        this.pollExecution(this.executionId);
+        this.pollExecution(this.currentExecutionId);
       },
       error: (err) => {
         this.isExecuting = false;

@@ -53,6 +53,7 @@ export interface ExecuteCreateResponse {
 }
 
 export type ExecStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'ERROR' | 'CANCELLED';
+export type FailureStage = 'VALIDATION'|'RENDER'|'ALLOWLIST'|'EXECUTOR'|'TIMEOUT'|'REMOTE'|'INTERNAL'|'NONZERO_EXIT';
 
 export interface Execution {
   id: string;
@@ -67,8 +68,32 @@ export interface Execution {
   // NUEVOS del backend
   errorCode?: string;
   errorReason?: string;
-  failureStage?: 'VALIDATION'|'RENDER'|'ALLOWLIST'|'EXECUTOR'|'TIMEOUT'|'REMOTE'|'INTERNAL'|'NONZERO_EXIT';
+  failureStage?: FailureStage;
   responseJson?: any;
+}
+
+export interface ExecutionListItem {
+  id: string;
+  toolName?: string | null;
+  assetId?: string | null;
+  userId?: string | null;
+  status: ExecStatus;
+  exitCode?: number | null;
+  failureStage?: FailureStage | null;
+  errorCode?: string | null;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  durationMs?: number | null;
+  correlationId?: string | null;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  sort?: string; // e.g. "finishedAt,desc"
 }
 
 // Legacy sync execution types

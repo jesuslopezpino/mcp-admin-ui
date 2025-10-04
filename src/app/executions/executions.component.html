@@ -1,141 +1,356 @@
 <div class="executions-container">
-  <div class="page-header">
-    <h1>📊 Ejecuciones</h1>
-    <p class="page-description">Consulta el estado y resultados de ejecuciones por ID</p>
+  <div class="header">
+    <h2>📊 Executions</h2>
+    <div class="header-actions">
+      <button 
+        class="btn btn-secondary" 
+        (click)="filtersExpanded = !filtersExpanded"
+        data-testid="toggle-filters">
+        {{ filtersExpanded ? 'Hide Filters' : 'Show Filters' }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="exportCsv()" 
+        [disabled]="isExporting"
+        data-testid="export-csv">
+        <span *ngIf="isExporting">⏳</span>
+        <span *ngIf="!isExporting">📥 Export CSV</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Lookup Form -->
-  <div class="lookup-section">
-    <form [formGroup]="lookupForm" (ngSubmit)="onLookup()" class="lookup-form" data-testid="executions-lookup">
-      <div class="form-group">
-        <label for="executionId" class="form-label">
-          ID de Ejecución
-          <span class="required-mark">*</span>
-        </label>
+  <!-- Filters Section -->
+  <div class="filters-section" *ngIf="filtersExpanded" [formGroup]="filterForm">
+    <div class="filters-grid">
+      <!-- Free text search -->
+      <div class="filter-group">
+        <label for="q">Search (stdout, stderr, errorReason)</label>
         <input 
           type="text" 
-          id="executionId"
-          formControlName="executionId"
-          class="form-input"
-          placeholder="ej: 12345678-1234-1234-1234-123456789abc"
-          [class.error]="lookupForm.get('executionId')?.invalid && lookupForm.get('executionId')?.touched"
-          data-testid="execution-id-input">
-        
-        <div *ngIf="lookupForm.get('executionId')?.invalid && lookupForm.get('executionId')?.touched" 
-             class="error-message">
-          <span *ngIf="lookupForm.get('executionId')?.errors?.['required']">ID de ejecución requerido</span>
-          <span *ngIf="lookupForm.get('executionId')?.errors?.['pattern']">Formato UUID inválido</span>
+          id="q" 
+          formControlName="q" 
+          placeholder="Enter search terms..."
+          data-testid="flt-q">
+      </div>
+
+      <!-- Tool Name -->
+      <div class="filter-group">
+        <label for="toolName">Tool Name</label>
+        <input 
+          type="text" 
+          id="toolName" 
+          formControlName="toolName" 
+          placeholder="Tool name (may be ignored by backend)"
+          title="*The backend may temporarily ignore this filter*"
+          data-testid="flt-tool">
+      </div>
+
+      <!-- Status -->
+      <div class="filter-group">
+        <label>Status</label>
+        <div class="checkbox-group">
+          <label *ngFor="let status of statusOptions" class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [value]="status"
+              (change)="onStatusChange($event, status)"
+              [checked]="filterForm.get('status')?.value?.includes(status)"
+              [attr.data-testid]="'flt-status-' + status.toLowerCase()">
+            {{ status }}
+          </label>
         </div>
       </div>
-      
-      <button type="submit" 
-              class="btn btn-primary"
-              [disabled]="lookupForm.invalid || isLoading"
-              data-testid="lookup-button">
-        <span *ngIf="isLoading" class="spinner">⏳</span>
-        <span *ngIf="!isLoading">🔍</span>
-        {{ isLoading ? 'Buscando...' : 'Buscar Ejecución' }}
+
+      <!-- Failure Stage -->
+      <div class="filter-group">
+        <label>Failure Stage</label>
+        <div class="checkbox-group">
+          <label *ngFor="let stage of failureStageOptions" class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [value]="stage"
+              (change)="onFailureStageChange($event, stage)"
+              [checked]="filterForm.get('failureStage')?.value?.includes(stage)"
+              [attr.data-testid]="'flt-fstage-' + stage.toLowerCase()">
+            {{ stage }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Error Code -->
+      <div class="filter-group">
+        <label for="errorCode">Error Code</label>
+        <input 
+          type="text" 
+          id="errorCode" 
+          formControlName="errorCode" 
+          placeholder="Error code..."
+          data-testid="flt-ecode">
+      </div>
+
+      <!-- User ID -->
+      <div class="filter-group">
+        <label for="userId">User ID</label>
+        <input 
+          type="text" 
+          id="userId" 
+          formControlName="userId" 
+          placeholder="User ID..."
+          data-testid="flt-user">
+      </div>
+
+      <!-- Asset ID -->
+      <div class="filter-group">
+        <label for="assetId">Asset ID</label>
+        <input 
+          type="text" 
+          id="assetId" 
+          formControlName="assetId" 
+          placeholder="Asset UUID..."
+          data-testid="flt-asset">
+      </div>
+
+      <!-- Exit Code Range -->
+      <div class="filter-group">
+        <label for="exitCodeMin">Exit Code Range</label>
+        <div class="range-inputs">
+          <input 
+            type="number" 
+            id="exitCodeMin" 
+            formControlName="exitCodeMin" 
+            placeholder="Min"
+            data-testid="flt-exit-min">
+          <span>to</span>
+          <input 
+            type="number" 
+            id="exitCodeMax" 
+            formControlName="exitCodeMax" 
+            placeholder="Max"
+            data-testid="flt-exit-max">
+        </div>
+      </div>
+
+      <!-- Started Date Range -->
+      <div class="filter-group">
+        <label>Started Date Range</label>
+        <div class="date-inputs">
+          <input 
+            type="datetime-local" 
+            formControlName="startedFrom" 
+            placeholder="From"
+            data-testid="flt-sfrom">
+          <span>to</span>
+          <input 
+            type="datetime-local" 
+            formControlName="startedTo" 
+            placeholder="To"
+            data-testid="flt-sto">
+        </div>
+      </div>
+
+      <!-- Finished Date Range -->
+      <div class="filter-group">
+        <label>Finished Date Range</label>
+        <div class="date-inputs">
+          <input 
+            type="datetime-local" 
+            formControlName="finishedFrom" 
+            placeholder="From"
+            data-testid="flt-ffrom">
+          <span>to</span>
+          <input 
+            type="datetime-local" 
+            formControlName="finishedTo" 
+            placeholder="To"
+            data-testid="flt-fto">
+        </div>
+      </div>
+
+      <!-- Has Response JSON -->
+      <div class="filter-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="hasResponseJson"
+            data-testid="flt-hasjson">
+          Has Response JSON
+        </label>
+      </div>
+
+      <!-- Correlation ID -->
+      <div class="filter-group">
+        <label for="correlationId">Correlation ID</label>
+        <input 
+          type="text" 
+          id="correlationId" 
+          formControlName="correlationId" 
+          placeholder="Correlation ID..."
+          data-testid="flt-corr">
+      </div>
+    </div>
+
+    <!-- Filter Actions -->
+    <div class="filter-actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="onApplyFilters()"
+        data-testid="apply-filters">
+        Apply Filters
       </button>
-    </form>
+      <button 
+        class="btn btn-secondary" 
+        (click)="resetFilters()"
+        data-testid="reset-filters">
+        Reset
+      </button>
+    </div>
   </div>
 
-  <!-- Execution Details -->
-  <div class="execution-details" *ngIf="execution" data-testid="execution-details">
-    <!-- Result Header -->
-    <div class="result-header">
-      <h3 class="result-title">
-        <span class="exec-status" 
-              [class.exec-status--success]="execution.status === 'SUCCESS'"
-              [class.exec-status--failed]="execution.status === 'FAILED'"
-              [class.exec-status--error]="execution.status === 'ERROR'"
-              data-testid="execution-status">
-          {{ getStatusIcon(execution.status) }} {{ execution.status }}
-        </span>
-        <span class="execution-id">ID: {{ execution.id.substring(0, 8) }}...</span>
-      </h3>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>⏳ Loading executions...</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading" class="table-container">
+    <table class="executions-table" data-testid="executions-table">
+      <thead>
+        <tr>
+          <th (click)="toggleSort('id')" class="sortable" data-testid="sort-header-id">
+            ID {{ getSortIcon('id') }}
+          </th>
+          <th (click)="toggleSort('toolName')" class="sortable" data-testid="sort-header-toolName">
+            Tool {{ getSortIcon('toolName') }}
+          </th>
+          <th (click)="toggleSort('userId')" class="sortable" data-testid="sort-header-userId">
+            User {{ getSortIcon('userId') }}
+          </th>
+          <th (click)="toggleSort('assetId')" class="sortable" data-testid="sort-header-assetId">
+            Asset {{ getSortIcon('assetId') }}
+          </th>
+          <th (click)="toggleSort('status')" class="sortable" data-testid="sort-header-status">
+            Status {{ getSortIcon('status') }}
+          </th>
+          <th (click)="toggleSort('exitCode')" class="sortable" data-testid="sort-header-exitCode">
+            Exit {{ getSortIcon('exitCode') }}
+          </th>
+          <th (click)="toggleSort('failureStage')" class="sortable" data-testid="sort-header-failureStage">
+            Failure Stage {{ getSortIcon('failureStage') }}
+          </th>
+          <th (click)="toggleSort('errorCode')" class="sortable" data-testid="sort-header-errorCode">
+            Error Code {{ getSortIcon('errorCode') }}
+          </th>
+          <th (click)="toggleSort('startedAt')" class="sortable" data-testid="sort-header-startedAt">
+            Started {{ getSortIcon('startedAt') }}
+          </th>
+          <th (click)="toggleSort('finishedAt')" class="sortable" data-testid="sort-header-finishedAt">
+            Finished {{ getSortIcon('finishedAt') }}
+          </th>
+          <th (click)="toggleSort('durationMs')" class="sortable" data-testid="sort-header-durationMs">
+            Duration {{ getSortIcon('durationMs') }}
+          </th>
+          <th (click)="toggleSort('correlationId')" class="sortable" data-testid="sort-header-correlationId">
+            Correlation {{ getSortIcon('correlationId') }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr 
+          *ngFor="let execution of executions" 
+          (click)="showExecutionDetails(execution)"
+          class="execution-row"
+          [attr.data-testid]="'executions-row-' + execution.id">
+          <td class="id-cell">{{ execution.id.substring(0, 8) }}...</td>
+          <td class="tool-cell">{{ execution.toolName || '-' }}</td>
+          <td class="user-cell">{{ execution.userId || '-' }}</td>
+          <td class="asset-cell">{{ execution.assetId ? execution.assetId.substring(0, 8) + '...' : '-' }}</td>
+          <td class="status-cell">
+            <span class="status-badge" [ngClass]="getStatusClass(execution.status)">
+              {{ execution.status }}
+            </span>
+          </td>
+          <td class="exit-cell">{{ execution.exitCode ?? '-' }}</td>
+          <td class="failure-cell">
+            <span *ngIf="execution.failureStage" class="failure-badge">
+              {{ execution.failureStage }}
+            </span>
+            <span *ngIf="!execution.failureStage">-</span>
+          </td>
+          <td class="error-cell">{{ execution.errorCode || '-' }}</td>
+          <td class="started-cell">{{ formatDate(execution.startedAt || null) }}</td>
+          <td class="finished-cell">{{ formatDate(execution.finishedAt || null) }}</td>
+          <td class="duration-cell">{{ formatDuration(execution.durationMs || null) }}</td>
+          <td class="correlation-cell">{{ execution.correlationId || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="executions.length === 0" class="empty-state">
+      <p>No executions found matching the current filters.</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="pageResponse && pageResponse.totalPages > 1" class="pagination">
+    <div class="pagination-info">
+      Showing {{ (pageResponse.page * pageResponse.size) + 1 }} to 
+      {{ getMaxPageElement() }} 
+      of {{ pageResponse.totalElements }} executions
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="btn btn-sm" 
+        (click)="goToPage(0)" 
+        [disabled]="pageResponse.page === 0"
+        data-testid="pager-first">
+        « First
+      </button>
+      <button 
+        class="btn btn-sm" 
+        (click)="goToPage(pageResponse.page - 1)" 
+        [disabled]="pageResponse.page === 0"
+        data-testid="pager-prev">
+        ‹ Prev
+      </button>
       
-      <!-- Exit Code and Duration -->
-      <div class="result-meta" *ngIf="execution.exitCode !== undefined || getExecutionDuration()">
-        <span *ngIf="execution.exitCode !== undefined" 
-              class="exit-code"
-              data-testid="execution-exitcode">
-          Exit Code: {{ execution.exitCode }}
-        </span>
-        <span *ngIf="getExecutionDuration()" 
-              class="duration"
-              data-testid="execution-duration">
-          Duración: {{ getExecutionDuration() }}
-        </span>
-      </div>
+      <span class="page-info">
+        Page {{ pageResponse.page + 1 }} of {{ pageResponse.totalPages }}
+      </span>
+      
+      <button 
+        class="btn btn-sm" 
+        (click)="goToPage(pageResponse.page + 1)" 
+        [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
+        data-testid="pager-next">
+        Next ›
+      </button>
+      <button 
+        class="btn btn-sm" 
+        (click)="goToPage(pageResponse.totalPages - 1)" 
+        [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
+        data-testid="pager-last">
+        Last »
+      </button>
     </div>
-
-    <!-- Error Details (only for FAILED or ERROR) -->
-    <div class="exec-error__section" 
-         *ngIf="(execution.status === 'FAILED' || execution.status === 'ERROR') && (execution.errorCode || execution.failureStage)">
-      <h4>🔍 Detalles del Error</h4>
-      <div class="error-details">
-        <div *ngIf="execution.failureStage" class="error-item">
-          <span class="error-label">Etapa:</span>
-          <span class="failure-stage" data-testid="execution-failure-stage">{{ execution.failureStage }}</span>
-        </div>
-        <div *ngIf="execution.errorCode" class="error-item">
-          <span class="error-label">Código:</span>
-          <span class="error-code" data-testid="execution-error-code">{{ execution.errorCode }}</span>
-        </div>
-        <div *ngIf="execution.errorReason" class="error-item">
-          <span class="error-label">Motivo:</span>
-          <span class="error-reason" data-testid="execution-error-reason">{{ execution.errorReason }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- JSON Response Block (only if responseJson exists) -->
-    <div class="exec-json__section" *ngIf="execution.responseJson" data-testid="execution-response-json">
-      <h4>📄 Respuesta JSON</h4>
-      <div class="json-container">
-        <pre class="json-content">{{ getPrettyJson(execution.responseJson) }}</pre>
-        <div class="json-actions">
-          <button class="btn btn-sm btn-secondary" 
-                  (click)="copyJson(execution.responseJson)"
-                  data-testid="execution-json-copy">
-            📋 Copiar JSON
-          </button>
-          <button class="btn btn-sm btn-secondary" 
-                  (click)="downloadJson(execution.responseJson, execution.id)"
-                  data-testid="execution-json-download">
-            💾 Descargar JSON
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Terminal Output -->
-    <div class="terminal-block">
-      <h4>💻 Salida de Terminal</h4>
-      <div class="terminal-output">
-        <div *ngIf="execution.stdout" class="stdout-section">
-          <h5>Salida estándar (stdout):</h5>
-          <pre class="terminal-content">{{ execution.stdout }}</pre>
-        </div>
-        <div *ngIf="execution.stderr" class="stderr-section">
-          <h5>Error estándar (stderr):</h5>
-          <pre class="terminal-content stderr">{{ execution.stderr }}</pre>
-        </div>
-        <div *ngIf="!execution.stdout && !execution.stderr" class="no-output">
-          <p>No hay salida disponible</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- No Results Message -->
-  <div class="no-results" *ngIf="!execution && !isLoading">
-    <div class="no-results-content">
-      <h3>🔍 Buscar Ejecución</h3>
-      <p>Introduce un ID de ejecución para ver sus detalles y resultados.</p>
-      <div class="help-text">
-        <p><strong>Tip:</strong> Los IDs de ejecución son UUIDs que se generan cuando se inicia una ejecución.</p>
-      </div>
+    
+    <div class="page-size">
+      <label for="pageSize">Size:</label>
+      <select 
+        id="pageSize" 
+        [value]="pageResponse.size" 
+        (change)="onPageSizeChange($event)"
+        data-testid="size-select">
+        <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+      </select>
     </div>
   </div>
 </div>
+
+<!-- Execution Details Modal -->
+<app-run-tool-modal
+  *ngIf="showModal && selectedExecution"
+  [executionId]="selectedExecution.id"
+  (closed)="closeModal()">
+</app-run-tool-modal>

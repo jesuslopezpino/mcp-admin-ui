@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { ScheduledTask, Tool, Asset, Execution } from '../models/api';
+import { ScheduledTask, Tool, Asset, Execution, ExecutionListItem, PageResponse } from '../models/api';
 
 export interface PlanRequest {
   userId: string;
@@ -306,5 +306,138 @@ export class ApiService {
       {},
       { headers: this.getHeaders() }
     );
+  }
+
+  /**
+   * Get paginated executions with filtering and sorting
+   * @param params Filter and pagination parameters
+   * @returns Observable with paginated execution list
+   */
+  getExecutions(params: {
+    page?: number; 
+    size?: number; 
+    sort?: string[];
+    status?: string[]; 
+    toolName?: string; 
+    assetId?: string; 
+    userId?: string;
+    failureStage?: string[]; 
+    errorCode?: string;
+    exitCodeMin?: number; 
+    exitCodeMax?: number;
+    startedFrom?: string; 
+    startedTo?: string;
+    finishedFrom?: string; 
+    finishedTo?: string;
+    correlationId?: string; 
+    hasResponseJson?: boolean;
+    q?: string;
+  }): Observable<PageResponse<ExecutionListItem>> {
+    let httpParams = new HttpParams();
+    
+    // Pagination
+    if (params.page !== undefined) httpParams = httpParams.set('page', params.page.toString());
+    if (params.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
+    
+    // Sorting (multiple sort fields)
+    if (params.sort && params.sort.length > 0) {
+      params.sort.forEach(sortField => {
+        httpParams = httpParams.append('sort', sortField);
+      });
+    }
+    
+    // Filters
+    if (params.status && params.status.length > 0) {
+      params.status.forEach(status => {
+        httpParams = httpParams.append('status', status);
+      });
+    }
+    if (params.toolName) httpParams = httpParams.set('toolName', params.toolName);
+    if (params.assetId) httpParams = httpParams.set('assetId', params.assetId);
+    if (params.userId) httpParams = httpParams.set('userId', params.userId);
+    
+    if (params.failureStage && params.failureStage.length > 0) {
+      params.failureStage.forEach(stage => {
+        httpParams = httpParams.append('failureStage', stage);
+      });
+    }
+    
+    if (params.errorCode) httpParams = httpParams.set('errorCode', params.errorCode);
+    if (params.exitCodeMin !== undefined) httpParams = httpParams.set('exitCodeMin', params.exitCodeMin.toString());
+    if (params.exitCodeMax !== undefined) httpParams = httpParams.set('exitCodeMax', params.exitCodeMax.toString());
+    
+    if (params.startedFrom) httpParams = httpParams.set('startedFrom', params.startedFrom);
+    if (params.startedTo) httpParams = httpParams.set('startedTo', params.startedTo);
+    if (params.finishedFrom) httpParams = httpParams.set('finishedFrom', params.finishedFrom);
+    if (params.finishedTo) httpParams = httpParams.set('finishedTo', params.finishedTo);
+    
+    if (params.correlationId) httpParams = httpParams.set('correlationId', params.correlationId);
+    if (params.hasResponseJson !== undefined) httpParams = httpParams.set('hasResponseJson', params.hasResponseJson.toString());
+    if (params.q) httpParams = httpParams.set('q', params.q);
+    
+    return this.http.get<PageResponse<ExecutionListItem>>(`${this.baseUrl}/executions`, {
+      headers: this.getHeaders(),
+      params: httpParams
+    });
+  }
+
+  /**
+   * Export executions to CSV with same filtering options
+   * @param params Same filter parameters as getExecutions
+   * @returns Observable with CSV blob
+   */
+  exportExecutionsCsv(params: {
+    status?: string[]; 
+    toolName?: string; 
+    assetId?: string; 
+    userId?: string;
+    failureStage?: string[]; 
+    errorCode?: string;
+    exitCodeMin?: number; 
+    exitCodeMax?: number;
+    startedFrom?: string; 
+    startedTo?: string;
+    finishedFrom?: string; 
+    finishedTo?: string;
+    correlationId?: string; 
+    hasResponseJson?: boolean;
+    q?: string;
+  }): Observable<Blob> {
+    let httpParams = new HttpParams();
+    
+    // Apply same filters as getExecutions (excluding pagination)
+    if (params.status && params.status.length > 0) {
+      params.status.forEach(status => {
+        httpParams = httpParams.append('status', status);
+      });
+    }
+    if (params.toolName) httpParams = httpParams.set('toolName', params.toolName);
+    if (params.assetId) httpParams = httpParams.set('assetId', params.assetId);
+    if (params.userId) httpParams = httpParams.set('userId', params.userId);
+    
+    if (params.failureStage && params.failureStage.length > 0) {
+      params.failureStage.forEach(stage => {
+        httpParams = httpParams.append('failureStage', stage);
+      });
+    }
+    
+    if (params.errorCode) httpParams = httpParams.set('errorCode', params.errorCode);
+    if (params.exitCodeMin !== undefined) httpParams = httpParams.set('exitCodeMin', params.exitCodeMin.toString());
+    if (params.exitCodeMax !== undefined) httpParams = httpParams.set('exitCodeMax', params.exitCodeMax.toString());
+    
+    if (params.startedFrom) httpParams = httpParams.set('startedFrom', params.startedFrom);
+    if (params.startedTo) httpParams = httpParams.set('startedTo', params.startedTo);
+    if (params.finishedFrom) httpParams = httpParams.set('finishedFrom', params.finishedFrom);
+    if (params.finishedTo) httpParams = httpParams.set('finishedTo', params.finishedTo);
+    
+    if (params.correlationId) httpParams = httpParams.set('correlationId', params.correlationId);
+    if (params.hasResponseJson !== undefined) httpParams = httpParams.set('hasResponseJson', params.hasResponseJson.toString());
+    if (params.q) httpParams = httpParams.set('q', params.q);
+    
+    return this.http.get(`${this.baseUrl}/executions/export`, {
+      headers: this.getHeaders(),
+      params: httpParams,
+      responseType: 'blob'
+    });
   }
 }

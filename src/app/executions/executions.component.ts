@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, debounceTime, takeUntil, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime, takeUntil, distinctUntilChanged, timer, switchMap } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
 import { ExecutionListItem, ExecStatus, FailureStage, PageResponse } from '../models/api';
@@ -11,7 +11,7 @@ import { ExecutionDetailsModalComponent } from './execution-details-modal.compon
 @Component({
   selector: 'app-executions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ExecutionDetailsModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ExecutionDetailsModalComponent],
   templateUrl: './executions.component.html',
   styleUrl: './executions.component.scss'
 })
@@ -29,6 +29,11 @@ export class ExecutionsComponent implements OnInit, OnDestroy {
   filtersExpanded = false;
   selectedExecution: ExecutionListItem | null = null;
   showExecutionModal = false;
+  
+  // Polling
+  pollingEnabled = false;
+  pollingInterval = 30; // seconds
+  pollingIntervalOptions = [10, 30, 60, 120, 300]; // 10s, 30s, 1m, 2m, 5m
   
   // Sorting
   sortFields: { [key: string]: 'asc' | 'desc' | null } = {};
@@ -467,6 +472,108 @@ export class ExecutionsComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLSelectElement;
     if (target && this.pageResponse) {
       this.changePageSize(+target.value);
+    }
+  }
+
+  /**
+   * Toggle polling on/off
+   */
+  togglePolling(): void {
+    this.pollingEnabled = !this.pollingEnabled;
+    if (this.pollingEnabled) {
+      this.startPolling();
+    } else {
+      this.stopPolling();
+    }
+  }
+
+  /**
+   * Start automatic polling
+   */
+  private startPolling(): void {
+    console.log(`Starting polling every ${this.pollingInterval} seconds`);
+    timer(0, this.pollingInterval * 1000)
+      .pipe(
+        switchMap(() => this.loadExecutionsObservable()),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (response) => {
+          this.pageResponse = response;
+          this.executions = response.content;
+          console.log('Polling refresh completed');
+        },
+        error: (err) => {
+          console.error('Polling error:', err);
+          this.notificationService.error('Polling error', err.message || 'Unknown error');
+        }
+      });
+  }
+
+  /**
+   * Load executions and return Observable for polling
+   */
+  private loadExecutionsObservable() {
+    const formValue = this.filterForm.value;
+    
+    // Build API parameters
+    const params: any = {
+      page: this.pageResponse?.page || 0,
+      size: this.pageResponse?.size || 20
+    };
+    
+    // Add filters
+    Object.keys(formValue).forEach(key => {
+      const value = formValue[key];
+      if (value !== null && value !== undefined && value !== '' && 
+          !(Array.isArray(value) && value.length === 0)) {
+        params[key] = value;
+      }
+    });
+    
+    // Add sorting
+    const sortArray = Object.keys(this.sortFields)
+      .filter(key => this.sortFields[key] !== null)
+      .map(key => `${key},${this.sortFields[key]}`);
+    if (sortArray.length > 0) {
+      params.sort = sortArray;
+    }
+    
+    return this.apiService.getExecutions(params);
+  }
+
+  /**
+   * Stop automatic polling
+   */
+  private stopPolling(): void {
+    console.log('Stopping polling');
+    this.destroy$.next();
+  }
+
+  /**
+   * Handle polling interval change
+   */
+  onPollingIntervalChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (target) {
+      this.pollingInterval = +target.value;
+      if (this.pollingEnabled) {
+        this.stopPolling();
+        this.startPolling();
+      }
+    }
+  }
+
+  /**
+   * Format polling interval for display
+   */
+  formatPollingInterval(seconds: number): string {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    } else if (seconds < 3600) {
+      return `${Math.floor(seconds / 60)}m`;
+    } else {
+      return `${Math.floor(seconds / 3600)}h`;
     }
   }
 }

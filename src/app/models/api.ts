@@ -76,6 +76,7 @@ export interface ExecutionListItem {
   id: string;
   toolName?: string | null;
   assetId?: string | null;
+  destination?: string | null; // hostname or IP of the target asset
   userId?: string | null;
   status: ExecStatus;
   exitCode?: number | null;

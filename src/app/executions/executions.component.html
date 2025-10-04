@@ -19,6 +19,36 @@
     </div>
   </div>
 
+  <!-- Polling Controls -->
+  <div class="polling-controls">
+    <div class="polling-toggle">
+      <label class="polling-label">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="pollingEnabled"
+          (change)="togglePolling()"
+          data-testid="polling-toggle">
+        <span class="polling-text">
+          <span *ngIf="pollingEnabled">🔄</span>
+          <span *ngIf="!pollingEnabled">⏸️</span>
+          Auto-refresh
+        </span>
+      </label>
+    </div>
+    <div class="polling-interval" *ngIf="pollingEnabled">
+      <label for="polling-interval">Every:</label>
+      <select 
+        id="polling-interval"
+        [value]="pollingInterval"
+        (change)="onPollingIntervalChange($event)"
+        data-testid="polling-interval">
+        <option *ngFor="let interval of pollingIntervalOptions" [value]="interval">
+          {{ formatPollingInterval(interval) }}
+        </option>
+      </select>
+    </div>
+  </div>
+
   <!-- Filters Section -->
   <div class="filters-section" *ngIf="filtersExpanded" [formGroup]="filterForm">
     <div class="filters-grid">
@@ -222,6 +252,9 @@
           <th class="non-sortable" data-testid="sort-header-toolName">
             Tool
           </th>
+          <th class="non-sortable" data-testid="sort-header-destination">
+            Destination
+          </th>
           <th (click)="toggleSort('status')" class="sortable" data-testid="sort-header-status">
             Status {{ getSortIcon('status') }}
           </th>
@@ -252,6 +285,9 @@
           </td>
           <td class="tool-cell" (click)="showExecutionDetails(execution)">
             {{ execution.toolName || '-' }}
+          </td>
+          <td class="destination-cell" (click)="showExecutionDetails(execution)">
+            {{ execution.destination || 'Local' }}
           </td>
           <td class="status-cell" (click)="showExecutionDetails(execution)">
             <span class="status-badge" [ngClass]="getStatusClass(execution.status)">

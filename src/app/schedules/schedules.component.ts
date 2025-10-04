@@ -20,6 +20,7 @@ export class SchedulesComponent implements OnInit {
   loading = true;
   showModal = false;
   editingTask: ScheduledTask | undefined = undefined;
+  actionInProgress: Set<string> = new Set();
 
   constructor(
     private apiService: ApiService,
@@ -142,5 +143,90 @@ export class SchedulesComponent implements OnInit {
 
   trackByTaskId(index: number, task: ScheduledTask): string {
     return task.id;
+  }
+
+  runTaskNow(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    this.actionInProgress.add(task.id);
+    
+    this.apiService.runNowSchedule(task.id).subscribe({
+      next: (response) => {
+        console.log('Run now success:', response);
+        this.notifyService.success(`Encolado (executionId: ${response.executionId})`);
+        this.actionInProgress.delete(task.id);
+        // Refresh list to get updated lastRunAt
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error running task now:', error);
+        this.notifyService.error('Error al ejecutar tarea ahora');
+        this.actionInProgress.delete(task.id);
+      }
+    });
+  }
+
+  pauseTask(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    if (!confirm(`¿Pausar la tarea "${task.name}"? Dejará de ejecutarse automáticamente.`)) {
+      return;
+    }
+
+    this.actionInProgress.add(task.id);
+    
+    this.apiService.pauseSchedule(task.id).subscribe({
+      next: () => {
+        console.log('Pause success:', task.id);
+        this.notifyService.success('Tarea pausada');
+        this.actionInProgress.delete(task.id);
+        // Update task in list
+        const index = this.schedules.findIndex(t => t.id === task.id);
+        if (index !== -1) {
+          this.schedules[index].enabled = false;
+        }
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error pausing task:', error);
+        this.notifyService.error('Error al pausar tarea');
+        this.actionInProgress.delete(task.id);
+      }
+    });
+  }
+
+  resumeTask(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    this.actionInProgress.add(task.id);
+    
+    this.apiService.resumeSchedule(task.id).subscribe({
+      next: () => {
+        console.log('Resume success:', task.id);
+        this.notifyService.success('Tarea reanudada');
+        this.actionInProgress.delete(task.id);
+        // Update task in list
+        const index = this.schedules.findIndex(t => t.id === task.id);
+        if (index !== -1) {
+          this.schedules[index].enabled = true;
+        }
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error resuming task:', error);
+        this.notifyService.error('Error al reanudar tarea');
+        this.actionInProgress.delete(task.id);
+      }
+    });
+  }
+
+  isActionInProgress(taskId: string): boolean {
+    return this.actionInProgress.has(taskId);
   }
 }

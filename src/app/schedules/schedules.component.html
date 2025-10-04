@@ -47,14 +47,42 @@
             <td class="task-last-run">{{ formatDate(task.lastRunAt) }}</td>
             <td class="task-actions">
               <button 
+                class="btn btn-sm btn-success"
+                (click)="runTaskNow(task)"
+                [disabled]="isActionInProgress(task.id)"
+                [attr.data-testid]="'schedule-run-now-' + task.id"
+                title="Execute immediately">
+                ▶ Run Now
+              </button>
+              <button 
+                *ngIf="task.enabled"
+                class="btn btn-sm btn-warning"
+                (click)="pauseTask(task)"
+                [disabled]="isActionInProgress(task.id)"
+                [attr.data-testid]="'schedule-pause-' + task.id"
+                title="Pause automatic execution">
+                ⏸ Pause
+              </button>
+              <button 
+                *ngIf="!task.enabled"
+                class="btn btn-sm btn-info"
+                (click)="resumeTask(task)"
+                [disabled]="isActionInProgress(task.id)"
+                [attr.data-testid]="'schedule-resume-' + task.id"
+                title="Resume automatic execution">
+                ▶ Resume
+              </button>
+              <button 
                 class="btn btn-sm btn-outline-primary"
                 (click)="openEditModal(task)"
+                [disabled]="isActionInProgress(task.id)"
                 data-testid="schedule-edit">
                 Edit
               </button>
               <button 
                 class="btn btn-sm btn-outline-danger"
                 (click)="deleteTask(task)"
+                [disabled]="isActionInProgress(task.id)"
                 data-testid="schedule-delete">
                 Delete
               </button>

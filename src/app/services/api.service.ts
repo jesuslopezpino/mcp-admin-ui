@@ -266,4 +266,45 @@ export class ApiService {
       headers: this.getHeaders()
     });
   }
+
+  /**
+   * Run a scheduled task immediately
+   * @param id Task ID
+   * @param userId Optional user ID
+   * @returns Observable with execution ID
+   */
+  runNowSchedule(id: string, userId?: string): Observable<{ executionId: string }> {
+    const body = userId ? { userId } : {};
+    return this.http.post<{ executionId: string }>(
+      `${this.baseUrl}/schedules/${id}/run-now`,
+      body,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Pause a scheduled task
+   * @param id Task ID
+   * @returns Observable with void
+   */
+  pauseSchedule(id: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/schedules/${id}/pause`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Resume a scheduled task
+   * @param id Task ID
+   * @returns Observable with void
+   */
+  resumeSchedule(id: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/schedules/${id}/resume`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
 }

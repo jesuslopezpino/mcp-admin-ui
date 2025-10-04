@@ -617,5 +617,74 @@ describe('ApiService', () => {
         req.flush(null);
       });
     });
+
+    describe('runNowSchedule', () => {
+      it('should run scheduled task immediately', () => {
+        const scheduleId = 'schedule-123';
+        const userId = 'user-456';
+        const mockResponse = { executionId: 'exec-789' };
+
+        service.runNowSchedule(scheduleId, userId).subscribe(response => {
+          expect(response).toEqual(mockResponse);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}/run-now`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({ userId });
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(mockResponse);
+      });
+
+      it('should run scheduled task without userId', () => {
+        const scheduleId = 'schedule-123';
+        const mockResponse = { executionId: 'exec-789' };
+
+        service.runNowSchedule(scheduleId).subscribe(response => {
+          expect(response).toEqual(mockResponse);
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}/run-now`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({});
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(mockResponse);
+      });
+    });
+
+    describe('pauseSchedule', () => {
+      it('should pause scheduled task', () => {
+        const scheduleId = 'schedule-123';
+
+        service.pauseSchedule(scheduleId).subscribe(() => {
+          // No response body expected
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}/pause`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({});
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(null);
+      });
+    });
+
+    describe('resumeSchedule', () => {
+      it('should resume scheduled task', () => {
+        const scheduleId = 'schedule-123';
+
+        service.resumeSchedule(scheduleId).subscribe(() => {
+          // No response body expected
+        });
+
+        const req = httpMock.expectOne(`${environment.baseUrl}/schedules/${scheduleId}/resume`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({});
+        expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+
+        req.flush(null);
+      });
+    });
   });
 });

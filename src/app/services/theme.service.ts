@@ -53,23 +53,26 @@ export class ThemeService {
   }
 
   /**
-   * Update the theme link in the DOM
+   * Update the theme by adding CSS classes to body
    */
   private updateThemeLink(theme: ThemeType): void {
-    const themeLink = document.getElementById('theme-css') as HTMLLinkElement;
-    if (themeLink) {
-      themeLink.href = `primeng/resources/themes/${theme}/theme.css`;
-    } else {
-      // Create theme link if it doesn't exist
-      const link = document.createElement('link');
-      link.id = 'theme-css';
-      link.rel = 'stylesheet';
-      link.href = `primeng/resources/themes/${theme}/theme.css`;
-      document.head.appendChild(link);
-    }
-
-    // Update body class for additional styling
+    // Update body class for theme styling
     document.body.classList.remove('lara-light-blue', 'lara-dark-blue');
     document.body.classList.add(theme);
+    
+    // Add theme-specific CSS variables
+    if (theme === 'lara-dark-blue') {
+      document.documentElement.style.setProperty('--surface-ground', '#1a1a1a');
+      document.documentElement.style.setProperty('--surface-card', '#2d2d2d');
+      document.documentElement.style.setProperty('--surface-border', '#404040');
+      document.documentElement.style.setProperty('--text-color', '#ffffff');
+      document.documentElement.style.setProperty('--text-color-secondary', '#a0a0a0');
+    } else {
+      document.documentElement.style.setProperty('--surface-ground', '#f8f9fa');
+      document.documentElement.style.setProperty('--surface-card', '#ffffff');
+      document.documentElement.style.setProperty('--surface-border', '#e9ecef');
+      document.documentElement.style.setProperty('--text-color', '#212529');
+      document.documentElement.style.setProperty('--text-color-secondary', '#6c757d');
+    }
   }
 }

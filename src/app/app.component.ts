@@ -6,7 +6,7 @@ import { NotificationComponent } from './components/notification/notification.co
     selector: 'app-root',
     imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationComponent],
     templateUrl: './app.component.html',
-    styleUrl: './app.component.scss'
+    styleUrls: []
 })
 export class AppComponent {
   title = 'mcp-admin-ui';

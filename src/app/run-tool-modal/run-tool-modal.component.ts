@@ -13,11 +13,10 @@ import { ToolDetails, Asset, Execution, ExecStatus } from '../models/api';
 import { environment } from '../../environments/environment';
 
 @Component({
-  selector: 'app-run-tool-modal',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
-  templateUrl: './run-tool-modal.component.html',
-  styleUrl: './run-tool-modal.component.scss'
+    selector: 'app-run-tool-modal',
+    imports: [CommonModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
+    templateUrl: './run-tool-modal.component.html',
+    styleUrl: './run-tool-modal.component.scss'
 })
 export class RunToolModalComponent implements OnInit, OnDestroy {
   @Input() tool: ToolDetails | null = null;

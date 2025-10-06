@@ -7,11 +7,10 @@ import { Subject, takeUntil } from 'rxjs';
 import { Execution } from '../models/api';
 
 @Component({
-  selector: 'app-execution-details-modal',
-  standalone: true,
-  imports: [CommonModule, TerminalOutputComponent],
-  templateUrl: './execution-details-modal.component.html',
-  styleUrl: './execution-details-modal.component.scss'
+    selector: 'app-execution-details-modal',
+    imports: [CommonModule, TerminalOutputComponent],
+    templateUrl: './execution-details-modal.component.html',
+    styleUrl: './execution-details-modal.component.scss'
 })
 export class ExecutionDetailsModalComponent implements OnInit, OnDestroy {
   @Input() executionId: string | null = null;

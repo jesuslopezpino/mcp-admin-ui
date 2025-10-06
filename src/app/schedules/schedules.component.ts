@@ -7,11 +7,10 @@ import { ScheduledTask, Tool, Asset } from '../models/api';
 import { ScheduleModalComponent } from './schedule-modal.component';
 
 @Component({
-  selector: 'app-schedules',
-  standalone: true,
-  imports: [CommonModule, RouterModule, ScheduleModalComponent],
-  templateUrl: './schedules.component.html',
-  styleUrls: ['./schedules.component.scss']
+    selector: 'app-schedules',
+    imports: [CommonModule, RouterModule, ScheduleModalComponent],
+    templateUrl: './schedules.component.html',
+    styleUrls: ['./schedules.component.scss']
 })
 export class SchedulesComponent implements OnInit {
   schedules: ScheduledTask[] = [];

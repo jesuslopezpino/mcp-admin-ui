@@ -6,11 +6,10 @@ import { TargetSelectionService } from '../../services/target-selection.service'
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-target-selector',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './target-selector.component.html',
-  styleUrl: './target-selector.component.scss'
+    selector: 'app-target-selector',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './target-selector.component.html',
+    styleUrl: './target-selector.component.scss'
 })
 export class TargetSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() assets: Asset[] = [];

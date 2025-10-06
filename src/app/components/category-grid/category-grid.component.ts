@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Category, CategoryService } from '../../services/category.service';
 
 @Component({
-  selector: 'app-category-grid',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './category-grid.component.html',
-  styleUrl: './category-grid.component.scss'
+    selector: 'app-category-grid',
+    imports: [CommonModule],
+    templateUrl: './category-grid.component.html',
+    styleUrl: './category-grid.component.scss'
 })
 export class CategoryGridComponent implements OnInit {
   @Input() categories: Category[] = [];

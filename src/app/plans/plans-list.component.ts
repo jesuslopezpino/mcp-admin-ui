@@ -8,11 +8,10 @@ import { PlanTemplate } from '../models/plans';
 import { PageResponse } from '../models/api';
 
 @Component({
-  selector: 'app-plans-list',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './plans-list.component.html',
-  styleUrls: ['./plans-list.component.scss']
+    selector: 'app-plans-list',
+    imports: [CommonModule, FormsModule, RouterModule],
+    templateUrl: './plans-list.component.html',
+    styleUrls: ['./plans-list.component.scss']
 })
 export class PlansListComponent implements OnInit, OnDestroy {
   

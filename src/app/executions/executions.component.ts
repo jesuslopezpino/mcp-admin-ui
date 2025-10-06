@@ -9,11 +9,10 @@ import { ExecutionListItem, ExecStatus, FailureStage, PageResponse } from '../mo
 import { ExecutionDetailsModalComponent } from './execution-details-modal.component';
 
 @Component({
-  selector: 'app-executions',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ExecutionDetailsModalComponent],
-  templateUrl: './executions.component.html',
-  styleUrl: './executions.component.scss'
+    selector: 'app-executions',
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, ExecutionDetailsModalComponent],
+    templateUrl: './executions.component.html',
+    styleUrl: './executions.component.scss'
 })
 export class ExecutionsComponent implements OnInit, OnDestroy {
   // Form for filters

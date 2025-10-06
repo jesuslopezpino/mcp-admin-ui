@@ -8,11 +8,10 @@ export interface BreadcrumbItem {
 }
 
 @Component({
-  selector: 'app-breadcrumb',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './breadcrumb.component.html',
-  styleUrl: './breadcrumb.component.scss'
+    selector: 'app-breadcrumb',
+    imports: [CommonModule],
+    templateUrl: './breadcrumb.component.html',
+    styleUrl: './breadcrumb.component.scss'
 })
 export class BreadcrumbComponent {
   @Input() items: BreadcrumbItem[] = [];

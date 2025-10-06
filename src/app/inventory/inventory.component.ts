@@ -6,11 +6,10 @@ import { Asset, Tool } from '../models/api';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
 
 @Component({
-  selector: 'app-inventory',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RunToolModalComponent],
-  templateUrl: './inventory.component.html',
-  styleUrls: ['./inventory.component.scss']
+    selector: 'app-inventory',
+    imports: [CommonModule, FormsModule, RunToolModalComponent],
+    templateUrl: './inventory.component.html',
+    styleUrls: ['./inventory.component.scss']
 })
 export class InventoryComponent implements OnInit {
   assets: Asset[] = [];

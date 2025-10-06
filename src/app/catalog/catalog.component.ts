@@ -12,11 +12,10 @@ import { CategoryService, Category, CategorizedTool } from '../services/category
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-catalog',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RunToolModalComponent, TargetSelectorComponent, CategoryGridComponent, CategoryToolsComponent, BreadcrumbComponent],
-  templateUrl: './catalog.component.html',
-  styleUrl: './catalog.component.scss'
+    selector: 'app-catalog',
+    imports: [CommonModule, FormsModule, RunToolModalComponent, TargetSelectorComponent, CategoryGridComponent, CategoryToolsComponent, BreadcrumbComponent],
+    templateUrl: './catalog.component.html',
+    styleUrl: './catalog.component.scss'
 })
 export class CatalogComponent implements OnInit, OnDestroy {
   tools: Tool[] = [];

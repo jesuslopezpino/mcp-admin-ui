@@ -4,11 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { CategorizedTool, CategoryService } from '../../services/category.service';
 
 @Component({
-  selector: 'app-category-tools',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './category-tools.component.html',
-  styleUrl: './category-tools.component.scss'
+    selector: 'app-category-tools',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './category-tools.component.html',
+    styleUrl: './category-tools.component.scss'
 })
 export class CategoryToolsComponent implements OnInit {
   @Input() categoryId: string = '';

@@ -8,11 +8,10 @@ import { PlanRun, PlanStatus } from '../models/plans';
 import { PageResponse } from '../models/api';
 
 @Component({
-  selector: 'app-plan-runs',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './plan-runs.component.html',
-  styleUrls: ['./plan-runs.component.scss']
+    selector: 'app-plan-runs',
+    imports: [CommonModule, FormsModule, RouterModule],
+    templateUrl: './plan-runs.component.html',
+    styleUrls: ['./plan-runs.component.scss']
 })
 export class PlanRunsComponent implements OnInit, OnDestroy {
   

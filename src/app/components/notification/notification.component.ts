@@ -4,11 +4,10 @@ import { Subscription } from 'rxjs';
 import { NotificationService, Notification } from '../../services/notification.service';
 
 @Component({
-  selector: 'app-notification',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './notification.component.html',
-  styleUrl: './notification.component.scss'
+    selector: 'app-notification',
+    imports: [CommonModule],
+    templateUrl: './notification.component.html',
+    styleUrl: './notification.component.scss'
 })
 export class NotificationComponent implements OnInit, OnDestroy {
   notifications: Notification[] = [];

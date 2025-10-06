@@ -15,14 +15,13 @@ export interface ParameterDefinition {
 }
 
 @Component({
-  selector: 'app-assistant',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './assistant.component.html',
-  styleUrl: './assistant.component.scss',
-  host: {
-    'ngSkipHydration': 'true'
-  }
+    selector: 'app-assistant',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './assistant.component.html',
+    styleUrl: './assistant.component.scss',
+    host: {
+        'ngSkipHydration': 'true'
+    }
 })
 export class AssistantComponent implements OnInit {
   message: string = '';

@@ -2,11 +2,10 @@ import { Component, Input, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-terminal-output',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './terminal-output.component.html',
-  styleUrls: ['./terminal-output.component.css']
+    selector: 'app-terminal-output',
+    imports: [CommonModule],
+    templateUrl: './terminal-output.component.html',
+    styleUrls: ['./terminal-output.component.css']
 })
 export class TerminalOutputComponent implements OnInit, OnChanges {
   @Input() stdout: string = '';

@@ -9,10 +9,9 @@ import { JsonSchema } from '../models/json-schema';
 import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-form.component';
 
 @Component({
-  selector: 'app-schedule-modal',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ToolArgsFormComponent],
-  template: `
+    selector: 'app-schedule-modal',
+    imports: [CommonModule, ReactiveFormsModule, ToolArgsFormComponent],
+    template: `
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-container" (click)="$event.stopPropagation()" data-testid="schedule-modal">
     <div class="modal-header">
@@ -130,7 +129,7 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
   </div>
 </div>
   `,
-  styleUrls: ['./schedule-modal.component.scss']
+    styleUrls: ['./schedule-modal.component.scss']
 })
 export class ScheduleModalComponent implements OnInit {
   @Input() task?: ScheduledTask;

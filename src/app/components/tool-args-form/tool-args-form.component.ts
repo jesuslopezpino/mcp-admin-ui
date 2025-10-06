@@ -4,10 +4,9 @@ import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } 
 import { JsonSchema, JsonSchemaFormField } from '../../models/json-schema';
 
 @Component({
-  selector: 'app-tool-args-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  template: `
+    selector: 'app-tool-args-form',
+    imports: [CommonModule, ReactiveFormsModule],
+    template: `
     <div class="tool-args-form" *ngIf="argsForm && schema">
       <div class="form-header">
         <h4>Tool Arguments</h4>
@@ -158,7 +157,7 @@ import { JsonSchema, JsonSchemaFormField } from '../../models/json-schema';
       </div>
     </div>
   `,
-  styleUrls: ['./tool-args-form.component.scss']
+    styleUrls: ['./tool-args-form.component.scss']
 })
 export class ToolArgsFormComponent implements OnInit, OnChanges {
   @Input() schema: JsonSchema | null = null;

@@ -6,11 +6,10 @@ import { ApiService } from '../services/api.service';
 import { PlanRunDetail, PlanRunStep, PlanStatus } from '../models/plans';
 
 @Component({
-  selector: 'app-plan-run-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './plan-run-detail.component.html',
-  styleUrls: ['./plan-run-detail.component.scss']
+    selector: 'app-plan-run-detail',
+    imports: [CommonModule, RouterModule],
+    templateUrl: './plan-run-detail.component.html',
+    styleUrls: ['./plan-run-detail.component.scss']
 })
 export class PlanRunDetailComponent implements OnInit, OnDestroy {
   

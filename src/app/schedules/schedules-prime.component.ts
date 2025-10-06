@@ -2,20 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { ToolbarModule } from 'primeng/toolbar';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { TagModule } from 'primeng/tag';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
 import { ScheduledTask, Tool, Asset } from '../models/api';
 import { ScheduleModalComponent } from './schedule-modal.component';
+import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table/crud-table.component';
 
 @Component({
   selector: 'app-schedules-prime',
@@ -24,15 +16,7 @@ import { ScheduleModalComponent } from './schedule-modal.component';
     CommonModule,
     FormsModule,
     RouterModule,
-    TableModule,
-    ButtonModule,
-    ToolbarModule,
-    InputTextModule,
-    SelectModule,
-    TagModule,
-    ConfirmDialogModule,
-    ToastModule,
-    TooltipModule,
+    CrudTableComponent,
     ScheduleModalComponent
   ],
   providers: [ConfirmationService, MessageService],
@@ -58,6 +42,44 @@ export class SchedulesPrimeComponent implements OnInit {
   ];
   selectedStatus: boolean | null = null;
 
+  // CRUD Configuration
+  columns: CrudColumn[] = [
+    { field: 'name', header: 'Name', sortable: true, width: '20%' },
+    { field: 'toolName', header: 'Tool', sortable: true, width: '15%' },
+    { field: 'destination', header: 'Destination', width: '15%' },
+    { field: 'cronExpr', header: 'Cron', sortable: true, width: '15%' },
+    { field: 'enabled', header: 'Status', sortable: true, width: '10%', type: 'status' },
+    { field: 'nextRunAt', header: 'Next Run', sortable: true, width: '15%', type: 'date' },
+    { field: 'lastRunAt', header: 'Last Run', sortable: true, width: '15%', type: 'date' },
+    { field: 'actions', header: 'Actions', width: '20%', type: 'actions' }
+  ];
+
+  actions: CrudAction[] = [
+    {
+      icon: 'pi pi-play',
+      label: 'Run Now',
+      severity: 'success',
+      tooltip: 'Execute immediately',
+      action: (schedule: ScheduledTask) => this.runTaskNow(schedule)
+    },
+    {
+      icon: 'pi pi-pause',
+      label: 'Pause',
+      severity: 'secondary',
+      tooltip: 'Pause automatic execution',
+      show: (schedule: ScheduledTask) => schedule.enabled,
+      action: (schedule: ScheduledTask) => this.pauseTask(schedule)
+    },
+    {
+      icon: 'pi pi-play',
+      label: 'Resume',
+      severity: 'info',
+      tooltip: 'Resume automatic execution',
+      show: (schedule: ScheduledTask) => !schedule.enabled,
+      action: (schedule: ScheduledTask) => this.resumeTask(schedule)
+    }
+  ];
+
   constructor(
     private apiService: ApiService,
     private notifyService: NotifyService,
@@ -75,7 +97,11 @@ export class SchedulesPrimeComponent implements OnInit {
     // Load schedules, tools, and assets in parallel
     this.apiService.getSchedules().subscribe({
       next: (schedules) => {
-        this.schedules = schedules;
+        this.schedules = schedules.map(schedule => ({
+          ...schedule,
+          toolName: this.getToolName(schedule),
+          destination: this.getDestinationLabel(schedule)
+        }));
         this.loading = false;
       },
       error: (error) => {

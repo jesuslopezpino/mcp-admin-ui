@@ -1,0 +1,167 @@
+<div class="crud-container">
+  <!-- Toolbar -->
+  <div class="toolbar-section">
+    <div class="toolbar-left">
+      <h2 class="page-title">{{ title }}</h2>
+      <p class="page-description">{{ description }}</p>
+    </div>
+    <div class="toolbar-right">
+      @if (showCreateButton) {
+        <p-button 
+          [label]="createButtonLabel" 
+          [icon]="createButtonIcon" 
+          (click)="onCreateClick()"
+          data-testid="create-button">
+        </p-button>
+      }
+    </div>
+  </div>
+
+  <!-- Filters -->
+  @if (showFilters) {
+    <div class="filters-section">
+      <div class="filters-left">
+        <p-button 
+          label="Clear" 
+          icon="pi pi-filter-slash" 
+          [outlined]="true" 
+          severity="secondary"
+          (click)="onClearFiltersClick()">
+        </p-button>
+      </div>
+      <div class="filters-right">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input 
+            pInputText 
+            type="text" 
+            [placeholder]="'Search ' + title.toLowerCase() + '...'" 
+            [value]="globalFilter"
+            (input)="onGlobalFilterChangeEvent($event)"
+            class="search-input" />
+        </span>
+        @if (statusOptions.length > 0) {
+          <p-select 
+            [options]="statusOptions" 
+            [ngModel]="selectedStatus"
+            (onChange)="onStatusFilterChangeEvent($event)"
+            placeholder="Filter by status"
+            class="status-filter">
+          </p-select>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Table -->
+  <p-table 
+    [value]="data" 
+    [loading]="loading"
+    [paginator]="showPagination" 
+    [rows]="rows" 
+    [showCurrentPageReport]="true" 
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [globalFilterFields]="filterFields"
+    [(selection)]="selectedItems"
+    dataKey="id"
+    styleClass="p-datatable-sm"
+    [tableStyle]="{'min-width': '50rem'}">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        @if (showSelection) {
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+        }
+        @for (column of columns; track column.field) {
+          <th 
+            [pSortableColumn]="column.sortable ? column.field : null" 
+            [style.width]="column.width">
+            {{ column.header }}
+            @if (column.sortable) {
+              <p-sortIcon [field]="column.field"></p-sortIcon>
+            }
+          </th>
+        }
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        @if (showSelection) {
+          <td>
+            <p-tableCheckbox [value]="item"></p-tableCheckbox>
+          </td>
+        }
+        @for (column of columns; track column.field) {
+          <td>
+            @switch (column.type) {
+              @case ('date') {
+                <span class="date-text">{{ formatDate(item[column.field]) }}</span>
+              }
+              @case ('status') {
+                <p-tag 
+                  [value]="getStatusLabel(item[column.field])" 
+                  [severity]="getSeverity(item[column.field])">
+                </p-tag>
+              }
+              @case ('actions') {
+                <div class="action-buttons">
+                  @for (action of actions; track action.label) {
+                    @if (shouldShowAction(action, item)) {
+                      <p-button 
+                        [icon]="action.icon" 
+                        [outlined]="true" 
+                        size="small"
+                        [severity]="action.severity"
+                        (click)="onActionClick(action, item)"
+                        [pTooltip]="action.tooltip">
+                      </p-button>
+                    }
+                  }
+                  <p-button 
+                    icon="pi pi-pencil" 
+                    [outlined]="true" 
+                    size="small"
+                    severity="secondary"
+                    (click)="onEditClick(item)"
+                    pTooltip="Edit">
+                  </p-button>
+                  <p-button 
+                    icon="pi pi-trash" 
+                    [outlined]="true" 
+                    size="small"
+                    severity="danger"
+                    (click)="onDeleteClick(item)"
+                    pTooltip="Delete">
+                  </p-button>
+                </div>
+              }
+              @default {
+                <span class="text-content">{{ item[column.field] }}</span>
+              }
+            }
+          </td>
+        }
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [colSpan]="columns.length + (showSelection ? 1 : 0)" class="empty-message">
+          <div class="empty-content">
+            <i class="pi pi-inbox empty-icon"></i>
+            <span class="empty-title">No {{ title.toLowerCase() }} found</span>
+            <span class="empty-subtitle">Create your first {{ title.toLowerCase().slice(0, -1) }} to get started!</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Global Components -->
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

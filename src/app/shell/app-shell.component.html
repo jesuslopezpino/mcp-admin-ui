@@ -1,0 +1,68 @@
+<div class="app-shell" data-testid="app-shell">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button 
+        pButton 
+        type="button" 
+        icon="pi pi-bars" 
+        class="p-button-text p-button-sm"
+        (click)="toggleSidebar()"
+        data-testid="sidebar-toggle">
+      </button>
+      <h1 class="app-title">🤖 MCP Admin Panel</h1>
+    </div>
+    
+    <div class="topbar-right">
+      <p-menubar 
+        [model]="topbarItems" 
+        styleClass="p-menubar-custom">
+      </p-menubar>
+      
+      <button 
+        pButton 
+        type="button" 
+        icon="pi pi-sun" 
+        class="p-button-text p-button-sm"
+        (click)="toggleTheme()"
+        data-testid="theme-toggle">
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <p-sidebar 
+      [(visible)]="sidebarVisible" 
+      position="left" 
+      styleClass="p-sidebar-custom"
+      data-testid="sidebar">
+      <div class="sidebar-content">
+        <nav class="sidebar-nav">
+          <ul class="nav-list">
+            <li *ngFor="let item of menuItems" class="nav-item">
+              <a 
+                [routerLink]="item.routerLink" 
+                routerLinkActive="active"
+                class="nav-link"
+                [attr.data-testid]="'nav-' + item.label?.toLowerCase()">
+                <i [class]="item.icon" class="nav-icon"></i>
+                <span class="nav-label">{{ item.label }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </p-sidebar>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <!-- Global Components -->
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+</div>

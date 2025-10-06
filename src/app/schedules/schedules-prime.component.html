@@ -53,12 +53,12 @@
               [(ngModel)]="globalFilter" 
               class="w-20rem" />
           </span>
-          <p-dropdown 
+          <p-select 
             [options]="statusOptions" 
             [(ngModel)]="selectedStatus" 
             placeholder="Filter by status"
             class="w-12rem">
-          </p-dropdown>
+          </p-select>
         </div>
       </div>
     </ng-template>
@@ -144,7 +144,7 @@
                 icon="pi pi-pause" 
                 [outlined]="true" 
                 size="small"
-                severity="warning"
+                severity="secondary"
                 [loading]="isActionInProgress(schedule.id)"
                 (click)="pauseTask(schedule)"
                 [attr.data-testid]="'schedule-pause-' + schedule.id"

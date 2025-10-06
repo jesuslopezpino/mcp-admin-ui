@@ -6,7 +6,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
@@ -28,7 +28,7 @@ import { ScheduleModalComponent } from './schedule-modal.component';
     ButtonModule,
     ToolbarModule,
     InputTextModule,
-    DropdownModule,
+    SelectModule,
     TagModule,
     ConfirmDialogModule,
     ToastModule,

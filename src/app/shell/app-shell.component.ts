@@ -44,7 +44,7 @@ import { filter, Subscription } from 'rxjs';
 export class AppShellComponent implements OnInit, OnDestroy {
   overlayMenuOpenSubscription: Subscription;
   menuOutsideClickListener: any;
-  expandedMenus: Set<string> = new Set();
+  expandedMenus: Set<string> = new Set(); // Start with all menus collapsed
 
   // Menu items for sidebar
   menuItems: MenuItem[] = [

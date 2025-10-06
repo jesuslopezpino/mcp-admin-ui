@@ -1,0 +1,255 @@
+<div class="executions-prime" data-testid="executions-table">
+  <!-- Toolbar -->
+  <app-toolbar-actions>
+    <div slot="left">
+      <h2 class="page-title">📊 Executions</h2>
+      <p class="page-description">Monitor and analyze tool executions</p>
+    </div>
+    <div slot="right">
+      <p-button 
+        label="Export CSV" 
+        icon="pi pi-download" 
+        severity="secondary"
+        [loading]="isExporting"
+        (onClick)="exportCsv()"
+        data-testid="export-csv">
+      </p-button>
+      <p-button 
+        label="Reset Filters" 
+        icon="pi pi-refresh" 
+        severity="secondary"
+        (onClick)="resetFilters()"
+        data-testid="reset-filters">
+      </p-button>
+    </div>
+  </app-toolbar-actions>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="filters-grid">
+        <!-- Search -->
+        <div class="filter-group">
+          <label class="filter-label">Search</label>
+          <input 
+            pInputText 
+            formControlName="q" 
+            placeholder="Search executions..."
+            class="w-full"
+            data-testid="search-input">
+        </div>
+
+        <!-- Tool Name -->
+        <div class="filter-group">
+          <label class="filter-label">Tool Name</label>
+          <input 
+            pInputText 
+            formControlName="toolName" 
+            placeholder="Filter by tool name..."
+            class="w-full"
+            data-testid="tool-name-input">
+        </div>
+
+        <!-- Status -->
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <p-multiSelect 
+            formControlName="status"
+            [options]="statusOptions"
+            placeholder="Select statuses..."
+            class="w-full"
+            data-testid="status-filter">
+          </p-multiSelect>
+        </div>
+
+        <!-- Failure Stage -->
+        <div class="filter-group">
+          <label class="filter-label">Failure Stage</label>
+          <p-multiSelect 
+            formControlName="failureStage"
+            [options]="failureStageOptions"
+            placeholder="Select failure stages..."
+            class="w-full"
+            data-testid="failure-stage-filter">
+          </p-multiSelect>
+        </div>
+
+        <!-- User ID -->
+        <div class="filter-group">
+          <label class="filter-label">User ID</label>
+          <input 
+            pInputText 
+            formControlName="userId" 
+            placeholder="Filter by user ID..."
+            class="w-full"
+            data-testid="user-id-input">
+        </div>
+
+        <!-- Asset ID -->
+        <div class="filter-group">
+          <label class="filter-label">Asset ID</label>
+          <input 
+            pInputText 
+            formControlName="assetId" 
+            placeholder="Filter by asset ID..."
+            class="w-full"
+            data-testid="asset-id-input">
+        </div>
+
+        <!-- Started Date Range -->
+        <div class="filter-group">
+          <label class="filter-label">Started From</label>
+          <p-calendar 
+            formControlName="startedFrom"
+            placeholder="Select start date..."
+            class="w-full"
+            data-testid="started-from-filter">
+          </p-calendar>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Started To</label>
+          <p-calendar 
+            formControlName="startedTo"
+            placeholder="Select end date..."
+            class="w-full"
+            data-testid="started-to-filter">
+          </p-calendar>
+        </div>
+
+        <!-- Has Response JSON -->
+        <div class="filter-group">
+          <label class="filter-label">Has Response JSON</label>
+          <p-checkbox 
+            formControlName="hasResponseJson"
+            [binary]="true"
+            data-testid="has-response-json-filter">
+          </p-checkbox>
+        </div>
+      </div>
+
+      <div class="filters-actions">
+        <p-button 
+          label="Apply Filters" 
+          icon="pi pi-filter" 
+          (onClick)="applyFilters()"
+          data-testid="apply-filters">
+        </p-button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <p-table 
+      [value]="executions"
+      [lazy]="true"
+      [totalRecords]="totalRecords"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="20"
+      [rowsPerPageOptions]="[10, 20, 50, 100]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      (onLazyLoad)="onLazyLoad($event)"
+      dataTableStyleClass="p-datatable-striped"
+      data-testid="executions-table">
+      
+      <!-- Loading -->
+      <ng-template pTemplate="loading">
+        <div class="loading-container">
+          <p-progressSpinner size="50"></p-progressSpinner>
+          <p>Loading executions...</p>
+        </div>
+      </ng-template>
+
+      <!-- Empty State -->
+      <ng-template pTemplate="emptymessage">
+        <div class="empty-state">
+          <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">No executions found</h3>
+          <p class="text-gray-500">Try adjusting your filters or search criteria.</p>
+        </div>
+      </ng-template>
+
+      <!-- Columns -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id" style="width: 80px">
+            ID
+            <p-sortIcon field="id"></p-sortIcon>
+          </th>
+          <th pSortableColumn="toolName" style="width: 200px">
+            Tool
+            <p-sortIcon field="toolName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="status" style="width: 120px">
+            Status
+            <p-sortIcon field="status"></p-sortIcon>
+          </th>
+          <th pSortableColumn="startedAt" style="width: 180px">
+            Started
+            <p-sortIcon field="startedAt"></p-sortIcon>
+          </th>
+          <th pSortableColumn="finishedAt" style="width: 180px">
+            Finished
+            <p-sortIcon field="finishedAt"></p-sortIcon>
+          </th>
+          <th pSortableColumn="duration" style="width: 100px">
+            Duration
+            <p-sortIcon field="duration"></p-sortIcon>
+          </th>
+          <th pSortableColumn="exitCode" style="width: 100px">
+            Exit Code
+            <p-sortIcon field="exitCode"></p-sortIcon>
+          </th>
+          <th style="width: 120px">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-execution>
+        <tr>
+          <td>{{ execution.id }}</td>
+          <td>
+            <div class="tool-name">
+              <strong>{{ execution.toolName }}</strong>
+              <div class="tool-version text-sm text-gray-500" *ngIf="execution.toolVersion">
+                v{{ execution.toolVersion }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <app-status-badge [status]="execution.status"></app-status-badge>
+          </td>
+          <td>{{ formatDate(execution.startedAt) }}</td>
+          <td>{{ formatDate(execution.finishedAt) }}</td>
+          <td>{{ formatDuration(execution.duration) }}</td>
+          <td>
+            <span *ngIf="execution.exitCode !== null" 
+                  [class]="execution.exitCode === 0 ? 'text-green-600' : 'text-red-600'">
+              {{ execution.exitCode }}
+            </span>
+            <span *ngIf="execution.exitCode === null" class="text-gray-400">-</span>
+          </td>
+          <td>
+            <p-button 
+              label="View" 
+              icon="pi pi-eye" 
+              size="small"
+              severity="secondary"
+              (onClick)="showExecutionDetails(execution)"
+              data-testid="view-execution">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Execution Details Modal -->
+  <app-execution-details-modal
+    *ngIf="showExecutionModal"
+    [execution]="selectedExecution"
+    (close)="closeExecutionModal()">
+  </app-execution-details-modal>
+</div>

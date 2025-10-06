@@ -17,7 +17,7 @@ export const routes: Routes = [
       { 
         path: 'executions', 
         title: 'Executions',
-        loadComponent: () => import('./executions/executions.component').then(m => m.ExecutionsComponent)
+        loadComponent: () => import('./executions/executions-prime.component').then(m => m.ExecutionsPrimeComponent)
       },
       {
         path: 'plans',

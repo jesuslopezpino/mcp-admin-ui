@@ -3,13 +3,31 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { CheckboxModule } from 'primeng/checkbox';
+import { CardModule } from 'primeng/card';
+import { BadgeModule } from 'primeng/badge';
+import { TooltipModule } from 'primeng/tooltip';
 import { ApiService } from '../services/api.service';
 import { PlanTemplate } from '../models/plans';
 import { PageResponse } from '../models/api';
 
 @Component({
     selector: 'app-plans-list',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [
+      CommonModule, 
+      FormsModule, 
+      RouterModule,
+      TableModule,
+      ButtonModule,
+      InputTextModule,
+      CheckboxModule,
+      CardModule,
+      BadgeModule,
+      TooltipModule
+    ],
     templateUrl: './plans-list.component.html',
     styleUrls: ['./plans-list.component.scss']
 })
@@ -36,6 +54,9 @@ export class PlansListComponent implements OnInit, OnDestroy {
   // URL state
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
+  
+  // Table state
+  totalRecords = 0;
   
   constructor(
     private apiService: ApiService,
@@ -222,5 +243,42 @@ export class PlansListComponent implements OnInit, OnDestroy {
   
   getStatusText(enabled: boolean): string {
     return enabled ? 'Enabled' : 'Disabled';
+  }
+  
+  /**
+   * Handle lazy loading from p-table
+   */
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    this.loading = true;
+    
+    const params: any = {
+      page: Math.floor((event.first || 0) / (event.rows || 20)),
+      size: event.rows || 20
+    };
+    
+    // Add filters
+    if (this.searchQuery) params.q = this.searchQuery;
+    if (this.enabledFilter !== null) params.enabled = this.enabledFilter;
+    
+    // Add sorting
+    if (event.sortField && typeof event.sortField === 'string') {
+      const sortDirection = event.sortOrder === 1 ? 'asc' : 'desc';
+      params.sort = [`${event.sortField},${sortDirection}`];
+    }
+    
+    this.apiService.getPlans(params).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response: PageResponse<PlanTemplate>) => {
+        this.plans = response.content;
+        this.totalRecords = response.totalElements;
+        this.loading = false;
+        this.saveToUrl();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.message || 'Error loading plans';
+      }
+    });
   }
 }

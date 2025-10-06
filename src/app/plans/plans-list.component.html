@@ -1,56 +1,62 @@
 <div class="plans-list-container">
-  <!-- Header -->
-  <div class="header">
-    <h1>Plan Templates</h1>
-    <div class="header-actions">
-      <button
-        class="btn btn-primary"
-        (click)="createPlan()"
-        data-testid="plan-create-btn">
-        <i class="icon-plus"></i> Create Plan
-      </button>
-      <button
-        class="btn btn-secondary"
-        (click)="viewRuns()"
-        data-testid="view-runs-btn">
-        <i class="icon-list"></i> View Runs
-      </button>
-    </div>
-  </div>
-
-  <!-- Filters -->
-  <div class="filters">
-    <div class="filter-group">
-      <label for="search">Search:</label>
-      <input
-        type="text"
-        id="search"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="onSearchChange()"
-        placeholder="Search plans..."
-        data-testid="plans-filter-q">
+  <!-- Header Card -->
+  <p-card class="mb-4">
+    <ng-template pTemplate="header">
+      <div class="flex justify-between items-center p-4">
+        <h1 class="text-2xl font-semibold text-surface-900 m-0">Plan Templates</h1>
+        <div class="flex gap-2">
+          <p-button
+            label="Create Plan"
+            icon="pi pi-plus"
+            (click)="createPlan()"
+            data-testid="plan-create-btn">
+          </p-button>
+          <p-button
+            label="View Runs"
+            icon="pi pi-list"
+            severity="secondary"
+            (click)="viewRuns()"
+            data-testid="view-runs-btn">
+          </p-button>
+        </div>
       </div>
-
-      <div class="filter-group">
-        <label>
+    </ng-template>
+    
+    <ng-template pTemplate="content">
+      <!-- Filters -->
+      <div class="flex flex-wrap gap-4 mb-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-surface-700">Search:</label>
           <input
-            type="checkbox"
+            pInputText
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search plans..."
+            data-testid="plans-filter-q"
+            class="w-full">
+        </div>
+
+        <div class="flex items-center gap-2">
+          <p-checkbox
             [(ngModel)]="enabledFilter"
             (ngModelChange)="onEnabledFilterChange()"
+            [binary]="true"
             data-testid="plans-filter-enabled">
-            Enabled only
-          </label>
+          </p-checkbox>
+          <label class="text-sm font-medium text-surface-700">Enabled only</label>
         </div>
 
-        <div class="filter-group">
-          <button
-            class="btn btn-outline"
+        <div class="flex items-end">
+          <p-button
+            label="Clear Filters"
+            severity="secondary"
             (click)="clearFilters()"
             data-testid="clear-filters-btn">
-            Clear Filters
-          </button>
+          </p-button>
         </div>
       </div>
+    </ng-template>
+  </p-card>
 
       <!-- Error Message -->
       @if (error) {
@@ -68,83 +74,106 @@
         </div>
       }
 
-      <!-- Plans Table -->
-      @if (!loading) {
-        <div class="table-container">
-          <table class="table" data-testid="plans-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Enabled</th>
-                <th>Steps</th>
-                <th>Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (plan of plans; track plan) {
-                <tr [attr.data-testid]="'plan-row-' + plan.id">
-                  <td>
-                    <strong>{{ plan.name }}</strong>
-                    @if (plan.tags && plan.tags.length > 0) {
-                      <div class="tags">
-                        @for (tag of plan.tags; track tag) {
-                          <span class="tag">{{ tag }}</span>
-                        }
-                      </div>
-                    }
-                  </td>
-                  <td>{{ plan.description || '-' }}</td>
-                  <td>
-                    <span
-                      class="badge"
-                      [ngClass]="getStatusBadgeClass(plan.enabled)"
-                      [attr.data-testid]="'plan-status-' + plan.id">
-                      {{ getStatusText(plan.enabled) }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="step-count">{{ plan.steps.length || 0 }} steps</span>
-                  </td>
-                  <td>{{ formatDate(plan.updatedAt) }}</td>
-                  <td class="actions">
-                    <button
-                      class="btn btn-sm btn-primary"
-                      (click)="viewPlan(plan)"
-                      [attr.data-testid]="'plan-view-' + plan.id">
-                      View
-                    </button>
-                    <button
-                      class="btn btn-sm btn-secondary"
-                      (click)="editPlan(plan)"
-                      [attr.data-testid]="'plan-edit-' + plan.id">
-                      Edit
-                    </button>
-                    <button
-                      class="btn btn-sm btn-danger"
-                      (click)="deletePlan(plan)"
-                      [attr.data-testid]="'plan-delete-' + plan.id">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-          <!-- Empty State -->
-          @if (plans.length === 0) {
-            <div class="empty-state">
-              <i class="icon-document"></i>
-              <h3>No plans found</h3>
-              <p>Create your first plan template to get started.</p>
-              <button class="btn btn-primary" (click)="createPlan()">
-                Create Plan
-              </button>
-            </div>
-          }
-        </div>
-      }
+  <!-- Plans Table -->
+  <p-table
+    [value]="plans"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50, 100]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} plans"
+    [sortField]="'name'"
+    [sortOrder]="1"
+    styleClass="p-datatable-sm"
+    data-testid="plans-table">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
+        <th pSortableColumn="description">Description <p-sortIcon field="description"></p-sortIcon></th>
+        <th pSortableColumn="enabled">Enabled <p-sortIcon field="enabled"></p-sortIcon></th>
+        <th>Steps</th>
+        <th pSortableColumn="updatedAt">Updated <p-sortIcon field="updatedAt"></p-sortIcon></th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-plan>
+      <tr [attr.data-testid]="'plan-row-' + plan.id">
+        <td>
+          <div class="flex flex-col gap-1">
+            <strong class="text-surface-900">{{ plan.name }}</strong>
+            @if (plan.tags && plan.tags.length > 0) {
+              <div class="flex flex-wrap gap-1">
+                @for (tag of plan.tags; track tag) {
+                  <p-badge [value]="tag" severity="info" size="small"></p-badge>
+                }
+              </div>
+            }
+          </div>
+        </td>
+        <td class="text-surface-600">{{ plan.description || '-' }}</td>
+        <td>
+          <p-badge
+            [value]="getStatusText(plan.enabled)"
+            [severity]="plan.enabled ? 'success' : 'danger'"
+            [attr.data-testid]="'plan-status-' + plan.id">
+          </p-badge>
+        </td>
+        <td class="text-surface-600">{{ plan.steps.length || 0 }} steps</td>
+        <td class="text-surface-600">{{ formatDate(plan.updatedAt) }}</td>
+        <td>
+          <div class="flex gap-1">
+            <p-button
+              icon="pi pi-eye"
+              size="small"
+              severity="info"
+              [pTooltip]="'View'"
+              (click)="viewPlan(plan)"
+              [attr.data-testid]="'plan-view-' + plan.id">
+            </p-button>
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              severity="warning"
+              [pTooltip]="'Edit'"
+              (click)="editPlan(plan)"
+              [attr.data-testid]="'plan-edit-' + plan.id">
+            </p-button>
+            <p-button
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              [pTooltip]="'Delete'"
+              (click)="deletePlan(plan)"
+              [attr.data-testid]="'plan-delete-' + plan.id">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-4">
+          <div class="flex flex-col items-center gap-2">
+            <i class="pi pi-inbox text-4xl text-surface-400"></i>
+            <p class="text-surface-600 m-0">No plans found</p>
+            <p-button
+              label="Create Plan"
+              icon="pi pi-plus"
+              (click)="createPlan()"
+              class="mt-2">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 
       <!-- Pagination -->
       @if (!loading && totalPages > 1) {

@@ -2,4 +2,28 @@
 @use './assets/tailwind.css';
 @use 'primeicons/primeicons.css';
 
-/* Z-index is now properly configured in app.config.ts */
+/* Force PrimeNG modals above Sakai layout */
+.p-dialog {
+  z-index: 2000 !important;
+}
+
+.p-dialog-mask {
+  z-index: 1999 !important;
+}
+
+.p-dialog-wrapper {
+  z-index: 2000 !important;
+}
+
+/* Ensure Sakai layout stays below modals */
+.layout-topbar {
+  z-index: 100 !important;
+}
+
+.layout-sidebar {
+  z-index: 101 !important;
+}
+
+.layout-mask {
+  z-index: 102 !important;
+}

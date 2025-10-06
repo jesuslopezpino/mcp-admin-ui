@@ -273,7 +273,7 @@ export class PlansListComponent implements OnInit, OnDestroy {
         this.plans = response.content;
         this.totalRecords = response.totalElements;
         this.loading = false;
-        this.saveToUrl();
+        this.saveStateToUrl();
       },
       error: (err) => {
         this.loading = false;

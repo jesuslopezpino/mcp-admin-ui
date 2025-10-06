@@ -145,46 +145,81 @@
       border-bottom: 1px solid var(--surface-200);
     }
     
-    // Pagination styling
+    // Pagination styling - Sakai style
     .p-paginator {
       background: var(--surface-card);
-      border-top: 1px solid var(--surface-border);
-      padding: 1rem;
+      border: 1px solid var(--surface-border);
+      border-top: none;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
       
-      .p-paginator-pages .p-paginator-page {
-        background: var(--surface-card);
-        border: 1px solid var(--surface-border);
-        color: var(--text-color);
-        border-radius: var(--border-radius);
-        margin: 0 0.125rem;
-        min-width: 2rem;
-        height: 2rem;
-        transition: all 0.2s;
+      .p-paginator-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
       }
       
-      .p-paginator-pages .p-paginator-page:hover {
-        background: var(--surface-hover);
-        border-color: var(--primary-color);
+      .p-paginator-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
       
-      .p-paginator-pages .p-paginator-page.p-highlight {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: var(--primary-color-text);
+      .p-paginator-pages {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        
+        .p-paginator-page {
+          background: transparent;
+          border: 1px solid transparent;
+          color: var(--text-color);
+          border-radius: var(--border-radius);
+          min-width: 2rem;
+          height: 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+        
+        .p-paginator-page:hover {
+          background: var(--surface-hover);
+          border-color: var(--surface-border);
+        }
+        
+        .p-paginator-page.p-highlight {
+          background: var(--primary-color);
+          border-color: var(--primary-color);
+          color: var(--primary-color-text);
+        }
       }
       
       .p-paginator-first,
       .p-paginator-prev,
       .p-paginator-next,
       .p-paginator-last {
-        background: var(--surface-card);
+        background: transparent;
         border: 1px solid var(--surface-border);
         color: var(--text-color);
         border-radius: var(--border-radius);
-        margin: 0 0.125rem;
         min-width: 2rem;
         height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.2s;
+        cursor: pointer;
+        font-size: 0.875rem;
       }
       
       .p-paginator-first:hover,
@@ -193,6 +228,7 @@
       .p-paginator-last:hover {
         background: var(--surface-hover);
         border-color: var(--primary-color);
+        color: var(--primary-color);
       }
       
       .p-paginator-first:disabled,
@@ -203,6 +239,7 @@
         border-color: var(--surface-200);
         color: var(--text-color-secondary);
         cursor: not-allowed;
+        opacity: 0.5;
       }
       
       .p-dropdown {
@@ -210,6 +247,18 @@
         border-radius: var(--border-radius);
         background: var(--surface-card);
         color: var(--text-color);
+        min-width: 4rem;
+        height: 2rem;
+        font-size: 0.875rem;
+      }
+      
+      .p-dropdown:hover {
+        border-color: var(--primary-color);
+      }
+      
+      .p-dropdown:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
       }
     }
   }

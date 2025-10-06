@@ -1,0 +1,191 @@
+<div class="plans-list-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Plan Templates</h1>
+    <div class="header-actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="createPlan()"
+        data-testid="plan-create-btn">
+        <i class="icon-plus"></i> Create Plan
+      </button>
+      <button 
+        class="btn btn-secondary" 
+        (click)="viewRuns()"
+        data-testid="view-runs-btn">
+        <i class="icon-list"></i> View Runs
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label for="search">Search:</label>
+      <input 
+        type="text" 
+        id="search"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search plans..."
+        data-testid="plans-filter-q">
+    </div>
+    
+    <div class="filter-group">
+      <label>
+        <input 
+          type="checkbox" 
+          [(ngModel)]="enabledFilter"
+          (ngModelChange)="onEnabledFilterChange()"
+          data-testid="plans-filter-enabled">
+        Enabled only
+      </label>
+    </div>
+    
+    <div class="filter-group">
+      <button 
+        class="btn btn-outline" 
+        (click)="clearFilters()"
+        data-testid="clear-filters-btn">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    <i class="icon-error"></i>
+    {{ error }}
+    <button class="btn btn-sm" (click)="loadPlans()">Retry</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <i class="icon-spinner"></i> Loading plans...
+  </div>
+
+  <!-- Plans Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="table" data-testid="plans-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Enabled</th>
+          <th>Steps</th>
+          <th>Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let plan of plans" [attr.data-testid]="'plan-row-' + plan.id">
+          <td>
+            <strong>{{ plan.name }}</strong>
+            <div *ngIf="plan.tags && plan.tags.length > 0" class="tags">
+              <span *ngFor="let tag of plan.tags" class="tag">{{ tag }}</span>
+            </div>
+          </td>
+          <td>{{ plan.description || '-' }}</td>
+          <td>
+            <span 
+              class="badge" 
+              [ngClass]="getStatusBadgeClass(plan.enabled)"
+              [attr.data-testid]="'plan-status-' + plan.id">
+              {{ getStatusText(plan.enabled) }}
+            </span>
+          </td>
+          <td>
+                <span class="step-count">{{ plan.steps.length || 0 }} steps</span>
+          </td>
+          <td>{{ formatDate(plan.updatedAt) }}</td>
+          <td class="actions">
+            <button 
+              class="btn btn-sm btn-primary" 
+              (click)="viewPlan(plan)"
+              [attr.data-testid]="'plan-view-' + plan.id">
+              View
+            </button>
+            <button 
+              class="btn btn-sm btn-secondary" 
+              (click)="editPlan(plan)"
+              [attr.data-testid]="'plan-edit-' + plan.id">
+              Edit
+            </button>
+            <button 
+              class="btn btn-sm btn-danger" 
+              (click)="deletePlan(plan)"
+              [attr.data-testid]="'plan-delete-' + plan.id">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="plans.length === 0" class="empty-state">
+      <i class="icon-document"></i>
+      <h3>No plans found</h3>
+      <p>Create your first plan template to get started.</p>
+      <button class="btn btn-primary" (click)="createPlan()">
+        Create Plan
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && totalPages > 1" class="pagination">
+    <div class="pagination-info">
+      Showing {{ currentPage * pageSize + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} of {{ totalElements }} plans
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage === 0"
+        (click)="goToPage(0)"
+        data-testid="pagination-first">
+        First
+      </button>
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage === 0"
+        (click)="goToPage(currentPage - 1)"
+        data-testid="pagination-prev">
+        Previous
+      </button>
+      
+      <span class="page-info">
+        Page {{ currentPage + 1 }} of {{ totalPages }}
+      </span>
+      
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage >= totalPages - 1"
+        (click)="goToPage(currentPage + 1)"
+        data-testid="pagination-next">
+        Next
+      </button>
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage >= totalPages - 1"
+        (click)="goToPage(totalPages - 1)"
+        data-testid="pagination-last">
+        Last
+      </button>
+    </div>
+    
+    <div class="page-size">
+      <label>Page size:</label>
+      <select 
+        [ngModel]="pageSize" 
+        (ngModelChange)="changePageSize($event)"
+        data-testid="page-size-select">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+  </div>
+</div>

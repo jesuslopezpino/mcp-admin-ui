@@ -1,0 +1,365 @@
+<div class="inventory-container">
+  <!-- Header Section -->
+  <div class="header" data-testid="inventory-header">
+    <h2>🔍 Inventario de Equipos</h2>
+    <p>Descubre y gestiona equipos en tu red</p>
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="actions-bar" data-testid="actions-bar">
+    <div class="search-filters" data-testid="search-filters">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="🔍 Buscar por hostname o IP..."
+        [(ngModel)]="searchTerm"
+        (input)="filterAssets()"
+        data-testid="search-input">
+      
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="filterAssets()" data-testid="status-filter">
+        <option value="">Todos los estados</option>
+        <option value="online">🟢 Online</option>
+        <option value="offline">🔴 Offline</option>
+        <option value="unknown">🟡 Desconocido</option>
+      </select>
+      
+      <select class="filter-select" [(ngModel)]="osFilter" (change)="filterAssets()" data-testid="os-filter">
+        <option value="">Todos los OS</option>
+        <option value="windows">🪟 Windows</option>
+        <option value="linux">🐧 Linux</option>
+        <option value="macos">🍎 macOS</option>
+      </select>
+    </div>
+    
+    <div class="action-buttons" data-testid="action-buttons">
+      <button 
+        class="btn btn-primary" 
+        (click)="discoverAssets()" 
+        [disabled]="isDiscovering"
+        data-testid="discover-button">
+        <span *ngIf="isDiscovering">⏳</span>
+        <span *ngIf="!isDiscovering">🔍</span>
+        {{ isDiscovering ? 'Escaneando...' : 'Descubrir ahora' }}
+      </button>
+      
+      <button 
+        class="btn btn-secondary" 
+        (click)="loadAssets()" 
+        [disabled]="isLoading"
+        data-testid="refresh-button">
+        <span *ngIf="isLoading">⏳</span>
+        <span *ngIf="!isLoading">🔄</span>
+        {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div *ngIf="isDiscovering" class="progress-card">
+    <div class="progress-content">
+      <div class="progress-info">
+        <h4>🔍 Escaneando red...</h4>
+        <p>Descubriendo equipos en la red local</p>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="scanProgress"></div>
+        </div>
+        <span class="progress-text">{{ scanProgress.toFixed(0) }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discovery Results -->
+  <div *ngIf="discoveryResult" class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🖥️</div>
+      <div class="stat-content">
+        <h3>{{ discoveryResult.countOnline }}</h3>
+        <p>Equipos Encontrados</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">⚙️</div>
+      <div class="stat-content">
+        <h3>{{ discoveryResult.countWinRm }}</h3>
+        <p>Con WinRM</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">⏱️</div>
+      <div class="stat-content">
+        <h3>{{ formatDuration(discoveryResult.durationMs) }}</h3>
+        <p>Duración</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div *ngIf="filteredAssets.length > 0" class="bulk-actions">
+    <div class="bulk-info">
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="selectAll"
+          (change)="toggleSelectAll()">
+        <span>Seleccionar todos ({{ selectedAssets.length }}/{{ filteredAssets.length }})</span>
+      </label>
+    </div>
+    
+    <div class="bulk-buttons" *ngIf="selectedAssets.length > 0">
+      <button class="btn btn-outline" (click)="executeBulkAction('ping')">
+        📡 Ping Masivo
+      </button>
+      <button class="btn btn-outline" (click)="executeBulkAction('info')">
+        ℹ️ Info Masiva
+      </button>
+      <button class="btn btn-outline" (click)="exportSelected()">
+        📥 Exportar
+      </button>
+    </div>
+  </div>
+
+  <!-- Assets Grid -->
+  <div class="assets-grid" *ngIf="filteredAssets.length > 0">
+    <div class="asset-card" *ngFor="let asset of paginatedAssets" 
+         [class.selected]="selectedAssets.includes(asset.id)"
+         [attr.data-testid]="'asset-card-' + asset.id">
+      <div class="asset-header">
+        <div class="asset-info">
+          <h3 class="asset-name">
+            <span class="asset-icon">🖥️</span>
+            {{ asset.hostname }}
+          </h3>
+          <p class="asset-ip">{{ asset.ip }}</p>
+        </div>
+        
+        <div class="asset-status">
+          <span class="status-badge" 
+                [class]="'status-' + asset.status">
+            <span class="status-dot"></span>
+            {{ asset.status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="asset-details">
+        <div class="detail-row">
+          <span class="detail-label">Sistema Operativo:</span>
+          <span class="detail-value os-badge" [class]="'os-' + asset.os">
+            <span class="os-icon" [class]="'icon-' + asset.os"></span>
+            {{ asset.os }}
+          </span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">WinRM:</span>
+          <span class="detail-value winrm-badge" 
+                [class]="asset.winrmEnabled ? 'winrm-enabled' : 'winrm-disabled'">
+            <span class="winrm-icon">{{ asset.winrmEnabled ? '✅' : '❌' }}</span>
+            {{ asset.winrmEnabled ? 'Habilitado' : 'Deshabilitado' }}
+          </span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Última vez visto:</span>
+          <span class="detail-value">{{ formatDate(asset.lastSeen) }}</span>
+        </div>
+      </div>
+
+      <div class="asset-actions">
+        <div class="action-checkbox">
+          <input 
+            type="checkbox" 
+            [checked]="selectedAssets.includes(asset.id)"
+            (change)="toggleAssetSelection(asset.id)">
+        </div>
+        
+        <div class="action-buttons" data-testid="asset-actions">
+          <button 
+            class="btn btn-sm btn-outline" 
+            (click)="viewAssetDetails(asset)"
+             [attr.data-testid]="'view-details-' + asset.id"
+            title="Ver detalles">
+            👁️
+          </button>
+          
+          <button 
+            class="btn btn-sm btn-primary" 
+            (click)="openRunToolModal(asset)"
+            [disabled]="asset.status !== 'online'"
+             [attr.data-testid]="'execute-tool-' + asset.id"
+            title="Ejecutar herramienta">
+            ⚡
+          </button>
+          
+          <button 
+            class="btn btn-sm btn-secondary" 
+            (click)="pingAsset(asset)"
+             [attr.data-testid]="'ping-asset-' + asset.id"
+            title="Hacer ping">
+            📡
+          </button>
+        </div>
+      </div>
+
+      <!-- Ping Result Display -->
+      <div class="ping-result" *ngIf="asset.pingResult">
+        <div class="ping-result-content" [class]="'ping-' + asset.pingResult.status">
+          <div class="ping-status">
+            <span class="ping-message">{{ asset.pingResult.message }}</span>
+            <span class="ping-time">{{ formatTime(asset.pingResult.timestamp) }}</span>
+          </div>
+          <div class="ping-details" *ngIf="asset.pingResult.details.stdout">
+            <pre class="ping-output">{{ asset.pingResult.details.stdout }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="filteredAssets.length === 0 && !isLoading" data-testid="empty-state">
+    <div class="empty-content">
+      <span class="empty-icon">🔍</span>
+      <h3 *ngIf="searchTerm || statusFilter || osFilter">No se encontraron equipos</h3>
+      <h3 *ngIf="!searchTerm && !statusFilter && !osFilter">No hay equipos descubiertos</h3>
+      <p *ngIf="searchTerm || statusFilter || osFilter">
+        Intenta ajustar los filtros de búsqueda
+      </p>
+      <p *ngIf="!searchTerm && !statusFilter && !osFilter">
+        Haz clic en "Descubrir ahora" para escanear la red
+      </p>
+      <button 
+        *ngIf="!searchTerm && !statusFilter && !osFilter"
+        class="btn btn-primary" 
+        (click)="discoverAssets()">
+        🔍 Descubrir Equipos
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && filteredAssets.length === 0">
+    <div class="loading-content">
+      <span class="loading-icon">⏳</span>
+      Cargando equipos...
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="filteredAssets.length > itemsPerPage">
+    <div class="pagination-info">
+      Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredAssets.length) }} 
+      de {{ filteredAssets.length }} equipos
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage === 1"
+        (click)="setPage(currentPage - 1)">
+        ← Anterior
+      </button>
+      
+      <span class="page-info">
+        Página {{ currentPage }} de {{ totalPages }}
+      </span>
+      
+      <button 
+        class="btn btn-sm" 
+        [disabled]="currentPage === totalPages"
+        (click)="setPage(currentPage + 1)">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- Asset Details Modal -->
+  <div class="modal-overlay" *ngIf="showAssetDetailsModal" (click)="closeAssetDetailsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🖥️ Detalles del Equipo</h3>
+        <button class="modal-close" (click)="closeAssetDetailsModal()">×</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedAssetDetails">
+        <div class="modal-grid">
+          <div class="modal-section">
+            <h4>📋 Información Básica</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Hostname:</span>
+                <span class="info-value">{{ selectedAssetDetails.hostname }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">IP:</span>
+                <span class="info-value code">{{ selectedAssetDetails.ip }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Sistema Operativo:</span>
+                <span class="info-value">{{ selectedAssetDetails.os }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Estado:</span>
+                <span class="info-value status-badge" [class]="'status-' + selectedAssetDetails.status">
+                  {{ selectedAssetDetails.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-section">
+            <h4>⚙️ Configuración</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">WinRM:</span>
+                <span class="info-value winrm-badge" 
+                      [class]="selectedAssetDetails.winrmEnabled ? 'winrm-enabled' : 'winrm-disabled'">
+                  {{ selectedAssetDetails.winrmEnabled ? 'Habilitado' : 'Deshabilitado' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Última vez visto:</span>
+                <span class="info-value">{{ formatDate(selectedAssetDetails.lastSeen) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">ID del Asset:</span>
+                <span class="info-value code">{{ selectedAssetDetails.id }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAssetDetailsModal()">
+          Cerrar
+        </button>
+        <button class="btn btn-primary" (click)="openRunToolModal(selectedAssetDetails!)">
+          ⚡ Ejecutar Herramienta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Run Tool Modal -->
+  <app-run-tool-modal
+    *ngIf="showRunToolModal"
+    [tool]="selectedTool"
+    [assetId]="selectedAsset?.id || ''"
+    [destinationLabel]="selectedAsset ? (selectedAsset.hostname + ' (' + selectedAsset.ip + ')') : ''"
+    (close)="closeRunToolModal()"
+    (result)="executeTool($event)">
+  </app-run-tool-modal>
+</div>

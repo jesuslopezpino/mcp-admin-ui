@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ScheduledTask, Tool, Asset, Execution, ExecutionListItem, PageResponse } from '../models/api';
+import { PlanTemplate, PlanStep, PlanRun, PlanRunDetail, PlanRunStats, RunPlanRequest } from '../models/plans';
 
 export interface PlanRequest {
   userId: string;
@@ -128,6 +129,12 @@ export class ApiService {
 
   getTool(name: string): Observable<ToolDetails> {
     return this.http.get<ToolDetails>(`${this.baseUrl}/tools/${name}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getTools(): Observable<Tool[]> {
+    return this.http.get<Tool[]>(`${this.baseUrl}/tools`, {
       headers: this.getHeaders()
     });
   }
@@ -438,6 +445,136 @@ export class ApiService {
       headers: this.getHeaders(),
       params: httpParams,
       responseType: 'blob'
+    });
+  }
+
+  // ================================================
+  // Plan Templates API
+  // ================================================
+
+  getPlans(params?: { 
+    page?: number; 
+    size?: number; 
+    q?: string; 
+    enabled?: boolean 
+  }): Observable<PageResponse<PlanTemplate>> {
+    let httpParams = new HttpParams();
+    
+    if (params?.page !== undefined) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
+    if (params?.q) httpParams = httpParams.set('q', params.q);
+    if (params?.enabled !== undefined) httpParams = httpParams.set('enabled', params.enabled.toString());
+    
+    return this.http.get<PageResponse<PlanTemplate>>(`${this.baseUrl}/plans`, {
+      headers: this.getHeaders(),
+      params: httpParams
+    });
+  }
+
+  getPlan(id: string): Observable<PlanTemplate> {
+    return this.http.get<PlanTemplate>(`${this.baseUrl}/plans/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  createPlan(body: Partial<PlanTemplate>): Observable<PlanTemplate> {
+    return this.http.post<PlanTemplate>(`${this.baseUrl}/plans`, body, {
+      headers: this.getHeaders()
+    });
+  }
+
+  updatePlan(id: string, body: Partial<PlanTemplate>): Observable<PlanTemplate> {
+    return this.http.put<PlanTemplate>(`${this.baseUrl}/plans/${id}`, body, {
+      headers: this.getHeaders()
+    });
+  }
+
+  deletePlan(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/plans/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ================================================
+  // Plan Runs API
+  // ================================================
+
+  runPlan(id: string, body: RunPlanRequest): Observable<PlanRun> {
+    return this.http.post<PlanRun>(`${this.baseUrl}/plans/${id}/run`, body, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getPlanRuns(params?: {
+    page?: number; 
+    size?: number; 
+    sort?: string[];
+    status?: string[]; 
+    planId?: string; 
+    requestedBy?: string;
+    from?: string; 
+    to?: string;
+  }): Observable<PageResponse<PlanRun>> {
+    let httpParams = new HttpParams();
+    
+    if (params?.page !== undefined) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
+    if (params?.sort) {
+      params.sort.forEach(sort => {
+        httpParams = httpParams.append('sort', sort);
+      });
+    }
+    if (params?.status) {
+      params.status.forEach(status => {
+        httpParams = httpParams.append('status', status);
+      });
+    }
+    if (params?.planId) httpParams = httpParams.set('planId', params.planId);
+    if (params?.requestedBy) httpParams = httpParams.set('requestedBy', params.requestedBy);
+    if (params?.from) httpParams = httpParams.set('from', params.from);
+    if (params?.to) httpParams = httpParams.set('to', params.to);
+    
+    return this.http.get<PageResponse<PlanRun>>(`${this.baseUrl}/plans/runs`, {
+      headers: this.getHeaders(),
+      params: httpParams
+    });
+  }
+
+  getPlanRun(runId: string): Observable<PlanRunDetail> {
+    return this.http.get<PlanRunDetail>(`${this.baseUrl}/plans/runs/${runId}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  cancelPlanRun(runId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/plans/runs/${runId}/cancel`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ================================================
+  // Plan Runs Statistics
+  // ================================================
+
+  getPlanRunsStats(): Observable<PlanRunStats> {
+    return this.http.get<PlanRunStats>(`${this.baseUrl}/plans/runs/stats`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getRunningPlanRuns(): Observable<PlanRun[]> {
+    return this.http.get<PlanRun[]>(`${this.baseUrl}/plans/runs/running`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getCompletedPlanRuns(params?: { size?: number }): Observable<PlanRun[]> {
+    let httpParams = new HttpParams();
+    if (params?.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
+    
+    return this.http.get<PlanRun[]>(`${this.baseUrl}/plans/runs/completed`, {
+      headers: this.getHeaders(),
+      params: httpParams
     });
   }
 }

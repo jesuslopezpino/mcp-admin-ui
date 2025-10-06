@@ -14,6 +14,16 @@ export const routes: Routes = [
     title: 'Executions',
     loadComponent: () => import('./executions/executions.component').then(m => m.ExecutionsComponent)
   },
+  {
+    path: 'plans',
+    children: [
+      { path: '', title: 'Plans', loadComponent: () => import('./plans/plans-list.component').then(m => m.PlansListComponent) },
+      { path: 'new', title: 'New Plan', loadComponent: () => import('./plans/plan-detail.component').then(m => m.PlanDetailComponent) },
+      { path: 'runs', title: 'Plan Runs', loadComponent: () => import('./plans/plan-runs.component').then(m => m.PlanRunsComponent) },
+      { path: 'runs/:runId', title: 'Plan Run Detail', loadComponent: () => import('./plans/plan-run-detail.component').then(m => m.PlanRunDetailComponent) },
+      { path: ':id', title: 'Plan Detail', loadComponent: () => import('./plans/plan-detail.component').then(m => m.PlanDetailComponent) }
+    ]
+  },
   { path: '', redirectTo: '/assistant', pathMatch: 'full' },
   { path: '**', redirectTo: '/assistant' }
 ];

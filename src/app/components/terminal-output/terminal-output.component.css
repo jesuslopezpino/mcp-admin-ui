@@ -1,3 +1,4 @@
+/* Terminal Container */
 .terminal-container {
   background: #1e1e1e;
   border-radius: 8px;
@@ -33,21 +34,12 @@
   gap: 8px;
 }
 
-.terminal-icon {
-  font-size: 16px;
-}
-
 .terminal-status {
   font-size: 14px;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.status-icon {
-  font-size: 16px;
-  font-weight: bold;
 }
 
 .terminal-info {
@@ -115,7 +107,7 @@
   gap: 8px;
 }
 
-.btn-copy, .btn-download {
+.btn-copy, .btn-download, .btn-fullscreen {
   background: #404040;
   color: #ffffff;
   border: none;
@@ -135,19 +127,7 @@
   background: #606060;
 }
 
-.btn-fullscreen {
-  background: #404040;
-  color: #ffffff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-family: inherit;
-}
-
-/* Scrollbar styling */
+/* Scrollbar */
 .terminal-body::-webkit-scrollbar {
   width: 8px;
 }
@@ -165,32 +145,7 @@
   background: #666;
 }
 
-/* Syntax highlighting for common terminal output */
-.terminal-output {
-  color: #d4d4d4;
-}
-
-/* Highlight command lines */
-.terminal-output:has-text("$ ") {
-  color: #4fc3f7;
-}
-
-/* Highlight success messages */
-.terminal-output:has-text("SUCCESS") {
-  color: #4caf50;
-}
-
-/* Highlight error messages */
-.terminal-output:has-text("ERROR") {
-  color: #f44336;
-}
-
-/* Highlight version numbers */
-.terminal-output:has-text("v1.") {
-  color: #ff9800;
-}
-
-/* Fullscreen Modal Styles */
+/* Fullscreen Modal */
 .fullscreen-overlay {
   position: fixed;
   top: 0;
@@ -227,70 +182,6 @@
   justify-content: space-between;
   border-bottom: 1px solid #404040;
   flex-shrink: 0;
-}
-
-.fullscreen-info-row {
-  display: flex;
-  flex-direction: row;
-  gap: 24px;
-  align-items: center;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.fullscreen-title {
-  color: #ffffff;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 18px;
-}
-
-.fullscreen-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.fullscreen-info .info-row {
-  display: flex;
-  flex-direction: row;
-  gap: 24px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.fullscreen-info .target-info, 
-.fullscreen-info .command-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.fullscreen-info .info-label {
-  color: #888;
-  font-weight: 500;
-  min-width: 90px;
-}
-
-.fullscreen-info .info-value {
-  color: #ffffff;
-  font-weight: 600;
-  background: #404040;
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-
-.fullscreen-status {
-  font-size: 16px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .fullscreen-body {
@@ -332,10 +223,6 @@
   background: #f44336;
 }
 
-.btn-close-fullscreen:active {
-  background: #b71c1c;
-}
-
 .terminal-output.fullscreen {
   color: #d4d4d4;
   font-size: 14px;
@@ -348,25 +235,7 @@
   min-height: 0;
 }
 
-/* Fullscreen scrollbar styling */
-.fullscreen-body::-webkit-scrollbar {
-  width: 12px;
-}
-
-.fullscreen-body::-webkit-scrollbar-track {
-  background: #2d2d2d;
-}
-
-.fullscreen-body::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 6px;
-}
-
-.fullscreen-body::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-/* Responsive design */
+/* Responsive */
 @media (max-width: 768px) {
   .terminal-container {
     margin: 8px 0;
@@ -400,20 +269,6 @@
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
-  }
-
-  .fullscreen-info-row {
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-  }
-
-  .fullscreen-title {
-    font-size: 16px;
-  }
-
-  .fullscreen-status {
-    font-size: 14px;
   }
 
   .fullscreen-body {

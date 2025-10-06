@@ -3,7 +3,6 @@ import { AppShellComponent } from './shell/app-shell.component';
 import { AssistantComponent } from './assistant/assistant.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { InventoryComponent } from './inventory/inventory.component';
-import { SchedulesComponent } from './schedules/schedules.component';
 
 export const routes: Routes = [
   { 

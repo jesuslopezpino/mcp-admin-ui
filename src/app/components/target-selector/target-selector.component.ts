@@ -1,13 +1,15 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Asset } from '../../models/api';
 import { TargetSelectionService } from '../../services/target-selection.service';
 import { Subject, takeUntil } from 'rxjs';
+import { Select, Card, ProgressSpinner } from '../../ui/ui-prime';
 
 @Component({
     selector: 'app-target-selector',
-    imports: [ReactiveFormsModule],
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, Select, Card, ProgressSpinner],
     templateUrl: './target-selector.component.html',
     styleUrl: './target-selector.component.scss'
 })
@@ -19,6 +21,7 @@ export class TargetSelectorComponent implements OnInit, OnChanges, OnDestroy {
   targetCtrl = new FormControl<string | null>({ value: null, disabled: true });
   assetsLoading = true;
   sortedAssets: Asset[] = []; // Sorted assets with WinRM first
+  selectOptions: any[] = []; // Options for PrimeNG Select
   
   private destroy$ = new Subject<void>();
 
@@ -79,6 +82,23 @@ export class TargetSelectorComponent implements OnInit, OnChanges, OnDestroy {
       const nameB = (b.hostname || b.ip).toLowerCase();
       return nameA.localeCompare(nameB);
     });
+
+    // Generate select options
+    this.selectOptions = [
+      {
+        label: 'Servidor (local)',
+        value: null,
+        icon: 'pi pi-desktop',
+        statusClass: 'text-600'
+      },
+      ...this.sortedAssets.map(asset => ({
+        label: asset.hostname || asset.ip,
+        value: asset.id,
+        subtitle: asset.ip && asset.hostname ? asset.ip : undefined,
+        icon: asset.winrmEnabled ? 'pi pi-check-circle' : 'pi pi-times-circle',
+        statusClass: asset.winrmEnabled ? 'text-green-500' : 'text-red-500'
+      }))
+    ];
   }
 
   getSelectedDisplayName(): string {

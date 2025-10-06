@@ -4,13 +4,29 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { JsonSchema } from '../../models/json-schema';
 import { JsonSchemaFormService } from '../json-schema-form/json-schema-form.service';
+import { 
+  InputText, 
+  InputNumber, 
+  ToggleSwitch, 
+  Select, 
+  Button, 
+  Panel, 
+  Message
+} from '../../ui/ui-prime';
 
 @Component({
   selector: 'app-tool-args-form',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    InputText,
+    InputNumber,
+    ToggleSwitch,
+    Select,
+    Button,
+    Panel,
+    Message
   ],
   templateUrl: './tool-args-form.component.html',
   styleUrls: ['./tool-args-form.component.scss']

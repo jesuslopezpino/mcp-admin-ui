@@ -1,37 +1,53 @@
-<div class="target-selector-compact" data-testid="target-selector-container">
-  <div class="selector-row" data-testid="selector-row">
-    <div class="selector-info" data-testid="selector-info">
-      <div class="selector-icon">🎯</div>
-      <div class="selector-label">
-        <span class="label-text">Destino de Ejecución</span>
+<p-card class="target-selector-card" data-testid="target-selector-container">
+  <div class="flex align-items-center justify-content-between gap-3">
+    <!-- Info Section -->
+    <div class="flex align-items-center gap-2" data-testid="selector-info">
+      <i class="pi pi-target text-primary text-xl"></i>
+      <div class="flex flex-column">
+        <span class="font-semibold text-sm">Destino de Ejecución</span>
         @if (getSelectedAsset()) {
-          <span class="label-subtitle">{{ getSelectedAsset()?.hostname || getSelectedAsset()?.ip }}</span>
+          <span class="text-xs text-600">{{ getSelectedAsset()?.hostname || getSelectedAsset()?.ip }}</span>
         }
       </div>
     </div>
 
-    <div class="selector-controls">
-      <!-- Simple select with Reactive Forms -->
-      <div class="select-wrapper">
-        <select
-          data-testid="target-selector"
-          [formControl]="targetCtrl"
-          class="target-select">
-          <option data-testid="target-option-local" [ngValue]="null">🖥️ — Servidor (local) —</option>
-          @for (asset of sortedAssets; track trackByAssetId($index, asset)) {
-            <option
-              [ngValue]="asset.id"
-              [disabled]="!asset.winrmEnabled"
-              [attr.data-testid]="'target-option-' + asset.id">
-              {{ asset.winrmEnabled ? '🟢' : '🔴' }} {{ asset.hostname || asset.ip }}{{ asset.ip && asset.hostname ? ' (' + asset.ip + ')' : '' }}
-              {{ !asset.winrmEnabled ? ' (Sin WinRM)' : '' }}
-            </option>
+    <!-- Selector Controls -->
+    <div class="flex align-items-center gap-2">
+      @if (assetsLoading) {
+        <p-progressSpinner 
+          [style]="{'width': '20px', 'height': '20px'}"
+          strokeWidth="3">
+        </p-progressSpinner>
+      }
+      
+      <p-select
+        data-testid="target-selector"
+        [formControl]="targetCtrl"
+        [options]="selectOptions"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="'Seleccionar destino'"
+        [disabled]="assetsLoading"
+        class="w-full"
+        styleClass="w-20rem">
+        <ng-template pTemplate="selectedItem" let-selectedOption>
+          @if (selectedOption) {
+            <div class="flex align-items-center gap-2">
+              <i [class]="selectedOption.icon" [class]="selectedOption.statusClass"></i>
+              <span>{{ selectedOption.label }}</span>
+            </div>
           }
-        </select>
-        @if (assetsLoading) {
-          <span class="loading-spinner">⏳</span>
-        }
-      </div>
+        </ng-template>
+        <ng-template pTemplate="item" let-option>
+          <div class="flex align-items-center gap-2">
+            <i [class]="option.icon" [class]="option.statusClass"></i>
+            <span>{{ option.label }}</span>
+            @if (option.subtitle) {
+              <span class="text-xs text-600">{{ option.subtitle }}</span>
+            }
+          </div>
+        </ng-template>
+      </p-select>
     </div>
   </div>
-</div>
+</p-card>

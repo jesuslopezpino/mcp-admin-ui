@@ -1,0 +1,170 @@
+@if (argsForm && schema) {
+  <p-card class="tool-args-form">
+    <ng-template pTemplate="header">
+      <div class="flex align-items-center justify-content-between">
+        <div class="flex align-items-center gap-2">
+          <i class="pi pi-cog text-primary"></i>
+          <h4 class="m-0">Tool Arguments</h4>
+        </div>
+        <p-button
+          label="Reset to Defaults"
+          icon="pi pi-refresh"
+          severity="secondary"
+          size="small"
+          [disabled]="!hasDefaults"
+          (onClick)="resetToDefaults()"
+          data-testid="reset-defaults">
+        </p-button>
+      </div>
+    </ng-template>
+
+    <form [formGroup]="argsForm" class="args-form">
+      <div class="grid gap-3">
+        @for (field of formFields; track field) {
+          <div class="col-12" [attr.data-testid]="'arg-field-' + field.key">
+            <div class="field">
+              <label [for]="field.key" class="block text-900 font-medium mb-2">
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500 ml-1">*</span>
+                }
+                @if (field.description) {
+                  <i class="pi pi-info-circle text-600 ml-1" [pTooltip]="field.description"></i>
+                }
+              </label>
+
+              <!-- Text Input -->
+              @if (field.type === 'text') {
+                <p-inputText
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  class="w-full"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </p-inputText>
+              }
+
+              <!-- Email Input -->
+              @if (field.type === 'email') {
+                <p-inputText
+                  [id]="field.key"
+                  type="email"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  class="w-full"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </p-inputText>
+              }
+
+              <!-- Date Input -->
+              @if (field.type === 'date') {
+                <p-inputText
+                  [id]="field.key"
+                  type="date"
+                  [formControlName]="field.key"
+                  class="w-full"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </p-inputText>
+              }
+
+              <!-- Number Input -->
+              @if (field.type === 'number') {
+                <p-inputNumber
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [min]="field.min"
+                  [max]="field.max"
+                  class="w-full"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </p-inputNumber>
+              }
+
+              <!-- Boolean Toggle -->
+              @if (field.type === 'checkbox') {
+                <div class="flex align-items-center gap-2">
+                  <p-toggleSwitch
+                    [id]="field.key"
+                    [formControlName]="field.key">
+                  </p-toggleSwitch>
+                  <label [for]="field.key" class="text-900">
+                    {{ field.label }}
+                  </label>
+                </div>
+              }
+
+              <!-- Select Dropdown -->
+              @if (field.type === 'select') {
+                <p-select
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [options]="field.options"
+                  optionLabel="label"
+                  optionValue="value"
+                  [placeholder]="field.placeholder || 'Select an option'"
+                  class="w-full"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </p-select>
+              }
+
+              <!-- Textarea for JSON -->
+              @if (field.type === 'textarea' || field.type === 'json') {
+                <textarea
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [rows]="field.type === 'json' ? 4 : 3"
+                  class="w-full p-inputtextarea"
+                  [class.p-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                </textarea>
+              }
+
+              <!-- Validation Messages -->
+              @if (argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched) {
+                <div class="mt-2">
+                  @if (argsForm.get(field.key)?.errors?.['required']) {
+                    <p-message severity="error" text="{{ field.label }} is required"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['minlength']) {
+                    <p-message severity="error" text="{{ field.label }} must be at least {{ field.minLength }} characters"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['maxlength']) {
+                    <p-message severity="error" text="{{ field.label }} must be no more than {{ field.maxLength }} characters"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['min']) {
+                    <p-message severity="error" text="{{ field.label }} must be at least {{ field.min }}"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['max']) {
+                    <p-message severity="error" text="{{ field.label }} must be no more than {{ field.max }}"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['pattern']) {
+                    <p-message severity="error" text="{{ field.label }} format is invalid"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['email']) {
+                    <p-message severity="error" text="{{ field.label }} must be a valid email"></p-message>
+                  }
+                  @if (argsForm.get(field.key)?.errors?.['json']) {
+                    <p-message severity="error" text="{{ field.label }} must be valid JSON"></p-message>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </form>
+
+    <!-- JSON Output Preview -->
+    @if (showJsonPreview) {
+      <ng-template pTemplate="footer">
+        <div class="json-preview">
+          <div class="flex align-items-center gap-2 mb-3">
+            <i class="pi pi-code text-primary"></i>
+            <h5 class="m-0">Generated JSON</h5>
+          </div>
+          <pre class="json-output p-3 border-1 surface-border border-round">{{ getFormValueAsJson() | json }}</pre>
+        </div>
+      </ng-template>
+    }
+  </p-card>
+}

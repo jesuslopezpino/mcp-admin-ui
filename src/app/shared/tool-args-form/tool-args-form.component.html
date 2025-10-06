@@ -1,5 +1,5 @@
 ﻿<div class="tool-args-form" data-testid="args-form" [formGroup]="form">
-  @if (schema?.type === 'object' && schema.properties) {
+  @if (schema.type === 'object' && schema.properties) {
     <div class="grid gap-3">
       @for (key of getObjectKeys(); track trackByKey($index, key)) {
         <div class="form-field">
@@ -10,14 +10,55 @@
             }
           </label>
           
-          <input 
-            pInputText
-            [formControlName]="key"
-            [placeholder]="getFieldLabel(key)"
-            class="w-full">
+          <!-- String Input -->
+          @if (getFieldType(key) === 'string') {
+            <input 
+              pInputText
+              [formControlName]="key"
+              [placeholder]="getFieldLabel(key)"
+              class="w-full">
+          }
+          
+          <!-- Enum Dropdown -->
+          @if (getFieldType(key) === 'enum') {
+            <p-select
+              [formControlName]="key"
+              [options]="getEnumOptions(key)"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'Select ' + getFieldLabel(key)"
+              class="w-full">
+            </p-select>
+          }
+          
+          <!-- Number Input -->
+          @if (getFieldType(key) === 'number' || getFieldType(key) === 'integer') {
+            <p-inputNumber
+              [formControlName]="key"
+              [placeholder]="getFieldLabel(key)"
+              class="w-full">
+            </p-inputNumber>
+          }
+          
+          <!-- Boolean Switch -->
+          @if (getFieldType(key) === 'boolean') {
+            <div class="flex align-items-center gap-2">
+              <p-toggleSwitch [formControlName]="key"></p-toggleSwitch>
+              <label class="form-label">{{ getFieldLabel(key) }}</label>
+            </div>
+          }
+          
+          <!-- Array (simplified for now) -->
+          @if (getFieldType(key) === 'array') {
+            <input 
+              pInputText
+              [formControlName]="key"
+              [placeholder]="getFieldLabel(key) + ' (comma separated)'"
+              class="w-full">
+          }
           
           @if (getFieldError(key)) {
-            <small class="error-text">{{ getFieldError(key) }}</small>
+            <p-message severity="error" [text]="getFieldError(key)!"></p-message>
           }
         </div>
       }
@@ -25,15 +66,28 @@
   }
   
   <div class="form-actions flex gap-2 mt-4">
-    <button class="btn btn-secondary" type="button" (click)="resetToDefaults()">Reset</button>
+    <p-button 
+      label="Reset Defaults" 
+      icon="pi pi-refresh" 
+      severity="secondary" 
+      size="small"
+      (onClick)="resetToDefaults()">
+    </p-button>
+    
     @if (showJsonPreview) {
-      <button class="btn btn-secondary" type="button" (click)="togglePreview()">
-        {{ showPreview ? 'Hide JSON' : 'Show JSON' }}
-      </button>
+      <p-button 
+        [label]="showPreview ? 'Hide JSON' : 'Show JSON'" 
+        [icon]="showPreview ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+        severity="secondary" 
+        size="small"
+        (onClick)="togglePreview()">
+      </p-button>
     }
   </div>
 
   @if (showPreview) {
-    <pre class="json-preview mt-4">{{ jsonPreview }}</pre>
+    <p-panel header="JSON Preview" class="mt-4">
+      <pre class="json-preview">{{ jsonPreview }}</pre>
+    </p-panel>
   }
 </div>

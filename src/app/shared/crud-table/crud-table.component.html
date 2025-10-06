@@ -77,7 +77,7 @@
         }
         @for (column of columns; track column.field) {
           <th 
-            [pSortableColumn]="column.sortable ? column.field : null" 
+            [pSortableColumn]="column.sortable ? column.field : undefined" 
             [style.width]="column.width">
             {{ column.header }}
             @if (column.sortable) {

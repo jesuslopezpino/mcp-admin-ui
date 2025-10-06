@@ -23,7 +23,7 @@ export interface CrudColumn {
 export interface CrudAction {
   icon: string;
   label: string;
-  severity: 'success' | 'info' | 'warning' | 'danger' | 'secondary';
+  severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary';
   tooltip: string;
   show?: (item: any) => boolean;
   action: (item: any) => void;
@@ -125,7 +125,7 @@ export class CrudTableComponent implements OnInit {
     this.onSelectionChange.emit(event);
   }
 
-  getSeverity(value: any): 'success' | 'danger' | 'warning' | 'info' | 'secondary' {
+  getSeverity(value: any): 'success' | 'danger' | 'warn' | 'info' | 'secondary' {
     if (typeof value === 'boolean') {
       return value ? 'success' : 'danger';
     }
@@ -133,7 +133,7 @@ export class CrudTableComponent implements OnInit {
       const lowerValue = value.toLowerCase();
       if (lowerValue.includes('success') || lowerValue.includes('enabled')) return 'success';
       if (lowerValue.includes('failed') || lowerValue.includes('disabled')) return 'danger';
-      if (lowerValue.includes('warning')) return 'warning';
+      if (lowerValue.includes('warning')) return 'warn';
       if (lowerValue.includes('info')) return 'info';
     }
     return 'secondary';

@@ -65,7 +65,7 @@ export class SchedulesPrimeComponent implements OnInit {
     {
       icon: 'pi pi-pause',
       label: 'Pause',
-      severity: 'secondary',
+      severity: 'warn',
       tooltip: 'Pause automatic execution',
       show: (schedule: ScheduledTask) => schedule.enabled,
       action: (schedule: ScheduledTask) => this.pauseTask(schedule)

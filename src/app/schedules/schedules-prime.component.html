@@ -1,0 +1,221 @@
+<div class="card">
+  <p-toolbar>
+    <ng-template pTemplate="left">
+      <div class="flex flex-column gap-2">
+        <h2 class="text-2xl font-bold m-0">📅 Schedules</h2>
+        <p class="text-color-secondary m-0">Manage and monitor scheduled tasks</p>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="right">
+      <div class="flex gap-2">
+        <p-button 
+          label="New Schedule" 
+          icon="pi pi-plus" 
+          (click)="openNewModal()"
+          data-testid="schedule-new">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table 
+    [value]="schedules" 
+    [loading]="loading"
+    [paginator]="true" 
+    [rows]="10" 
+    [showCurrentPageReport]="true" 
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [globalFilterFields]="['name', 'toolName', 'cronExpr']"
+    [(selection)]="selectedSchedules"
+    dataKey="id"
+    styleClass="p-datatable-sm"
+    [tableStyle]="{'min-width': '50rem'}">
+    
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-between align-items-center">
+        <div class="flex gap-2">
+          <p-button 
+            label="Clear" 
+            icon="pi pi-filter-slash" 
+            [outlined]="true" 
+            severity="secondary"
+            (click)="clearFilters()">
+          </p-button>
+        </div>
+        <div class="flex gap-2">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input 
+              pInputText 
+              type="text" 
+              placeholder="Search schedules..." 
+              [(ngModel)]="globalFilter" 
+              class="w-20rem" />
+          </span>
+          <p-dropdown 
+            [options]="statusOptions" 
+            [(ngModel)]="selectedStatus" 
+            placeholder="Filter by status"
+            class="w-12rem">
+          </p-dropdown>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <th pSortableColumn="name" style="width: 20%">
+          Name
+          <p-sortIcon field="name"></p-sortIcon>
+        </th>
+        <th pSortableColumn="toolName" style="width: 15%">
+          Tool
+          <p-sortIcon field="toolName"></p-sortIcon>
+        </th>
+        <th style="width: 15%">Destination</th>
+        <th pSortableColumn="cronExpr" style="width: 15%">
+          Cron
+          <p-sortIcon field="cronExpr"></p-sortIcon>
+        </th>
+        <th pSortableColumn="enabled" style="width: 10%">
+          Status
+          <p-sortIcon field="enabled"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nextRunAt" style="width: 15%">
+          Next Run
+          <p-sortIcon field="nextRunAt"></p-sortIcon>
+        </th>
+        <th pSortableColumn="lastRunAt" style="width: 15%">
+          Last Run
+          <p-sortIcon field="lastRunAt"></p-sortIcon>
+        </th>
+        <th style="width: 20%">Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-schedule>
+      <tr>
+        <td>
+          <p-tableCheckbox [value]="schedule"></p-tableCheckbox>
+        </td>
+        <td>
+          <span class="font-semibold">{{ schedule.name }}</span>
+        </td>
+        <td>
+          <span class="font-medium">{{ getToolName(schedule) }}</span>
+        </td>
+        <td>
+          <span class="text-color-secondary">{{ getDestinationLabel(schedule) }}</span>
+        </td>
+        <td>
+          <code class="text-sm">{{ schedule.cronExpr }}</code>
+        </td>
+        <td>
+          <p-tag 
+            [value]="getStatusLabel(schedule.enabled)" 
+            [severity]="getSeverity(schedule.enabled)">
+          </p-tag>
+        </td>
+        <td>
+          <span class="text-color-secondary">{{ formatDate(schedule.nextRunAt) }}</span>
+        </td>
+        <td>
+          <span class="text-color-secondary">{{ formatDate(schedule.lastRunAt) }}</span>
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <p-button 
+              icon="pi pi-play" 
+              [outlined]="true" 
+              size="small"
+              severity="success"
+              [loading]="isActionInProgress(schedule.id)"
+              (click)="runTaskNow(schedule)"
+              [attr.data-testid]="'schedule-run-now-' + schedule.id"
+              pTooltip="Execute immediately">
+            </p-button>
+            
+            @if (schedule.enabled) {
+              <p-button 
+                icon="pi pi-pause" 
+                [outlined]="true" 
+                size="small"
+                severity="warning"
+                [loading]="isActionInProgress(schedule.id)"
+                (click)="pauseTask(schedule)"
+                [attr.data-testid]="'schedule-pause-' + schedule.id"
+                pTooltip="Pause automatic execution">
+              </p-button>
+            }
+            
+            @if (!schedule.enabled) {
+              <p-button 
+                icon="pi pi-play" 
+                [outlined]="true" 
+                size="small"
+                severity="info"
+                [loading]="isActionInProgress(schedule.id)"
+                (click)="resumeTask(schedule)"
+                [attr.data-testid]="'schedule-resume-' + schedule.id"
+                pTooltip="Resume automatic execution">
+              </p-button>
+            }
+            
+            <p-button 
+              icon="pi pi-pencil" 
+              [outlined]="true" 
+              size="small"
+              severity="secondary"
+              [loading]="isActionInProgress(schedule.id)"
+              (click)="openEditModal(schedule)"
+              data-testid="schedule-edit"
+              pTooltip="Edit schedule">
+            </p-button>
+            
+            <p-button 
+              icon="pi pi-trash" 
+              [outlined]="true" 
+              size="small"
+              severity="danger"
+              [loading]="isActionInProgress(schedule.id)"
+              (click)="deleteTask(schedule)"
+              data-testid="schedule-delete"
+              pTooltip="Delete schedule">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="text-center py-4">
+          <div class="flex flex-column align-items-center gap-2">
+            <i class="pi pi-calendar text-4xl text-color-secondary"></i>
+            <span class="text-lg font-semibold">No scheduled tasks found</span>
+            <span class="text-color-secondary">Create your first scheduled task to get started!</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal -->
+@if (showModal) {
+  <app-schedule-modal
+    [task]="editingTask"
+    [tools]="tools"
+    [assets]="assets"
+    (saved)="onTaskSaved($event)"
+    (closed)="closeModal()">
+  </app-schedule-modal>
+}
+
+<!-- Global Components -->
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

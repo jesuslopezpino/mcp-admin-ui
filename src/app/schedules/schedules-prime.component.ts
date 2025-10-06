@@ -1,0 +1,291 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { ToolbarModule } from 'primeng/toolbar';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { TagModule } from 'primeng/tag';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ApiService } from '../services/api.service';
+import { NotifyService } from '../services/notify.service';
+import { ScheduledTask, Tool, Asset } from '../models/api';
+import { ScheduleModalComponent } from './schedule-modal.component';
+
+@Component({
+  selector: 'app-schedules-prime',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    TableModule,
+    ButtonModule,
+    ToolbarModule,
+    InputTextModule,
+    DropdownModule,
+    TagModule,
+    ConfirmDialogModule,
+    ToastModule,
+    TooltipModule,
+    ScheduleModalComponent
+  ],
+  providers: [ConfirmationService, MessageService],
+  templateUrl: './schedules-prime.component.html',
+  styleUrls: ['./schedules-prime.component.scss']
+})
+export class SchedulesPrimeComponent implements OnInit {
+  schedules: ScheduledTask[] = [];
+  tools: Tool[] = [];
+  assets: Asset[] = [];
+  loading = true;
+  showModal = false;
+  editingTask: ScheduledTask | undefined = undefined;
+  actionInProgress: Set<string> = new Set();
+
+  // Table state
+  selectedSchedules: ScheduledTask[] = [];
+  globalFilter = '';
+  statusOptions = [
+    { label: 'All', value: null },
+    { label: 'Enabled', value: true },
+    { label: 'Disabled', value: false }
+  ];
+  selectedStatus: boolean | null = null;
+
+  constructor(
+    private apiService: ApiService,
+    private notifyService: NotifyService,
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading = true;
+    
+    // Load schedules, tools, and assets in parallel
+    this.apiService.getSchedules().subscribe({
+      next: (schedules) => {
+        this.schedules = schedules;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading schedules:', error);
+        this.notifyService.error('Error loading scheduled tasks');
+        this.loading = false;
+      }
+    });
+
+    this.apiService.tools().subscribe({
+      next: (tools) => {
+        this.tools = tools;
+      },
+      error: (error) => {
+        console.error('Error loading tools:', error);
+        this.notifyService.error('Error loading tools');
+      }
+    });
+
+    this.apiService.getAssets().subscribe({
+      next: (assets) => {
+        this.assets = assets || [];
+      },
+      error: (error) => {
+        console.error('Error loading assets:', error);
+        this.notifyService.error('Error loading assets');
+      }
+    });
+  }
+
+  openNewModal(): void {
+    this.editingTask = undefined;
+    this.showModal = true;
+  }
+
+  openEditModal(task: ScheduledTask): void {
+    this.editingTask = task;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.editingTask = undefined;
+  }
+
+  onTaskSaved(savedTask: ScheduledTask): void {
+    if (this.editingTask) {
+      // Update existing task in the list
+      const index = this.schedules.findIndex(t => t.id === savedTask.id);
+      if (index !== -1) {
+        this.schedules[index] = savedTask;
+      }
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Scheduled task updated successfully' });
+    } else {
+      // Add new task to the list
+      this.schedules.push(savedTask);
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Scheduled task created successfully' });
+    }
+    this.closeModal();
+  }
+
+  deleteTask(task: ScheduledTask): void {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete the scheduled task "${task.name}"?`,
+      header: 'Confirm Delete',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.apiService.deleteSchedule(task.id).subscribe({
+          next: () => {
+            this.schedules = this.schedules.filter(t => t.id !== task.id);
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Scheduled task deleted successfully' });
+          },
+          error: (error) => {
+            console.error('Error deleting task:', error);
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error deleting scheduled task' });
+          }
+        });
+      }
+    });
+  }
+
+  getDestinationLabel(task: ScheduledTask): string {
+    if (!task.assetId) {
+      return 'Servidor (local)';
+    }
+    
+    const asset = this.assets.find(a => a.id === task.assetId);
+    if (asset) {
+      return asset.hostname || asset.ip;
+    }
+    
+    return 'Unknown asset';
+  }
+
+  getToolName(task: ScheduledTask): string {
+    const tool = this.tools.find(t => t.name === task.toolName);
+    return tool ? tool.name : task.toolName;
+  }
+
+  formatDate(dateString?: string): string {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch {
+      return dateString;
+    }
+  }
+
+  trackByTaskId(index: number, task: ScheduledTask): string {
+    return task.id;
+  }
+
+  runTaskNow(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    this.actionInProgress.add(task.id);
+    
+    this.apiService.runNowSchedule(task.id).subscribe({
+      next: (response) => {
+        console.log('Run now success:', response);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Encolado (executionId: ${response.executionId})` });
+        this.actionInProgress.delete(task.id);
+        // Refresh list to get updated lastRunAt
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error running task now:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al ejecutar tarea ahora' });
+        this.actionInProgress.delete(task.id);
+      }
+    });
+  }
+
+  pauseTask(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    this.confirmationService.confirm({
+      message: `¿Pausar la tarea "${task.name}"? Dejará de ejecutarse automáticamente.`,
+      header: 'Confirm Pause',
+      icon: 'pi pi-pause',
+      accept: () => {
+        this.actionInProgress.add(task.id);
+        
+        this.apiService.pauseSchedule(task.id).subscribe({
+          next: () => {
+            console.log('Pause success:', task.id);
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Tarea pausada' });
+            this.actionInProgress.delete(task.id);
+            // Update task in list
+            const index = this.schedules.findIndex(t => t.id === task.id);
+            if (index !== -1) {
+              this.schedules[index].enabled = false;
+            }
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Error pausing task:', error);
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al pausar tarea' });
+            this.actionInProgress.delete(task.id);
+          }
+        });
+      }
+    });
+  }
+
+  resumeTask(task: ScheduledTask): void {
+    if (this.actionInProgress.has(task.id)) {
+      return;
+    }
+
+    this.actionInProgress.add(task.id);
+    
+    this.apiService.resumeSchedule(task.id).subscribe({
+      next: () => {
+        console.log('Resume success:', task.id);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Tarea reanudada' });
+        this.actionInProgress.delete(task.id);
+        // Update task in list
+        const index = this.schedules.findIndex(t => t.id === task.id);
+        if (index !== -1) {
+          this.schedules[index].enabled = true;
+        }
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Error resuming task:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al reanudar tarea' });
+        this.actionInProgress.delete(task.id);
+      }
+    });
+  }
+
+  isActionInProgress(taskId: string): boolean {
+    return this.actionInProgress.has(taskId);
+  }
+
+  getSeverity(enabled: boolean): 'success' | 'danger' {
+    return enabled ? 'success' : 'danger';
+  }
+
+  getStatusLabel(enabled: boolean): string {
+    return enabled ? 'Enabled' : 'Disabled';
+  }
+
+  clearFilters(): void {
+    this.globalFilter = '';
+    this.selectedStatus = null;
+  }
+}

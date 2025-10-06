@@ -13,7 +13,11 @@ export const routes: Routes = [
       { path: 'assistant', component: AssistantComponent },
       { path: 'catalog', component: CatalogComponent },
       { path: 'inventory', component: InventoryComponent },
-      { path: 'schedules', component: SchedulesComponent },
+      { 
+        path: 'schedules', 
+        title: 'Schedules',
+        loadComponent: () => import('./schedules/schedules-prime.component').then(m => m.SchedulesPrimeComponent)
+      },
       { 
         path: 'executions', 
         title: 'Executions',

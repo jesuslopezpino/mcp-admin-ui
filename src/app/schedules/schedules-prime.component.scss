@@ -1,0 +1,75 @@
+// Schedules PrimeNG Component Styles
+// Using PrimeNG and Tailwind CSS classes
+
+.card {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700;
+}
+
+// Custom table styling to match Sakai showcase
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-header {
+      @apply bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600;
+    }
+    
+    .p-datatable-thead > tr > th {
+      @apply bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold;
+      border-bottom: 1px solid var(--surface-border);
+    }
+    
+    .p-datatable-tbody > tr {
+      @apply hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+      
+      &:nth-child(even) {
+        @apply bg-gray-25 dark:bg-gray-750;
+      }
+    }
+    
+    .p-datatable-tbody > tr > td {
+      @apply border-b border-gray-100 dark:border-gray-600;
+    }
+  }
+  
+  .p-toolbar {
+    @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+    padding: 1.5rem;
+  }
+  
+  .p-button {
+    @apply transition-all duration-200;
+    
+    &.p-button-sm {
+      @apply px-2 py-1 text-xs;
+    }
+  }
+  
+  .p-tag {
+    @apply text-xs font-medium px-2 py-1 rounded-full;
+  }
+  
+  .p-inputtext {
+    @apply border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400;
+  }
+  
+  .p-dropdown {
+    @apply border-gray-300 dark:border-gray-600;
+  }
+}
+
+// Custom code styling for cron expressions
+code {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-xs font-mono;
+}
+
+// Loading state
+.loading {
+  @apply flex flex-col items-center justify-center py-8;
+  
+  .spinner {
+    @apply w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin;
+  }
+  
+  p {
+    @apply text-gray-600 dark:text-gray-400 mt-2;
+  }
+}

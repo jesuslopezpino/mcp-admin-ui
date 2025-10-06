@@ -1,5 +1,14 @@
 /* Global styles for MCP Admin UI */
 
+/* PrimeFlex and PrimeIcons */
+@import "primeflex/primeflex.css";
+@import "primeicons/primeicons.css";
+
+/* Tailwind CSS (preflight disabled) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   box-sizing: border-box;
 }
@@ -87,4 +96,25 @@ input, textarea, select {
   .d-block-desktop {
     display: block !important;
   }
+}
+
+/* Badge utilities */
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800;
+}
+
+.badge-warn {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800;
 }

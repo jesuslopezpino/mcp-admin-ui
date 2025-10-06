@@ -320,23 +320,33 @@
   
   <!-- Dialog Footer -->
   <ng-template #footer>
-    <div class="flex justify-end gap-2">
+    <div class="flex justify-between">
       <p-button 
-        label="Cancel" 
+        label="Close" 
         severity="secondary" 
         [outlined]="true"
-        (click)="onCancelClick()">
+        icon="pi pi-times"
+        (click)="onCloseClick()">
       </p-button>
       
-      @if (showSubmitButton()) {
+      <div class="flex gap-2">
         <p-button 
-          [label]="submitLabel()" 
-          severity="primary"
-          [loading]="loading()"
-          [disabled]="form()?.invalid"
-          (click)="onSaveClick()">
+          label="Cancel" 
+          severity="secondary" 
+          [outlined]="true"
+          (click)="onCancelClick()">
         </p-button>
-      }
+        
+        @if (showSubmitButton()) {
+          <p-button 
+            [label]="submitLabel()" 
+            severity="primary"
+            [loading]="loading()"
+            [disabled]="form()?.invalid"
+            (click)="onSaveClick()">
+          </p-button>
+        }
+      </div>
     </div>
   </ng-template>
 </p-dialog>

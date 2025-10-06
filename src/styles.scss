@@ -2,11 +2,9 @@
 @import "primeflex/primeflex.css";
 @import "primeicons/primeicons.css";
 
-/* PrimeNG Theme - Sakai */
-@import "primeng/themes/lara-light-blue/theme.css";
-@import "primeng/primeng.min.css";
+/* Tailwind CSS with PrimeUI */
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
 
-/* Tailwind CSS (preflight disabled) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Custom variant for dark mode */
+@custom-variant dark (&:where(.app-dark, .app-dark *));

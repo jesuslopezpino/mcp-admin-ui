@@ -1,64 +1,66 @@
 <div class="app-shell" data-testid="app-shell">
   <!-- Topbar -->
-  <div class="topbar">
-    <div class="topbar-left">
+  <p-toolbar class="topbar">
+    <ng-template pTemplate="left">
       <button 
         pButton 
         type="button" 
         icon="pi pi-bars" 
-        class="p-button-text p-button-sm"
+        class="p-button-text p-button-sm md:hidden"
         (click)="toggleSidebar()"
         data-testid="sidebar-toggle">
       </button>
-      <h1 class="app-title">🤖 MCP Admin Panel</h1>
-    </div>
+      <div class="flex align-items-center gap-3 ml-3">
+        <i class="pi pi-cog text-primary text-2xl"></i>
+        <h1 class="app-title m-0">MCP Admin Panel</h1>
+      </div>
+    </ng-template>
     
-    <div class="topbar-right">
-      <p-menubar 
-        [model]="topbarItems" 
-        styleClass="p-menubar-custom">
-      </p-menubar>
-      
-      <button 
-        pButton 
-        type="button" 
-        [icon]="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'" 
-        class="p-button-text p-button-sm"
-        (click)="toggleTheme()"
-        data-testid="theme-toggle">
-      </button>
-    </div>
-  </div>
+    <ng-template pTemplate="right">
+      <div class="flex align-items-center gap-2">
+        <p-button 
+          [icon]="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'" 
+          class="p-button-text p-button-sm"
+          (click)="toggleTheme()"
+          [pTooltip]="isDarkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
+          data-testid="theme-toggle">
+        </p-button>
+        
+        <p-menu [model]="topbarItems" [popup]="true" #userMenu></p-menu>
+        <p-button 
+          icon="pi pi-user" 
+          class="p-button-text p-button-sm"
+          (click)="userMenu.toggle($event)"
+          [pTooltip]="'User Menu'"
+          data-testid="user-menu">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-toolbar>
 
   <!-- Main Layout -->
   <div class="main-layout">
     <!-- Sidebar -->
+    <div class="sidebar hidden md:block">
+      <p-panelMenu [model]="menuItems" styleClass="w-full border-none"></p-panelMenu>
+    </div>
+    
+    <!-- Mobile Drawer -->
     <p-drawer 
       [(visible)]="sidebarVisible" 
       position="left" 
-      styleClass="p-drawer-custom"
+      styleClass="p-drawer-custom md:hidden"
       data-testid="sidebar">
       <div class="sidebar-content">
-        <nav class="sidebar-nav">
-          <ul class="nav-list">
-            <li *ngFor="let item of menuItems" class="nav-item">
-              <a 
-                [routerLink]="item.routerLink" 
-                routerLinkActive="active"
-                class="nav-link"
-                [attr.data-testid]="'nav-' + item.label?.toLowerCase()">
-                <i [class]="item.icon" class="nav-icon"></i>
-                <span class="nav-label">{{ item.label }}</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
+        <p-panelMenu [model]="menuItems" styleClass="w-full border-none"></p-panelMenu>
       </div>
     </p-drawer>
 
     <!-- Main Content -->
     <div class="main-content">
-      <router-outlet></router-outlet>
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
     </div>
   </div>
 

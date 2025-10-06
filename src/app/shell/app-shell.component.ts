@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
-import { MenubarModule } from 'primeng/menubar';
+import { ToolbarModule } from 'primeng/toolbar';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { MenuModule } from 'primeng/menu';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
@@ -18,11 +21,14 @@ import { ThemeService } from '../services/theme.service';
     CommonModule,
     RouterModule,
     RouterOutlet,
-    MenubarModule,
+    ToolbarModule,
     DrawerModule,
     ButtonModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    PanelMenuModule,
+    MenuModule,
+    TooltipModule
   ],
   providers: [
     MessageService,

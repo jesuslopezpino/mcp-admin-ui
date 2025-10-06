@@ -67,12 +67,6 @@ export class AppShellComponent implements OnInit, OnDestroy {
         { label: 'Plans', icon: 'pi pi-fw pi-list', routerLink: ['/plans'] },
         { label: 'Schedules', icon: 'pi pi-fw pi-calendar', routerLink: ['/schedules'] }
       ]
-    },
-    {
-      label: 'System',
-      items: [
-        { label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] }
-      ]
     }
   ];
 
@@ -82,11 +76,6 @@ export class AppShellComponent implements OnInit, OnDestroy {
       label: 'Profile',
       icon: 'pi pi-user',
       items: [
-        {
-          label: 'Settings',
-          icon: 'pi pi-cog',
-          routerLink: ['/settings']
-        },
         {
           label: 'Logout',
           icon: 'pi pi-sign-out'

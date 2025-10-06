@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="form-row" [attr.data-testid]="'form-row-' + (label | lowercase | replace:' ':'-')">
+    <div class="form-row" [attr.data-testid]="'form-row-' + (label | lowercase)">
       <label 
         *ngIf="label" 
         class="form-label"

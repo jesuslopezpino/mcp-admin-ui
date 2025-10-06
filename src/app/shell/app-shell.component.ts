@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -16,7 +16,7 @@ import { MenuItem } from 'primeng/api';
     RouterModule,
     RouterOutlet,
     MenubarModule,
-    SidebarModule,
+    DrawerModule,
     ButtonModule,
     ToastModule,
     ConfirmDialogModule

@@ -14,7 +14,6 @@ export { DatePicker } from 'primeng/datepicker';
 export { Chip } from 'primeng/chip';
 export { MultiSelect } from 'primeng/multiselect';
 export { Checkbox } from 'primeng/checkbox';
-export { Calendar } from 'primeng/calendar';
 
 // Buttons
 export { Button } from 'primeng/button';
@@ -23,7 +22,7 @@ export { Button } from 'primeng/button';
 export { Panel } from 'primeng/panel';
 export { Card } from 'primeng/card';
 export { Menubar } from 'primeng/menubar';
-export { Sidebar } from 'primeng/sidebar';
+export { Drawer } from 'primeng/drawer';
 
 // Data
 export { Table } from 'primeng/table';

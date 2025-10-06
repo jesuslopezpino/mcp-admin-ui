@@ -99,22 +99,22 @@
         <!-- Started Date Range -->
         <div class="filter-group">
           <label class="filter-label">Started From</label>
-          <p-calendar 
+          <p-datepicker 
             formControlName="startedFrom"
             placeholder="Select start date..."
             class="w-full"
             data-testid="started-from-filter">
-          </p-calendar>
+          </p-datepicker>
         </div>
 
         <div class="filter-group">
           <label class="filter-label">Started To</label>
-          <p-calendar 
+          <p-datepicker 
             formControlName="startedTo"
             placeholder="Select end date..."
             class="w-full"
             data-testid="started-to-filter">
-          </p-calendar>
+          </p-datepicker>
         </div>
 
         <!-- Has Response JSON -->
@@ -249,7 +249,7 @@
   <!-- Execution Details Modal -->
   <app-execution-details-modal
     *ngIf="showExecutionModal"
-    [execution]="selectedExecution"
+    [executionId]="selectedExecution?.id || null"
     (close)="closeExecutionModal()">
   </app-execution-details-modal>
 </div>

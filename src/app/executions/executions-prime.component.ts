@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, debounceTime, takeUntil, distinctUntilChanged } from 'rxjs';
-import { TableModule } from 'primeng/table';
-import { DropdownModule } from 'primeng/dropdown';
-import { CalendarModule } from 'primeng/calendar';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -17,14 +17,6 @@ import { ExecutionListItem, ExecStatus, FailureStage, PageResponse } from '../mo
 import { StatusBadgeComponent, ToolbarActionsComponent } from '../ui-kit';
 import { ExecutionDetailsModalComponent } from './execution-details-modal.component';
 
-interface LazyLoadEvent {
-  first: number;
-  rows: number;
-  sortField?: string;
-  sortOrder?: number;
-  filters?: { [key: string]: any };
-}
-
 @Component({
   selector: 'app-executions-prime',
   standalone: true,
@@ -32,8 +24,8 @@ interface LazyLoadEvent {
     CommonModule,
     ReactiveFormsModule,
     TableModule,
-    DropdownModule,
-    CalendarModule,
+    SelectModule,
+    DatePickerModule,
     InputTextModule,
     MultiSelectModule,
     CheckboxModule,
@@ -185,13 +177,13 @@ export class ExecutionsPrimeComponent implements OnInit, OnDestroy {
   /**
    * Handle lazy loading from p-table
    */
-  onLazyLoad(event: LazyLoadEvent): void {
+  onLazyLoad(event: TableLazyLoadEvent): void {
     this.loading = true;
     
     const formValue = this.filterForm.value;
     const params: any = {
-      page: Math.floor(event.first / event.rows),
-      size: event.rows
+      page: Math.floor((event.first || 0) / (event.rows || 20)),
+      size: event.rows || 20
     };
     
     // Add filters
@@ -204,7 +196,7 @@ export class ExecutionsPrimeComponent implements OnInit, OnDestroy {
     });
     
     // Add sorting
-    if (event.sortField) {
+    if (event.sortField && typeof event.sortField === 'string') {
       const sortDirection = event.sortOrder === 1 ? 'asc' : 'desc';
       params.sort = [`${event.sortField},${sortDirection}`];
     }

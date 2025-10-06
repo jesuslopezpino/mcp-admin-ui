@@ -123,17 +123,17 @@
     background-color: var(--surface-hover);
   }
 
-  .p-sidebar-custom {
+  .p-drawer-custom {
     width: 16rem;
     background-color: var(--surface-card);
     border-right: 1px solid var(--surface-border);
   }
 
-  .p-sidebar-custom .p-sidebar-header {
+  .p-drawer-custom .p-drawer-header {
     display: none;
   }
 
-  .p-sidebar-custom .p-sidebar-content {
+  .p-drawer-custom .p-drawer-content {
     padding: 0;
   }
 }

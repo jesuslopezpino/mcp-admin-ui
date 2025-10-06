@@ -1,47 +1,29 @@
+/* Tool Args Form - showcase styling */
 .tool-args-form {
-  .form-field {
-    margin-bottom: 1rem;
-  }
+  @apply space-y-4;
+}
 
-  .form-label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    
-    .required {
-      color: #ef4444;
-      margin-left: 0.25rem;
-    }
-  }
+.form-field {
+  @apply flex flex-col gap-2;
+}
 
-  .error-text {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-    color: #ef4444;
+.form-label {
+  @apply text-sm font-medium text-surface-700;
+  
+  .required {
+    @apply text-red-500 ml-1;
   }
+}
 
-  .form-actions {
-    border-top: 1px solid #e5e7eb;
-    padding-top: 1rem;
-  }
+.error-text {
+  @apply text-sm text-red-500 mt-1;
+}
 
-  .json-preview {
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    padding: 1rem;
-    font-family: 'Courier New', monospace;
-    font-size: 0.875rem;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 300px;
-    overflow-y: auto;
-  }
+.form-actions {
+  @apply border-t border-surface-border pt-4;
+}
 
-  .grid {
-    display: grid;
-    gap: 1rem;
-  }
+.json-preview {
+  @apply bg-surface-100 border border-surface-border rounded p-4 font-mono text-sm whitespace-pre-wrap break-all max-h-80 overflow-y-auto;
 }
 

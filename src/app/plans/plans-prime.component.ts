@@ -112,7 +112,11 @@ export class PlansPrimeComponent implements OnInit {
     
     this.apiService.getPlans({}).subscribe({
       next: (response) => {
-        this.plans = response.content || response;
+        this.plans = (response.content || response).map(plan => ({
+          ...plan,
+          steps: plan.steps ? plan.steps.length : 0, // Convert steps array to count
+          tags: plan.tags ? plan.tags.join(', ') : '' // Convert tags array to string
+        }));
         this.loading = false;
       },
       error: (error) => {
@@ -124,13 +128,11 @@ export class PlansPrimeComponent implements OnInit {
   }
 
   openNewModal(): void {
-    this.editingPlan = undefined;
-    this.showModal = true;
+    this.router.navigate(['/plans/new']);
   }
 
   openEditModal(plan: PlanTemplate): void {
-    this.editingPlan = plan;
-    this.showModal = true;
+    this.router.navigate(['/plans', plan.id]);
   }
 
   closeModal(): void {

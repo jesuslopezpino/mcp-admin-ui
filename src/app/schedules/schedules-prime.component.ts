@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { NotifyService } from '../services/notify.service';
 import { ScheduledTask, Tool, Asset } from '../models/api';
 import { ScheduleModalComponent } from './schedule-modal.component';
 import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table/crud-table.component';
+import { CrudFormComponent, CrudFormConfig, CrudFormField, CrudFormMode } from '../shared/crud-form/crud-form.component';
 
 @Component({
   selector: 'app-schedules-prime',
@@ -17,6 +18,7 @@ import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table
     FormsModule,
     RouterModule,
     CrudTableComponent,
+    CrudFormComponent,
     ScheduleModalComponent
   ],
   providers: [ConfirmationService, MessageService],
@@ -32,6 +34,12 @@ export class SchedulesPrimeComponent implements OnInit {
   editingTask: ScheduledTask | undefined = undefined;
   actionInProgress: Set<string> = new Set();
 
+  // Form state
+  showForm = signal<boolean>(false);
+  formMode = signal<CrudFormMode>('create');
+  formData = signal<ScheduledTask | null>(null);
+  formLoading = signal<boolean>(false);
+
   // Table state
   selectedSchedules: ScheduledTask[] = [];
   globalFilter = '';
@@ -41,6 +49,104 @@ export class SchedulesPrimeComponent implements OnInit {
     { label: 'Disabled', value: false }
   ];
   selectedStatus: boolean | null = null;
+
+  // Form Configuration
+  formConfig: CrudFormConfig = {
+    title: 'Schedule',
+    sections: [
+      {
+        name: 'basic',
+        title: 'Basic Information',
+        description: 'Configure the basic schedule details'
+      },
+      {
+        name: 'execution',
+        title: 'Execution Settings',
+        description: 'Set up the tool execution parameters'
+      },
+      {
+        name: 'schedule',
+        title: 'Schedule Configuration',
+        description: 'Define when and how often to run'
+      }
+    ],
+    fields: [
+      // Basic Information
+      {
+        key: 'name',
+        label: 'Schedule Name',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter schedule name',
+        section: 'basic',
+        order: 1
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        type: 'textarea',
+        placeholder: 'Enter schedule description',
+        rows: 3,
+        section: 'basic',
+        order: 2
+      },
+      {
+        key: 'enabled',
+        label: 'Enabled',
+        type: 'checkbox',
+        section: 'basic',
+        order: 3
+      },
+      // Execution Settings
+      {
+        key: 'toolId',
+        label: 'Tool',
+        type: 'dropdown',
+        required: true,
+        section: 'execution',
+        order: 1
+      },
+      {
+        key: 'destination',
+        label: 'Destination',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter destination (e.g., server name)',
+        section: 'execution',
+        order: 2
+      },
+      {
+        key: 'args',
+        label: 'Tool Arguments',
+        type: 'json',
+        placeholder: 'Enter tool arguments as JSON',
+        rows: 5,
+        section: 'execution',
+        order: 3
+      },
+      // Schedule Configuration
+      {
+        key: 'cronExpr',
+        label: 'Cron Expression',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter cron expression (e.g., */10 * * * * *)',
+        helpText: 'Use standard cron format: minute hour day month weekday',
+        section: 'schedule',
+        order: 1
+      },
+      {
+        key: 'timezone',
+        label: 'Timezone',
+        type: 'text',
+        placeholder: 'Enter timezone (e.g., UTC)',
+        section: 'schedule',
+        order: 2
+      }
+    ],
+    showPreview: true,
+    previewTitle: 'Schedule Preview'
+  };
 
   // CRUD Configuration
   columns: CrudColumn[] = [
@@ -114,7 +220,7 @@ export class SchedulesPrimeComponent implements OnInit {
         this.schedules = schedules.map(schedule => ({
           ...schedule,
           toolName: this.getToolName(schedule),
-          destination: this.getDestinationLabel(schedule)
+          destinationLabel: this.getDestinationLabel(schedule)
         }));
         this.loading = false;
       },
@@ -327,5 +433,114 @@ export class SchedulesPrimeComponent implements OnInit {
   clearFilters(): void {
     this.globalFilter = '';
     this.selectedStatus = null;
+  }
+
+  // Form Methods
+  onCreateSchedule(): void {
+    this.formMode.set('create');
+    this.formData.set(null);
+    this.showForm.set(true);
+  }
+
+  onEditSchedule(schedule: ScheduledTask): void {
+    this.formMode.set('edit');
+    this.formData.set(schedule);
+    this.showForm.set(true);
+  }
+
+  onViewSchedule(schedule: ScheduledTask): void {
+    this.formMode.set('view');
+    this.formData.set(schedule);
+    this.showForm.set(true);
+  }
+
+  onFormSave(formData: any): void {
+    this.formLoading.set(true);
+    
+    if (this.formMode() === 'create') {
+      this.createSchedule(formData);
+    } else {
+      this.updateSchedule(formData);
+    }
+  }
+
+  onFormCancel(): void {
+    this.showForm.set(false);
+    this.formData.set(null);
+  }
+
+  onFormClose(): void {
+    this.showForm.set(false);
+    this.formData.set(null);
+  }
+
+  private async createSchedule(data: any): Promise<void> {
+    try {
+      const schedule: Partial<ScheduledTask> = {
+        name: data.name,
+        toolName: this.tools.find(t => t.name === data.toolId)?.name || data.toolId,
+        assetId: data.assetId || null,
+        cronExpr: data.cronExpr,
+        enabled: data.enabled || false,
+        arguments: data.args || {}
+      };
+
+      await this.apiService.createSchedule(schedule as ScheduledTask);
+      this.notifyService.success('Schedule created successfully');
+      this.showForm.set(false);
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to create schedule');
+      console.error('Error creating schedule:', error);
+    } finally {
+      this.formLoading.set(false);
+    }
+  }
+
+  private async updateSchedule(data: any): Promise<void> {
+    try {
+      const currentData = this.formData();
+      if (!currentData) return;
+
+      const updatedSchedule: Partial<ScheduledTask> = {
+        ...currentData,
+        name: data.name,
+        toolName: this.tools.find(t => t.name === data.toolId)?.name || currentData.toolName,
+        cronExpr: data.cronExpr,
+        enabled: data.enabled,
+        arguments: data.args || {}
+      };
+
+      await this.apiService.updateSchedule(currentData.id!, updatedSchedule as ScheduledTask);
+      this.notifyService.success('Schedule updated successfully');
+      this.showForm.set(false);
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to update schedule');
+      console.error('Error updating schedule:', error);
+    } finally {
+      this.formLoading.set(false);
+    }
+  }
+
+  // Get form options
+  getToolOptions(): { label: string; value: string }[] {
+    return this.tools.map(tool => ({
+      label: tool.name,
+      value: tool.name
+    }));
+  }
+
+  // Update form config with dynamic options
+  getFormConfig(): CrudFormConfig {
+    const config = { ...this.formConfig };
+    
+    // Update tool dropdown options
+    const toolField = config.fields.find(f => f.key === 'toolId');
+    if (toolField) {
+      toolField.options = this.getToolOptions();
+    }
+    
+    return config;
   }
 }

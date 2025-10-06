@@ -10,6 +10,7 @@
     [selectedItems]="selectedAssets"
     (onGlobalFilterChange)="globalFilter = $event"
     (onSelectionChange)="selectedAssets = $event"
+    (onAction)="onActionClick($event)"
     dataTestId="inventory"
     entityName="📦 asset"
     entityNamePlural="📦 assets">

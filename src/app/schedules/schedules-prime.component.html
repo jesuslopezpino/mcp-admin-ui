@@ -18,8 +18,9 @@
   [showPagination]="true"
   [rows]="10"
   [rowsPerPageOptions]="[10, 25, 50]"
-  (onCreate)="openNewModal()"
-  (onEdit)="openEditModal($event)"
+  (onCreate)="onCreateSchedule()"
+  (onEdit)="onEditSchedule($event)"
+  (onView)="onViewSchedule($event)"
   (onDelete)="deleteTask($event)"
   (onSelectionChange)="selectedSchedules = $event"
   (onGlobalFilterChange)="globalFilter = $event"
@@ -27,7 +28,19 @@
   (onClearFilters)="clearFilters()">
 </app-crud-table>
 
-<!-- Modal -->
+<!-- Form Modal -->
+<app-crud-form
+  [visible]="showForm()"
+  [mode]="formMode()"
+  [config]="getFormConfig()"
+  [data]="formData()"
+  [loading]="formLoading()"
+  (onSave)="onFormSave($event)"
+  (onCancel)="onFormCancel()"
+  (onClose)="onFormClose()">
+</app-crud-form>
+
+<!-- Legacy Modal (keep for compatibility) -->
 @if (showModal) {
   <app-schedule-modal
     [task]="editingTask"

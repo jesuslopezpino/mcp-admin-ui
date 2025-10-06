@@ -179,11 +179,11 @@ export class InventoryPrimeCrudComponent implements OnInit {
     return this.actionInProgress.has(assetId);
   }
 
-  getSeverity(status: string): 'success' | 'danger' | 'warning' | 'info' {
+  getSeverity(status: string): 'success' | 'danger' | 'warn' | 'info' {
     switch (status.toLowerCase()) {
       case 'online': return 'success';
       case 'offline': return 'danger';
-      case 'unknown': return 'warning';
+      case 'unknown': return 'warn';
       default: return 'info';
     }
   }
@@ -203,5 +203,9 @@ export class InventoryPrimeCrudComponent implements OnInit {
   clearFilters(): void {
     this.globalFilter = '';
     this.selectedStatus = null;
+  }
+
+  onActionClick(event: { action: CrudAction, item: Asset }): void {
+    event.action.action(event.item);
   }
 }

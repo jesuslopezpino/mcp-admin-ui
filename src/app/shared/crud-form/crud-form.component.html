@@ -1,0 +1,342 @@
+<!-- Form Dialog -->
+<p-dialog 
+  [visible]="visible()" 
+  [modal]="true" 
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '90vw', maxWidth: '800px' }"
+  [header]="dialogTitle()"
+  (onHide)="onCloseClick()">
+  
+  <form [formGroup]="form()!" (ngModelChange)="onFormChange()">
+    <div class="form-container">
+      
+      <!-- Form Sections -->
+      @for (section of config().sections || []; track section.name) {
+        <p-panel [header]="section.title" [toggleable]="false" styleClass="mb-4">
+          @if (section.description) {
+            <p class="text-sm text-gray-600 mb-4">{{ section.description }}</p>
+          }
+          
+          <div class="grid gap-4" [ngClass]="getSectionGridClass(section.name)">
+            @for (field of fieldsBySection()[section.name] || []; track field.key) {
+              <div class="field-container" [ngClass]="getFieldClass(field)">
+                <label [for]="field.key" class="block text-sm font-medium mb-1">
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                
+                @if (field.helpText) {
+                  <p class="text-xs text-gray-500 mb-2">{{ field.helpText }}</p>
+                }
+                
+                <!-- Text Input -->
+                @if (field.type === 'text' || field.type === 'email' || field.type === 'password') {
+                  <input 
+                    pInputText 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [placeholder]="field.placeholder"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    [type]="field.type"
+                    class="w-full" />
+                }
+                
+                <!-- Textarea -->
+                @if (field.type === 'textarea') {
+                  <textarea 
+                    pInputTextarea 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [placeholder]="field.placeholder"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    [rows]="field.rows || 3"
+                    class="w-full">
+                  </textarea>
+                }
+                
+                <!-- Number Input -->
+                @if (field.type === 'number') {
+                  <p-inputNumber 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [placeholder]="field.placeholder"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    [min]="field.min"
+                    [max]="field.max"
+                    [step]="field.step"
+                    class="w-full">
+                  </p-inputNumber>
+                }
+                
+                <!-- Dropdown -->
+                @if (field.type === 'dropdown') {
+                  <p-select 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [options]="field.options"
+                    [placeholder]="field.placeholder"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    optionLabel="label"
+                    optionValue="value"
+                    class="w-full">
+                  </p-select>
+                }
+                
+                <!-- Checkbox -->
+                @if (field.type === 'checkbox') {
+                  <p-checkbox 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    [binary]="true">
+                  </p-checkbox>
+                }
+                
+                <!-- Date Picker -->
+                @if (field.type === 'date') {
+                  <p-datepicker 
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [placeholder]="field.placeholder"
+                    [disabled]="(isView() || field.readonly) ?? false"
+                    [showTime]="field.showTime || false"
+                    [dateFormat]="field.dateFormat || 'dd/mm/yy'"
+                    class="w-full">
+                  </p-datepicker>
+                }
+                
+                <!-- Tags -->
+                @if (field.type === 'tags') {
+                  <div class="tags-container">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      @for (tag of getFieldValue(field) || []; track $index) {
+                        <p-tag [value]="tag" (onRemove)="removeTag(field, $index)">
+                        </p-tag>
+                      }
+                    </div>
+                    @if (!isView()) {
+                      <div class="flex gap-2">
+                        <input 
+                          pInputText 
+                          #tagInput
+                          placeholder="Add tag..."
+                          class="flex-1"
+                          (keyup.enter)="addTag(field, tagInput.value); tagInput.value = ''" />
+                        <p-button 
+                          icon="pi pi-plus" 
+                          size="small"
+                          (click)="addTag(field, tagInput.value); tagInput.value = ''">
+                        </p-button>
+                      </div>
+                    }
+                  </div>
+                }
+                
+                <!-- JSON Editor -->
+                @if (field.type === 'json') {
+                  @if (isView()) {
+                    <pre class="json-viewer">{{ formatJsonValue(getFieldValue(field)) }}</pre>
+                  } @else {
+                    <textarea 
+                      pInputTextarea 
+                      [id]="field.key"
+                      [value]="formatJsonValue(getFieldValue(field))"
+                      [placeholder]="field.placeholder"
+                      [rows]="field.rows || 5"
+                      (input)="onJsonChange(field, $any($event.target)?.value || '')"
+                      class="w-full font-mono text-sm">
+                    </textarea>
+                  }
+                }
+                
+                <!-- Field Error -->
+                @if (isFieldInvalid(field)) {
+                  <small class="text-red-500 mt-1 block">{{ getFieldError(field) }}</small>
+                }
+              </div>
+            }
+          </div>
+        </p-panel>
+      }
+      
+      <!-- Fields without section -->
+      @if (fieldsBySection()['default'] && fieldsBySection()['default'].length > 0) {
+        <div class="grid gap-4">
+          @for (field of fieldsBySection()['default']; track field.key) {
+            <div class="field-container" [ngClass]="getFieldClass(field)">
+              <label [for]="field.key" class="block text-sm font-medium mb-1">
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              
+              @if (field.helpText) {
+                <p class="text-xs text-gray-500 mb-2">{{ field.helpText }}</p>
+              }
+              
+              <!-- Field inputs (same as above) -->
+              <!-- Text Input -->
+              @if (field.type === 'text' || field.type === 'email' || field.type === 'password') {
+                <input 
+                  pInputText 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  [type]="field.type"
+                  class="w-full" />
+              }
+              
+              <!-- Textarea -->
+              @if (field.type === 'textarea') {
+                <textarea 
+                  pInputTextarea 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  [rows]="field.rows || 3"
+                  class="w-full">
+                </textarea>
+              }
+              
+              <!-- Number Input -->
+              @if (field.type === 'number') {
+                <p-inputNumber 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  [min]="field.min"
+                  [max]="field.max"
+                  [step]="field.step"
+                  class="w-full">
+                </p-inputNumber>
+              }
+              
+              <!-- Dropdown -->
+              @if (field.type === 'dropdown') {
+                <p-select 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [options]="field.options"
+                  [placeholder]="field.placeholder"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="w-full">
+                </p-select>
+              }
+              
+              <!-- Checkbox -->
+              @if (field.type === 'checkbox') {
+                <p-checkbox 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  [binary]="true">
+                </p-checkbox>
+              }
+              
+              <!-- Date Picker -->
+              @if (field.type === 'date') {
+                <p-datepicker 
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [disabled]="(isView() || field.readonly) ?? false"
+                  [showTime]="field.showTime || false"
+                  [dateFormat]="field.dateFormat || 'dd/mm/yy'"
+                  class="w-full">
+                </p-datepicker>
+              }
+              
+              <!-- Tags -->
+              @if (field.type === 'tags') {
+                <div class="tags-container">
+                  <div class="flex flex-wrap gap-2 mb-2">
+                    @for (tag of getFieldValue(field) || []; track $index) {
+                      <p-tag [value]="tag" (onRemove)="removeTag(field, $index)">
+                      </p-tag>
+                    }
+                  </div>
+                  @if (!isView()) {
+                    <div class="flex gap-2">
+                      <input 
+                        pInputText 
+                        #tagInput
+                        placeholder="Add tag..."
+                        class="flex-1"
+                        (keyup.enter)="addTag(field, tagInput.value); tagInput.value = ''" />
+                      <p-button 
+                        icon="pi pi-plus" 
+                        size="small"
+                        (click)="addTag(field, tagInput.value); tagInput.value = ''">
+                      </p-button>
+                    </div>
+                  }
+                </div>
+              }
+              
+              <!-- JSON Editor -->
+              @if (field.type === 'json') {
+                @if (isView()) {
+                  <pre class="json-viewer">{{ formatJsonValue(getFieldValue(field)) }}</pre>
+                } @else {
+                  <textarea 
+                    pInputTextarea 
+                    [id]="field.key"
+                    [value]="formatJsonValue(getFieldValue(field))"
+                    [placeholder]="field.placeholder"
+                    [rows]="field.rows || 5"
+                    (input)="onJsonChange(field, $any($event.target)?.value || '')"
+                    class="w-full font-mono text-sm">
+                  </textarea>
+                }
+              }
+              
+              <!-- Field Error -->
+              @if (isFieldInvalid(field)) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError(field) }}</small>
+              }
+            </div>
+          }
+        </div>
+      }
+      
+      <!-- Preview Section -->
+      @if (config().showPreview && !isView()) {
+        <p-panel header="Preview" [toggleable]="true" [collapsed]="true" styleClass="mt-4">
+          <pre class="json-viewer">{{ formatJsonValue(previewData()) }}</pre>
+        </p-panel>
+      }
+    </div>
+  </form>
+  
+  <!-- Dialog Footer -->
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancel" 
+        severity="secondary" 
+        [outlined]="true"
+        (click)="onCancelClick()">
+      </p-button>
+      
+      @if (showSubmitButton()) {
+        <p-button 
+          [label]="submitLabel()" 
+          severity="primary"
+          [loading]="loading()"
+          [disabled]="form()?.invalid"
+          (click)="onSaveClick()">
+        </p-button>
+      }
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, input, output, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -54,54 +54,106 @@ export interface CrudAction {
   templateUrl: './crud-table.component.html',
   styleUrls: ['./crud-table.component.scss']
 })
-export class CrudTableComponent implements OnInit {
-  @Input() title: string = '';
-  @Input() description: string = '';
-  @Input() data: any[] = [];
-  @Input() columns: CrudColumn[] = [];
-  @Input() actions: CrudAction[] = [];
-  @Input() loading: boolean = false;
-  @Input() showCreateButton: boolean = true;
-  @Input() createButtonLabel: string = 'New';
-  @Input() createButtonIcon: string = 'pi pi-plus';
-  @Input() showDeleteButton: boolean = false;
-  @Input() showExportButton: boolean = false;
-  @Input() showFilters: boolean = true;
-  @Input() filterFields: string[] = [];
-  @Input() statusOptions: any[] = [];
-  @Input() selectedStatus: any = null;
-  @Input() globalFilter: string = '';
-  @Input() selectedItems: any[] = [];
-  @Input() showSelection: boolean = true;
-  @Input() showPagination: boolean = true;
-  @Input() rows: number = 10;
-  @Input() rowsPerPageOptions: number[] = [10, 25, 50];
+export class CrudTableComponent {
+  // Input signals
+  title = input<string>('');
+  description = input<string>('');
+  data = input.required<any[]>();
+  columns = input.required<CrudColumn[]>();
+  actions = input.required<CrudAction[]>();
+  loading = input<boolean>(false);
+  showCreateButton = input<boolean>(true);
+  createButtonLabel = input<string>('New');
+  createButtonIcon = input<string>('pi pi-plus');
+  showDeleteButton = input<boolean>(false);
+  showExportButton = input<boolean>(false);
+  showFilters = input<boolean>(true);
+  filterFields = input<string[]>([]);
+  statusOptions = input<any[]>([]);
+  selectedStatus = input<any>(null);
+  globalFilter = input<string>('');
+  selectedItems = input<any[]>([]);
+  showSelection = input<boolean>(true);
+  showPagination = input<boolean>(true);
+  rows = input<number>(10);
+  rowsPerPageOptions = input<number[]>([10, 25, 50]);
 
-  @Output() onCreate = new EventEmitter<void>();
-  @Output() onEdit = new EventEmitter<any>();
-  @Output() onDelete = new EventEmitter<any>();
-  @Output() onDeleteSelected = new EventEmitter<any[]>();
-  @Output() onExport = new EventEmitter<void>();
-  @Output() onSelectionChange = new EventEmitter<any[]>();
-  @Output() onGlobalFilterChange = new EventEmitter<string>();
-  @Output() onStatusFilterChange = new EventEmitter<any>();
-  @Output() onClearFilters = new EventEmitter<void>();
+  // Output signals
+  onCreate = output<void>();
+  onEdit = output<any>();
+  onView = output<any>();
+  onDelete = output<any>();
+  onDeleteSelected = output<any[]>();
+  onExport = output<void>();
+  onSelectionChange = output<any[]>();
+  onGlobalFilterChange = output<string>();
+  onStatusFilterChange = output<any>();
+  onClearFilters = output<void>();
+  onAction = output<{ action: CrudAction, item: any }>();
 
+  // Internal signals
+  private _selectedItems = signal<any[]>([]);
+  private _globalFilter = signal<string>('');
+  private _selectedStatus = signal<any>(null);
+
+  // Computed signals
+  selectedItemsCount = computed(() => this._selectedItems().length);
+  hasSelection = computed(() => this.selectedItemsCount() > 0);
+  filteredData = computed(() => {
+    const data = this.data();
+    const filter = this._globalFilter();
+    const status = this._selectedStatus();
+    
+    let filtered = data;
+    
+    if (filter) {
+      filtered = filtered.filter(item => 
+        Object.values(item).some(value => 
+          String(value).toLowerCase().includes(filter.toLowerCase())
+        )
+      );
+    }
+    
+    if (status) {
+      filtered = filtered.filter(item => {
+        // Assuming status field exists, adjust as needed
+        return item.status === status.value || item.enabled === status.value;
+      });
+    }
+    
+    return filtered;
+  });
+
+  // Effects
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService
-  ) {}
-
-  ngOnInit(): void {
-    // Initialize component
+  ) {
+    // Sync input signals with internal signals
+    effect(() => {
+      this._selectedItems.set(this.selectedItems());
+    });
+    
+    effect(() => {
+      this._globalFilter.set(this.globalFilter());
+    });
+    
+    effect(() => {
+      this._selectedStatus.set(this.selectedStatus());
+    });
   }
 
+  // Methods
   onCreateClick(): void {
     this.onCreate.emit();
   }
 
   onEditClick(item: any): void {
     this.onEdit.emit(item);
+  }
+
+  onViewClick(item: any): void {
+    this.onView.emit(item);
   }
 
   onDeleteClick(item: any): void {
@@ -116,22 +168,27 @@ export class CrudTableComponent implements OnInit {
   }
 
   onActionClick(action: CrudAction, item: any): void {
-    action.action(item);
+    this.onAction.emit({ action, item });
   }
 
   onGlobalFilterChangeEvent(event: any): void {
+    this._globalFilter.set(event.target.value);
     this.onGlobalFilterChange.emit(event.target.value);
   }
 
   onStatusFilterChangeEvent(event: any): void {
+    this._selectedStatus.set(event.value);
     this.onStatusFilterChange.emit(event.value);
   }
 
   onClearFiltersClick(): void {
+    this._globalFilter.set('');
+    this._selectedStatus.set(null);
     this.onClearFilters.emit();
   }
 
   onSelectionChangeEvent(event: any): void {
+    this._selectedItems.set(event);
     this.onSelectionChange.emit(event);
   }
 
@@ -170,7 +227,7 @@ export class CrudTableComponent implements OnInit {
   }
 
   onDeleteSelectedClick(): void {
-    this.onDeleteSelected.emit(this.selectedItems);
+    this.onDeleteSelected.emit(this._selectedItems());
   }
 
   onExportClick(): void {

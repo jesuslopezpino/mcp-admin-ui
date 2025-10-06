@@ -1,30 +1,30 @@
 <!-- Toolbar - Sakai Style -->
 <p-toolbar styleClass="mb-6">
   <ng-template #start>
-    @if (showCreateButton) {
+    @if (showCreateButton()) {
       <p-button 
-        [label]="createButtonLabel" 
-        [icon]="createButtonIcon" 
+        [label]="createButtonLabel()" 
+        [icon]="createButtonIcon()" 
         (click)="onCreateClick()"
         severity="secondary" 
         class="mr-2"
         data-testid="create-button">
       </p-button>
     }
-    @if (showDeleteButton) {
+    @if (showDeleteButton()) {
       <p-button 
         severity="secondary" 
         label="Delete" 
         icon="pi pi-trash" 
         [outlined]="true" 
         (click)="onDeleteSelectedClick()" 
-        [disabled]="!selectedItems || !selectedItems.length">
+        [disabled]="!selectedItems() || !selectedItems().length">
       </p-button>
     }
   </ng-template>
 
   <ng-template #end>
-    @if (showExportButton) {
+    @if (showExportButton()) {
       <p-button 
         label="Export" 
         icon="pi pi-upload" 
@@ -37,38 +37,38 @@
 
 <!-- Table - Sakai Style -->
 <p-table
-  [value]="data" 
-  [loading]="loading"
-  [rows]="rows"
-  [columns]="columns"
-  [paginator]="showPagination"
-  [globalFilterFields]="filterFields"
+  [value]="data()" 
+  [loading]="loading()"
+  [rows]="rows()"
+  [columns]="columns()"
+  [paginator]="showPagination()"
+  [globalFilterFields]="filterFields()"
   [tableStyle]="{ 'min-width': '75rem' }"
-  [(selection)]="selectedItems"
+  [selection]="selectedItems()"
   [rowHover]="true"
   dataKey="id"
-  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} {{ title.toLowerCase() }}"
+  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} {{ title().toLowerCase() }}"
   [showCurrentPageReport]="true"
-  [rowsPerPageOptions]="rowsPerPageOptions">
+  [rowsPerPageOptions]="rowsPerPageOptions()">
   
   <ng-template #caption>
     <div class="flex items-center justify-between">
-      <h5 class="m-0">Manage {{ title }}</h5>
+      <h5 class="m-0">Manage {{ title() }}</h5>
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input pInputText type="text" (input)="onGlobalFilterChangeEvent($event)" [placeholder]="'Search ' + title.toLowerCase() + '...'" />
+        <input pInputText type="text" (input)="onGlobalFilterChangeEvent($event)" [placeholder]="'Search ' + title().toLowerCase() + '...'" />
       </p-iconfield>
     </div>
   </ng-template>
   
   <ng-template #header>
     <tr>
-      @if (showSelection) {
+      @if (showSelection()) {
         <th style="width: 3rem">
           <p-tableHeaderCheckbox />
         </th>
       }
-      @for (column of columns; track column.field) {
+      @for (column of columns(); track column.field) {
         <th 
           [pSortableColumn]="column.sortable ? column.field : undefined" 
           [style.width]="column.width">
@@ -83,12 +83,12 @@
 
   <ng-template #body let-item>
     <tr>
-      @if (showSelection) {
+      @if (showSelection()) {
         <td style="width: 3rem">
           <p-tableCheckbox [value]="item" />
         </td>
       }
-      @for (column of columns; track column.field) {
+      @for (column of columns(); track column.field) {
         <td>
           @switch (column.type) {
             @case ('date') {
@@ -102,7 +102,7 @@
             }
             @case ('actions') {
               <div class="action-buttons">
-                @for (action of actions; track action.label) {
+                @for (action of actions(); track action.label) {
                   @if (shouldShowAction(action, item)) {
                     <p-button 
                       [icon]="action.icon" 
@@ -129,11 +129,11 @@
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td [colSpan]="columns.length + (showSelection ? 1 : 0)" class="empty-message">
+        <td [colSpan]="columns().length + (showSelection() ? 1 : 0)" class="empty-message">
           <div class="empty-content">
             <i class="pi pi-inbox empty-icon"></i>
-            <span class="empty-title">No {{ title.toLowerCase() }} found</span>
-            <span class="empty-subtitle">Create your first {{ title.toLowerCase().slice(0, -1) }} to get started!</span>
+            <span class="empty-title">No {{ title().toLowerCase() }} found</span>
+            <span class="empty-subtitle">Create your first {{ title().toLowerCase().slice(0, -1) }} to get started!</span>
           </div>
         </td>
       </tr>

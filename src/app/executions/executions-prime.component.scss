@@ -1,184 +1,76 @@
+/* Executions page - minimal custom styles */
 .executions-prime {
-  padding: 1rem;
-  background-color: var(--surface-ground);
-  min-height: 100vh;
+  @apply p-4 bg-surface-50 min-h-screen;
 }
 
 .page-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-color);
+  @apply text-2xl font-semibold text-surface-900 mb-2;
 }
 
 .page-description {
-  margin: 0;
-  color: var(--text-color-secondary);
-  font-size: 0.875rem;
+  @apply text-sm text-surface-600;
 }
 
-/* Filters Section */
 .filters-section {
-  background-color: var(--surface-card);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--surface-border);
+  @apply bg-surface-card rounded-lg p-6 mb-6 border border-surface-border;
 }
 
 .filters-form {
-  width: 100%;
+  @apply w-full;
 }
 
 .filters-grid {
-  display: grid;
+  @apply grid gap-4 mb-4;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  @apply flex flex-col gap-2;
 }
 
 .filter-label {
-  font-weight: 500;
-  color: var(--text-color);
-  font-size: 0.875rem;
+  @apply text-sm font-medium text-surface-700;
 }
 
 .filters-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--surface-border);
+  @apply flex justify-end gap-2 pt-4 border-t border-surface-border;
 }
 
-/* Table Section */
 .table-section {
-  background-color: var(--surface-card);
-  border-radius: 0.5rem;
-  border: 1px solid var(--surface-border);
-  overflow: hidden;
+  @apply bg-surface-card rounded-lg border border-surface-border overflow-hidden;
 }
 
-/* Loading State */
 .loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  gap: 1rem;
+  @apply flex flex-col items-center justify-center p-12 gap-4;
 }
 
-/* Empty State */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
+  @apply flex flex-col items-center justify-center p-12 text-center;
 }
 
-/* Table Styles */
-:host ::ng-deep {
-  .p-datatable {
-    .p-datatable-header {
-      background-color: var(--surface-card);
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    .p-datatable-thead > tr > th {
-      background-color: var(--surface-100);
-      color: var(--text-color);
-      font-weight: 600;
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    .p-datatable-tbody > tr {
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    .p-datatable-tbody > tr:hover {
-      background-color: var(--surface-hover);
-    }
-
-    .p-datatable-tbody > tr > td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    .p-paginator {
-      background-color: var(--surface-card);
-      border-top: 1px solid var(--surface-border);
-    }
-  }
-
-  .p-multiselect,
-  .p-calendar,
-  .p-inputtext {
-    width: 100%;
-  }
-
-  .p-button {
-    font-weight: 500;
-  }
-}
-
-/* Tool Name Styling */
 .tool-name {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  @apply flex flex-col gap-1;
 }
 
 .tool-version {
-  font-size: 0.75rem;
-  color: var(--text-color-secondary);
+  @apply text-xs text-surface-500;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
   .executions-prime {
-    padding: 0.5rem;
+    @apply p-2;
   }
 
   .filters-grid {
-    grid-template-columns: 1fr;
+    @apply grid-cols-1;
   }
 
   .filters-actions {
-    flex-direction: column;
+    @apply flex-col;
   }
 
   .filters-actions .p-button {
-    width: 100%;
+    @apply w-full;
   }
-}
-
-/* Dark Theme Support */
-.dark {
-  --surface-ground: #1a1a1a;
-  --surface-card: #2d2d2d;
-  --surface-border: #404040;
-  --surface-hover: #404040;
-  --text-color: #ffffff;
-  --text-color-secondary: #a0a0a0;
-  --surface-100: #404040;
-}
-
-/* Light Theme Support */
-.light {
-  --surface-ground: #f8f9fa;
-  --surface-card: #ffffff;
-  --surface-border: #e9ecef;
-  --surface-hover: #f8f9fa;
-  --text-color: #212529;
-  --text-color-secondary: #6c757d;
-  --surface-100: #f8f9fa;
 }

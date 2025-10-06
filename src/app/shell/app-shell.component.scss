@@ -1,184 +1,71 @@
+/* Sakai-style shell layout - minimal custom styles */
 .app-shell {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: var(--surface-ground);
+  @apply flex flex-col min-h-screen bg-surface-50;
 }
 
-/* Topbar */
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  height: 4rem;
-  background-color: var(--surface-card);
-  border-bottom: 1px solid var(--surface-border);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  @apply flex justify-between items-center px-4 h-16 bg-surface-card border-b border-surface-border shadow-sm sticky top-0 z-10;
 }
 
 .topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  @apply flex items-center gap-4;
 }
 
 .app-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
+  @apply text-xl font-semibold text-surface-900;
 }
 
 .topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  @apply flex items-center gap-4;
 }
 
-/* Main Layout */
 .main-layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  @apply flex flex-1 overflow-hidden;
 }
 
-/* Sidebar */
 .sidebar-content {
-  padding: 1rem 0;
-  height: 100%;
-}
-
-.sidebar-nav {
-  width: 100%;
+  @apply p-4 h-full;
 }
 
 .nav-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  @apply list-none m-0 p-0;
 }
 
 .nav-item {
-  margin-bottom: 0.25rem;
+  @apply mb-1;
 }
 
 .nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  color: var(--text-color);
-  text-decoration: none;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-  gap: 0.75rem;
-}
-
-.nav-link:hover {
-  background-color: var(--surface-hover);
-  color: var(--primary-color);
+  @apply flex items-center px-4 py-3 text-surface-700 no-underline rounded-lg transition-all duration-200 gap-3 hover:bg-surface-100 hover:text-primary-600;
 }
 
 .nav-link.active {
-  background-color: var(--primary-color);
-  color: var(--primary-color-text);
+  @apply bg-primary-600 text-white;
 }
 
 .nav-icon {
-  font-size: 1rem;
-  width: 1.25rem;
-  text-align: center;
+  @apply text-base w-5 text-center;
 }
 
 .nav-label {
-  font-weight: 500;
+  @apply font-medium;
 }
 
-/* Main Content */
 .main-content {
-  flex: 1;
-  overflow: auto;
-  background-color: var(--surface-ground);
+  @apply flex-1 overflow-auto bg-surface-50;
 }
 
-/* Custom PrimeNG Styles */
+/* Custom PrimeNG overrides - minimal */
 :host ::ng-deep {
-  .p-menubar-custom {
-    background: transparent;
-    border: none;
-    padding: 0;
-  }
-
-  .p-menubar-custom .p-menubar-root-list {
-    gap: 0.5rem;
-  }
-
-  .p-menubar-custom .p-menuitem-link {
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-  }
-
-  .p-menubar-custom .p-menuitem-link:hover {
-    background-color: var(--surface-hover);
-  }
-
   .p-drawer-custom {
-    width: 16rem;
-    background-color: var(--surface-card);
-    border-right: 1px solid var(--surface-border);
+    @apply w-64 bg-surface-card border-r border-surface-border;
   }
 
   .p-drawer-custom .p-drawer-header {
-    display: none;
+    @apply hidden;
   }
 
   .p-drawer-custom .p-drawer-content {
-    padding: 0;
-  }
-}
-
-/* Dark Theme */
-.dark {
-  --surface-ground: #1a1a1a;
-  --surface-card: #2d2d2d;
-  --surface-border: #404040;
-  --surface-hover: #404040;
-  --text-color: #ffffff;
-  --primary-color: #3b82f6;
-  --primary-color-text: #ffffff;
-}
-
-/* Light Theme */
-.light {
-  --surface-ground: #f8f9fa;
-  --surface-card: #ffffff;
-  --surface-border: #e9ecef;
-  --surface-hover: #f8f9fa;
-  --text-color: #212529;
-  --primary-color: #3b82f6;
-  --primary-color-text: #ffffff;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .topbar {
-    padding: 0 0.75rem;
-  }
-
-  .app-title {
-    font-size: 1rem;
-  }
-
-  .main-layout {
-    flex-direction: column;
-  }
-
-  .sidebar-content {
-    padding: 0.5rem 0;
-  }
-
-  .nav-link {
-    padding: 0.5rem 0.75rem;
+    @apply p-0;
   }
 }

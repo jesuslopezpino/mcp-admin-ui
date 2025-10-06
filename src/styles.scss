@@ -2,6 +2,10 @@
 @import "primeflex/primeflex.css";
 @import "primeicons/primeicons.css";
 
+/* PrimeNG Theme - New System */
+@import "@primeuix/styles/theme.css";
+@import "@primeuix/styles/base.css";
+
 /* Tailwind CSS (preflight disabled) */
 @tailwind base;
 @tailwind components;

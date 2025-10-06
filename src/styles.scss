@@ -1,12 +1,4 @@
-/* PrimeNG Core Styles */
-@import "primeflex/primeflex.css";
-@import "primeicons/primeicons.css";
-
-/* PrimeNG Theme - New System */
-@import "@primeuix/styles/theme.css";
-@import "@primeuix/styles/base.css";
-
-/* Tailwind CSS (preflight disabled) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Sakai Theme Styles */
+@use './assets/tailwind.css';
+@use './assets/layout/layout.scss';
+@use 'primeicons/primeicons.css';

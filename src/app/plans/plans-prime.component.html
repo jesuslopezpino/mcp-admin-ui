@@ -18,3 +18,15 @@
     entityNamePlural="📋 plans">
   </app-crud-table>
 </div>
+
+<!-- Form Modal -->
+<app-crud-form
+  [visible]="showModal"
+  [mode]="'create'"
+  [config]="getFormConfig()"
+  [data]="editingPlan"
+  [loading]="loading"
+  (onSave)="onFormSave($event)"
+  (onCancel)="onFormCancel()"
+  (onClose)="onFormClose()">
+</app-crud-form>

@@ -29,6 +29,8 @@ export class InventoryPrimeCrudComponent implements OnInit {
   assets: Asset[] = [];
   loading = true;
   showModal = false;
+  showFormModal = false;
+  editingAsset: Asset | undefined = undefined;
   selectedAsset: Asset | undefined = undefined;
   actionInProgress: Set<string> = new Set();
 
@@ -207,5 +209,137 @@ export class InventoryPrimeCrudComponent implements OnInit {
 
   onActionClick(event: { action: CrudAction, item: Asset }): void {
     event.action.action(event.item);
+  }
+
+  openNewModal(): void {
+    this.editingAsset = undefined;
+    this.showFormModal = true;
+  }
+
+  onFormSave(formData: any): void {
+    this.loading = true;
+    
+    if (this.editingAsset) {
+      this.updateAsset(formData);
+    } else {
+      this.createAsset(formData);
+    }
+  }
+
+  onFormCancel(): void {
+    this.showFormModal = false;
+    this.editingAsset = undefined;
+  }
+
+  onFormClose(): void {
+    this.showFormModal = false;
+    this.editingAsset = undefined;
+  }
+
+  private async createAsset(data: any): Promise<void> {
+    try {
+      const asset: Partial<Asset> = {
+        hostname: data.hostname,
+        ip: data.ip,
+        os: data.os,
+        status: data.status || 'unknown',
+        winrmEnabled: data.winrmEnabled || false,
+        lastSeen: new Date()
+      };
+      
+      await this.apiService.createAsset(asset as Asset);
+      this.notifyService.success('Asset created successfully');
+      this.showFormModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to create asset');
+      this.loading = false;
+    }
+  }
+
+  private async updateAsset(data: any): Promise<void> {
+    try {
+      if (!this.editingAsset) return;
+
+      const updatedAsset: Partial<Asset> = {
+        ...this.editingAsset,
+        hostname: data.hostname,
+        ip: data.ip,
+        os: data.os,
+        status: data.status,
+        winrmEnabled: data.winrmEnabled
+      };
+
+      await this.apiService.updateAsset(this.editingAsset.id!, updatedAsset as Asset);
+      this.notifyService.success('Asset updated successfully');
+      this.showFormModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to update asset');
+      this.loading = false;
+    }
+  }
+
+  getFormConfig(): any {
+    return {
+      title: 'Asset',
+      sections: [
+        {
+          name: 'basic',
+          title: 'Basic Information',
+          description: 'Configure the asset details'
+        }
+      ],
+      fields: [
+        {
+          key: 'hostname',
+          label: 'Hostname',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter hostname',
+          section: 'basic',
+          order: 1
+        },
+        {
+          key: 'ip',
+          label: 'IP Address',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter IP address',
+          section: 'basic',
+          order: 2
+        },
+        {
+          key: 'os',
+          label: 'Operating System',
+          type: 'text',
+          required: false,
+          placeholder: 'Enter OS',
+          section: 'basic',
+          order: 3
+        },
+        {
+          key: 'status',
+          label: 'Status',
+          type: 'dropdown',
+          required: false,
+          options: [
+            { label: 'Online', value: 'online' },
+            { label: 'Offline', value: 'offline' },
+            { label: 'Unknown', value: 'unknown' }
+          ],
+          section: 'basic',
+          order: 4
+        },
+        {
+          key: 'winrmEnabled',
+          label: 'WinRM Enabled',
+          type: 'checkbox',
+          required: false,
+          section: 'basic',
+          order: 5
+        }
+      ]
+    };
   }
 }

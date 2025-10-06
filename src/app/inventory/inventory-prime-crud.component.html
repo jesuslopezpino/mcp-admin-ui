@@ -10,6 +10,7 @@
     [selectedItems]="selectedAssets"
     (onGlobalFilterChange)="globalFilter = $event"
     (onSelectionChange)="selectedAssets = $event"
+    (onNew)="openNewModal()"
     (onAction)="onActionClick($event)"
     dataTestId="inventory"
     entityName="📦 asset"
@@ -64,3 +65,15 @@
     </div>
   </div>
 </p-dialog>
+
+<!-- Form Modal -->
+<app-crud-form
+  [visible]="showFormModal"
+  [mode]="'create'"
+  [config]="getFormConfig()"
+  [data]="editingAsset"
+  [loading]="loading"
+  (onSave)="onFormSave($event)"
+  (onCancel)="onFormCancel()"
+  (onClose)="onFormClose()">
+</app-crud-form>

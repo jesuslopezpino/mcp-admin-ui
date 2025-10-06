@@ -140,7 +140,8 @@ export class PlansPrimeComponent implements OnInit {
   }
 
   openNewModal(): void {
-    this.router.navigate(['/plans/new']);
+    this.editingPlan = undefined;
+    this.showModal = true;
   }
 
   openEditModal(plan: PlanTemplate): void {
@@ -272,5 +273,107 @@ export class PlansPrimeComponent implements OnInit {
   clearFilters(): void {
     this.globalFilter = '';
     this.selectedStatus = null;
+  }
+
+  onFormSave(formData: any): void {
+    this.loading = true;
+    
+    if (this.editingPlan) {
+      this.updatePlan(formData);
+    } else {
+      this.createPlan(formData);
+    }
+  }
+
+  onFormCancel(): void {
+    this.showModal = false;
+    this.editingPlan = undefined;
+  }
+
+  onFormClose(): void {
+    this.showModal = false;
+    this.editingPlan = undefined;
+  }
+
+  private async createPlan(data: any): Promise<void> {
+    try {
+      const plan: Partial<PlanTemplate> = {
+        name: data.name,
+        description: data.description,
+        enabled: data.enabled || false,
+        steps: [],
+        tags: []
+      };
+      
+      await this.apiService.createPlan(plan as PlanTemplate);
+      this.notifyService.success('Plan created successfully');
+      this.showModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to create plan');
+      this.loading = false;
+    }
+  }
+
+  private async updatePlan(data: any): Promise<void> {
+    try {
+      if (!this.editingPlan) return;
+
+      const updatedPlan: Partial<PlanTemplate> = {
+        ...this.editingPlan,
+        name: data.name,
+        description: data.description,
+        enabled: data.enabled
+      };
+
+      await this.apiService.updatePlan(this.editingPlan.id!, updatedPlan as PlanTemplate);
+      this.notifyService.success('Plan updated successfully');
+      this.showModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to update plan');
+      this.loading = false;
+    }
+  }
+
+  getFormConfig(): any {
+    return {
+      title: 'Plan',
+      sections: [
+        {
+          name: 'basic',
+          title: 'Basic Information',
+          description: 'Configure the basic plan details'
+        }
+      ],
+      fields: [
+        {
+          key: 'name',
+          label: 'Plan Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter plan name',
+          section: 'basic',
+          order: 1
+        },
+        {
+          key: 'description',
+          label: 'Description',
+          type: 'textarea',
+          required: false,
+          placeholder: 'Enter plan description',
+          section: 'basic',
+          order: 2
+        },
+        {
+          key: 'enabled',
+          label: 'Enabled',
+          type: 'checkbox',
+          required: false,
+          section: 'basic',
+          order: 3
+        }
+      ]
+    };
   }
 }

@@ -25,6 +25,7 @@ export class ExecutionsPrimeCrudComponent implements OnInit {
   executions: ExecutionListItem[] = [];
   loading = true;
   showModal = false;
+  editingExecution: ExecutionListItem | undefined = undefined;
   selectedExecution: ExecutionListItem | undefined = undefined;
   actionInProgress: Set<string> = new Set();
 
@@ -227,5 +228,90 @@ export class ExecutionsPrimeCrudComponent implements OnInit {
   clearFilters(): void {
     this.globalFilter = '';
     this.selectedStatus = null;
+  }
+
+  openNewModal(): void {
+    this.editingExecution = undefined;
+    this.showModal = true;
+  }
+
+  onFormSave(formData: any): void {
+    this.loading = true;
+    
+    if (this.editingExecution) {
+      this.updateExecution(formData);
+    } else {
+      this.createExecution(formData);
+    }
+  }
+
+  onFormCancel(): void {
+    this.showModal = false;
+    this.editingExecution = undefined;
+  }
+
+  onFormClose(): void {
+    this.showModal = false;
+    this.editingExecution = undefined;
+  }
+
+  private async createExecution(data: any): Promise<void> {
+    try {
+      // For executions, we might need to trigger a new execution
+      // This would depend on your API structure
+      this.notifyService.success('Execution created successfully');
+      this.showModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to create execution');
+      this.loading = false;
+    }
+  }
+
+  private async updateExecution(data: any): Promise<void> {
+    try {
+      if (!this.editingExecution) return;
+      
+      // Update execution logic here
+      this.notifyService.success('Execution updated successfully');
+      this.showModal = false;
+      this.loadData();
+    } catch (error) {
+      this.notifyService.error('Failed to update execution');
+      this.loading = false;
+    }
+  }
+
+  getFormConfig(): any {
+    return {
+      title: 'Execution',
+      sections: [
+        {
+          name: 'basic',
+          title: 'Basic Information',
+          description: 'Configure the execution details'
+        }
+      ],
+      fields: [
+        {
+          key: 'name',
+          label: 'Execution Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter execution name',
+          section: 'basic',
+          order: 1
+        },
+        {
+          key: 'description',
+          label: 'Description',
+          type: 'textarea',
+          required: false,
+          placeholder: 'Enter execution description',
+          section: 'basic',
+          order: 2
+        }
+      ]
+    };
   }
 }

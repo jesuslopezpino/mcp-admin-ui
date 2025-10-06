@@ -10,8 +10,21 @@
     [selectedItems]="selectedExecutions"
     (onGlobalFilterChange)="globalFilter = $event"
     (onSelectionChange)="selectedExecutions = $event"
+    (onNew)="openNewModal()"
     dataTestId="executions"
     entityName="📊 execution"
     entityNamePlural="📊 executions">
   </app-crud-table>
 </div>
+
+<!-- Form Modal -->
+<app-crud-form
+  [visible]="showModal"
+  [mode]="'create'"
+  [config]="getFormConfig()"
+  [data]="editingExecution"
+  [loading]="loading"
+  (onSave)="onFormSave($event)"
+  (onCancel)="onFormCancel()"
+  (onClose)="onFormClose()">
+</app-crud-form>

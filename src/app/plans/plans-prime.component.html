@@ -1,0 +1,20 @@
+<div class="card">
+  <h5>📋 Plans</h5>
+  
+  <app-crud-table
+    [data]="plans"
+    [columns]="columns"
+    [actions]="actions"
+    [loading]="loading"
+    [globalFilter]="globalFilter"
+    [selectedItems]="selectedPlans"
+    (onGlobalFilterChange)="globalFilter = $event"
+    (onSelectionChange)="selectedPlans = $event"
+    (onNew)="openNewModal()"
+    (onEdit)="openEditModal($event)"
+    (onDelete)="deletePlan($event)"
+    dataTestId="plans"
+    entityName="📋 plans"
+    entityNamePlural="📋 plans">
+  </app-crud-table>
+</div>

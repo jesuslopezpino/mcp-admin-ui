@@ -1,0 +1,17 @@
+<div class="card">
+  <h5>📦 Inventory</h5>
+  
+  <app-crud-table
+    [data]="assets"
+    [columns]="columns"
+    [actions]="actions"
+    [loading]="loading"
+    [globalFilter]="globalFilter"
+    [selectedItems]="selectedAssets"
+    (onGlobalFilterChange)="globalFilter = $event"
+    (onSelectionChange)="selectedAssets = $event"
+    dataTestId="inventory"
+    entityName="📦 asset"
+    entityNamePlural="📦 assets">
+  </app-crud-table>
+</div>

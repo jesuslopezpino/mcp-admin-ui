@@ -11,7 +11,11 @@ export const routes: Routes = [
     children: [
       { path: 'assistant', component: AssistantComponent },
       { path: 'catalog', component: CatalogComponent },
-      { path: 'inventory', component: InventoryComponent },
+      { 
+        path: 'inventory', 
+        title: 'Inventory',
+        loadComponent: () => import('./inventory/inventory-prime-crud.component').then(m => m.InventoryPrimeCrudComponent)
+      },
       { 
         path: 'schedules', 
         title: 'Schedules',
@@ -20,12 +24,12 @@ export const routes: Routes = [
       { 
         path: 'executions', 
         title: 'Executions',
-        loadComponent: () => import('./executions/executions-prime.component').then(m => m.ExecutionsPrimeComponent)
+        loadComponent: () => import('./executions/executions-prime-crud.component').then(m => m.ExecutionsPrimeCrudComponent)
       },
       {
         path: 'plans',
         children: [
-          { path: '', title: 'Plans', loadComponent: () => import('./plans/plans-list.component').then(m => m.PlansListComponent) },
+          { path: '', title: 'Plans', loadComponent: () => import('./plans/plans-prime.component').then(m => m.PlansPrimeComponent) },
           { path: 'new', title: 'New Plan', loadComponent: () => import('./plans/plan-detail.component').then(m => m.PlanDetailComponent) },
           { path: 'runs', title: 'Plan Runs', loadComponent: () => import('./plans/plan-runs.component').then(m => m.PlanRunsComponent) },
           { path: 'runs/:runId', title: 'Plan Run Detail', loadComponent: () => import('./plans/plan-run-detail.component').then(m => m.PlanRunDetailComponent) },

@@ -1,0 +1,17 @@
+<div class="card">
+  <h5>📊 Executions</h5>
+  
+  <app-crud-table
+    [data]="executions"
+    [columns]="columns"
+    [actions]="actions"
+    [loading]="loading"
+    [globalFilter]="globalFilter"
+    [selectedItems]="selectedExecutions"
+    (onGlobalFilterChange)="globalFilter = $event"
+    (onSelectionChange)="selectedExecutions = $event"
+    dataTestId="executions"
+    entityName="📊 execution"
+    entityNamePlural="📊 executions">
+  </app-crud-table>
+</div>

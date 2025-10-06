@@ -48,27 +48,12 @@ export class AppShellComponent implements OnInit, OnDestroy {
 
   // Menu items for sidebar
   menuItems: MenuItem[] = [
-    {
-      label: 'Home',
-      items: [
-        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/assistant'] }
-      ]
-    },
-    {
-      label: 'Tools',
-      items: [
-        { label: 'Catalog', icon: 'pi pi-fw pi-th-large', routerLink: ['/catalog'] },
-        { label: 'Inventory', icon: 'pi pi-fw pi-box', routerLink: ['/inventory'] },
-        { label: 'Executions', icon: 'pi pi-fw pi-play', routerLink: ['/executions'] }
-      ]
-    },
-    {
-      label: 'Planning',
-      items: [
-        { label: 'Plans', icon: 'pi pi-fw pi-list', routerLink: ['/plans'] },
-        { label: 'Schedules', icon: 'pi pi-fw pi-calendar', routerLink: ['/schedules'] }
-      ]
-    }
+    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/assistant'] },
+    { label: 'Catalog', icon: 'pi pi-fw pi-th-large', routerLink: ['/catalog'] },
+    { label: 'Inventory', icon: 'pi pi-fw pi-box', routerLink: ['/inventory'] },
+    { label: 'Executions', icon: 'pi pi-fw pi-play', routerLink: ['/executions'] },
+    { label: 'Plans', icon: 'pi pi-fw pi-list', routerLink: ['/plans'] },
+    { label: 'Schedules', icon: 'pi pi-fw pi-calendar', routerLink: ['/schedules'] }
   ];
 
   // Topbar menu items
@@ -160,7 +145,8 @@ export class AppShellComponent implements OnInit, OnDestroy {
     this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
   }
 
-  toggleSubmenu(menuLabel: string) {
+  toggleSubmenu(menuLabel: string | undefined) {
+    if (!menuLabel) return;
     if (this.expandedMenus.has(menuLabel)) {
       this.expandedMenus.delete(menuLabel);
     } else {
@@ -168,7 +154,8 @@ export class AppShellComponent implements OnInit, OnDestroy {
     }
   }
 
-  isSubmenuExpanded(menuLabel: string): boolean {
+  isSubmenuExpanded(menuLabel: string | undefined): boolean {
+    if (!menuLabel) return false;
     return this.expandedMenus.has(menuLabel);
   }
 

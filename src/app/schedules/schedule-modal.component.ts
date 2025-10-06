@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
@@ -10,7 +10,7 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
 
 @Component({
     selector: 'app-schedule-modal',
-    imports: [CommonModule, ReactiveFormsModule, ToolArgsFormComponent],
+    imports: [ReactiveFormsModule, ToolArgsFormComponent],
     template: `
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-container" (click)="$event.stopPropagation()" data-testid="schedule-modal">
@@ -39,9 +39,11 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
           formControlName="toolName"
           class="form-control">
           <option value="">Select a tool</option>
-          <option *ngFor="let tool of tools" [value]="tool.name">
-            {{ tool.name }}
-          </option>
+          @for (tool of tools; track tool) {
+            <option [value]="tool.name">
+              {{ tool.name }}
+            </option>
+          }
         </select>
       </div>
 
@@ -52,9 +54,11 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
           formControlName="assetId"
           class="form-control">
           <option [value]="null">Servidor (local)</option>
-          <option *ngFor="let asset of assets" [value]="asset.id">
-            {{ asset.hostname }}
-          </option>
+          @for (asset of assets; track asset) {
+            <option [value]="asset.id">
+              {{ asset.hostname }}
+            </option>
+          }
         </select>
       </div>
 
@@ -66,33 +70,37 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
           formControlName="cronExpr"
           class="form-control"
           placeholder="e.g., */5 * * * *">
-      </div>
+        </div>
 
-      <!-- Dynamic Arguments Form -->
-      <div class="form-group" *ngIf="toolSchema">
-        <app-tool-args-form
-          [schema]="toolSchema"
-          [initialValues]="initialArguments"
-          [showJsonPreview]="true"
-          (formChange)="onArgumentsChange($event)"
-          (formValid)="onArgumentsValid($event)">
-        </app-tool-args-form>
-      </div>
+        <!-- Dynamic Arguments Form -->
+        @if (toolSchema) {
+          <div class="form-group">
+            <app-tool-args-form
+              [schema]="toolSchema"
+              [initialValues]="initialArguments"
+              [showJsonPreview]="true"
+              (formChange)="onArgumentsChange($event)"
+              (formValid)="onArgumentsValid($event)">
+          </app-tool-args-form>
+        </div>
+      }
 
       <!-- Fallback JSON Editor (when no schema available) -->
-      <div class="form-group" *ngIf="!toolSchema">
-        <label for="arguments">Arguments (JSON)</label>
-        <textarea
-          id="arguments"
-          formControlName="arguments"
-          class="form-control"
-          rows="6"
-          placeholder='{"param1": "value1"}'>
-        </textarea>
-        <small class="form-text text-muted">
-          No schema available for this tool. Please provide JSON arguments manually.
-        </small>
-      </div>
+      @if (!toolSchema) {
+        <div class="form-group">
+          <label for="arguments">Arguments (JSON)</label>
+          <textarea
+            id="arguments"
+            formControlName="arguments"
+            class="form-control"
+            rows="6"
+            placeholder='{"param1": "value1"}'>
+          </textarea>
+          <small class="form-text text-muted">
+            No schema available for this tool. Please provide JSON arguments manually.
+          </small>
+        </div>
+      }
 
       <div class="form-group">
         <label class="checkbox-label">
@@ -120,15 +128,23 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
         (click)="onSubmit()"
         [disabled]="!isFormValid || isSubmitting"
         data-testid="schedule-save">
-        <span *ngIf="isSubmitting" class="spinner"></span>
-        <span *ngIf="isSubmitting">Saving...</span>
-        <span *ngIf="!isSubmitting && isEditMode">Update</span>
-        <span *ngIf="!isSubmitting && !isEditMode">Create</span>
+        @if (isSubmitting) {
+          <span class="spinner"></span>
+        }
+        @if (isSubmitting) {
+          <span>Saving...</span>
+        }
+        @if (!isSubmitting && isEditMode) {
+          <span>Update</span>
+        }
+        @if (!isSubmitting && !isEditMode) {
+          <span>Create</span>
+        }
       </button>
     </div>
   </div>
 </div>
-  `,
+`,
     styleUrls: ['./schedule-modal.component.scss']
 })
 export class ScheduleModalComponent implements OnInit {

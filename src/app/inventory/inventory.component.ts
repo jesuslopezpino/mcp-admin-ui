@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ApiService, DiscoveryResult, ToolDetails, ExecuteResult } from '../services/api.service';
 import { Asset, Tool } from '../models/api';
@@ -7,7 +7,7 @@ import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.componen
 
 @Component({
     selector: 'app-inventory',
-    imports: [CommonModule, FormsModule, RunToolModalComponent],
+    imports: [FormsModule, RunToolModalComponent],
     templateUrl: './inventory.component.html',
     styleUrls: ['./inventory.component.scss']
 })

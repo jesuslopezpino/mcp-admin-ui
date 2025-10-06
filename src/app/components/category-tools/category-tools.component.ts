@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { CategorizedTool, CategoryService } from '../../services/category.service';
 
 @Component({
     selector: 'app-category-tools',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './category-tools.component.html',
     styleUrl: './category-tools.component.scss'
 })

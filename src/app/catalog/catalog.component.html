@@ -1,6 +1,6 @@
 <div class="catalog-container">
   <!-- Breadcrumb Navigation -->
-  <app-breadcrumb 
+  <app-breadcrumb
     [items]="breadcrumbItems"
     (itemClicked)="onBreadcrumbItemClicked($event)">
   </app-breadcrumb>
@@ -13,75 +13,88 @@
 
   <!-- Actions Bar -->
   <div class="actions-bar" data-testid="catalog-actions">
-    <button 
-      class="btn btn-primary" 
-      (click)="loadTools()" 
+    <button
+      class="btn btn-primary"
+      (click)="loadTools()"
       [disabled]="isLoading"
       data-testid="refresh-tools-button">
-      <span *ngIf="isLoading">⏳</span>
-      <span *ngIf="!isLoading">🔄</span>
+      @if (isLoading) {
+        <span>⏳</span>
+      }
+      @if (!isLoading) {
+        <span>🔄</span>
+      }
       {{ isLoading ? 'Cargando...' : 'Actualizar' }}
     </button>
   </div>
 
   <!-- Target Selector -->
-  <app-target-selector 
-    [assets]="assets" 
+  <app-target-selector
+    [assets]="assets"
     [selectedAssetId]="selectedAssetId"
     (selectedAssetIdChange)="onAssetSelected($event)">
   </app-target-selector>
 
   <!-- Error Message -->
-  <div class="error-message" *ngIf="error">
-    <div class="error-content">
-      <span class="error-icon">⚠️</span>
-      {{ error }}
+  @if (error) {
+    <div class="error-message">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        {{ error }}
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Loading Message -->
-  <div class="loading-message" *ngIf="isLoading && tools.length === 0">
-    <div class="loading-content">
-      <span class="loading-icon">⏳</span>
-      Cargando herramientas...
+  @if (isLoading && tools.length === 0) {
+    <div class="loading-message">
+      <div class="loading-content">
+        <span class="loading-icon">⏳</span>
+        Cargando herramientas...
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Categories View -->
-  <app-category-grid 
-    *ngIf="currentView === 'categories' && !isLoading && tools.length > 0"
-    [categories]="categories"
-    [categorizedTools]="categorizedTools"
-    (categorySelected)="onCategorySelected($event)">
-  </app-category-grid>
+  @if (currentView === 'categories' && !isLoading && tools.length > 0) {
+    <app-category-grid
+      [categories]="categories"
+      [categorizedTools]="categorizedTools"
+      (categorySelected)="onCategorySelected($event)">
+    </app-category-grid>
+  }
 
   <!-- Category Tools View -->
-  <app-category-tools 
-    *ngIf="currentView === 'tools' && selectedCategory"
-    [categoryId]="selectedCategory"
-    [tools]="getCurrentCategoryTools()"
-    (toolSelected)="onToolSelected($event)"
-    (backToCategories)="onBackToCategories()">
-  </app-category-tools>
+  @if (currentView === 'tools' && selectedCategory) {
+    <app-category-tools
+      [categoryId]="selectedCategory"
+      [tools]="getCurrentCategoryTools()"
+      (toolSelected)="onToolSelected($event)"
+      (backToCategories)="onBackToCategories()">
+    </app-category-tools>
+  }
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!isLoading && tools.length === 0 && !error">
-    <div class="empty-content">
-      <span class="empty-icon">🔧</span>
-      <h3>No hay herramientas disponibles</h3>
-      <p>No se encontraron herramientas en el catálogo. Verifica que el backend esté ejecutándose correctamente.</p>
-      <button class="btn btn-primary" (click)="loadTools()">
-        🔄 Intentar de nuevo
-      </button>
+  @if (!isLoading && tools.length === 0 && !error) {
+    <div class="empty-state">
+      <div class="empty-content">
+        <span class="empty-icon">🔧</span>
+        <h3>No hay herramientas disponibles</h3>
+        <p>No se encontraron herramientas en el catálogo. Verifica que el backend esté ejecutándose correctamente.</p>
+        <button class="btn btn-primary" (click)="loadTools()">
+          🔄 Intentar de nuevo
+        </button>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Tool Execution Modal -->
-  <app-run-tool-modal
-    *ngIf="showModal"
-    [tool]="selectedTool"
-    [assetId]="selectedAssetId"
-    (close)="onModalClose()"
-    (result)="onToolExecute($event)">
-  </app-run-tool-modal>
+  @if (showModal) {
+    <app-run-tool-modal
+      [tool]="selectedTool"
+      [assetId]="selectedAssetId"
+      (close)="onModalClose()"
+      (result)="onToolExecute($event)">
+    </app-run-tool-modal>
+  }
 </div>

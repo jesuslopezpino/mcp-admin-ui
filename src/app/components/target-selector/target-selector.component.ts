@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Asset } from '../../models/api';
 import { TargetSelectionService } from '../../services/target-selection.service';
@@ -7,7 +7,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-target-selector',
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [ReactiveFormsModule],
     templateUrl: './target-selector.component.html',
     styleUrl: './target-selector.component.scss'
 })

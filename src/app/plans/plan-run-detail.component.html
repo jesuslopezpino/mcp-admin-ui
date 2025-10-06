@@ -2,8 +2,8 @@
   <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <button 
-        class="btn btn-secondary" 
+      <button
+        class="btn btn-secondary"
         (click)="backToRuns()"
         data-testid="back-to-runs-btn">
         <i class="icon-arrow-left"></i> Back to Runs
@@ -11,15 +11,16 @@
       <h1>Plan Run Detail</h1>
     </div>
     <div class="header-actions">
-      <button 
-        *ngIf="canCancel()"
-        class="btn btn-danger" 
-        (click)="cancelRun()"
-        data-testid="cancel-run-btn">
-        <i class="icon-stop"></i> Cancel Run
-      </button>
-      <button 
-        class="btn btn-primary" 
+      @if (canCancel()) {
+        <button
+          class="btn btn-danger"
+          (click)="cancelRun()"
+          data-testid="cancel-run-btn">
+          <i class="icon-stop"></i> Cancel Run
+        </button>
+      }
+      <button
+        class="btn btn-primary"
         (click)="viewPlan()"
         data-testid="view-plan-btn">
         <i class="icon-eye"></i> View Plan
@@ -28,158 +29,182 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="icon-error"></i>
-    {{ error }}
-    <button class="btn btn-sm" (click)="loadRun()">Retry</button>
-  </div>
+  @if (error) {
+    <div class="error-message">
+      <i class="icon-error"></i>
+      {{ error }}
+      <button class="btn btn-sm" (click)="loadRun()">Retry</button>
+    </div>
+  }
 
   <!-- Loading -->
-  <div *ngIf="loading" class="loading">
-    <i class="icon-spinner"></i> Loading plan run...
-  </div>
+  @if (loading) {
+    <div class="loading">
+      <i class="icon-spinner"></i> Loading plan run...
+    </div>
+  }
 
   <!-- Run Details -->
-  <div *ngIf="!loading && run" class="run-details">
-    <!-- Summary Card -->
-    <div class="summary-card">
-      <div class="summary-header">
-        <h2>{{ run.planName || run.planId }}</h2>
-        <span 
-          class="badge" 
-          [ngClass]="getStatusBadgeClass(run.status)"
-          [attr.data-testid]="'run-status-' + run.id">
-          {{ getStatusText(run.status) }}
-        </span>
+  @if (!loading && run) {
+    <div class="run-details">
+      <!-- Summary Card -->
+      <div class="summary-card">
+        <div class="summary-header">
+          <h2>{{ run.planName || run.planId }}</h2>
+          <span
+            class="badge"
+            [ngClass]="getStatusBadgeClass(run.status)"
+            [attr.data-testid]="'run-status-' + run.id">
+            {{ getStatusText(run.status) }}
+          </span>
+        </div>
+        <div class="summary-info">
+          <div class="info-item">
+            <label>Run ID:</label>
+            <span class="run-id">{{ run.id }}</span>
+          </div>
+          <div class="info-item">
+            <label>Requested By:</label>
+            <span>{{ run.requestedBy }}</span>
+          </div>
+          @if (run.assetId) {
+            <div class="info-item">
+              <label>Asset:</label>
+              <span>{{ run.assetId }}</span>
+            </div>
+          }
+          <div class="info-item">
+            <label>Started:</label>
+            <span>{{ formatDate(run.startedAt) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Finished:</label>
+            <span>{{ formatDate(run.finishedAt) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Duration:</label>
+            <span>{{ formatDuration(run.startedAt, run.finishedAt) }}</span>
+          </div>
+          @if (run.currentStep !== undefined) {
+            <div class="info-item">
+              <label>Current Step:</label>
+              <span>{{ run.currentStep }}</span>
+            </div>
+          }
+          @if (run.correlationId) {
+            <div class="info-item">
+              <label>Correlation ID:</label>
+              <span class="correlation-id">{{ run.correlationId }}</span>
+            </div>
+          }
+        </div>
       </div>
-      
-      <div class="summary-info">
-        <div class="info-item">
-          <label>Run ID:</label>
-          <span class="run-id">{{ run.id }}</span>
-        </div>
-        <div class="info-item">
-          <label>Requested By:</label>
-          <span>{{ run.requestedBy }}</span>
-        </div>
-        <div class="info-item" *ngIf="run.assetId">
-          <label>Asset:</label>
-          <span>{{ run.assetId }}</span>
-        </div>
-        <div class="info-item">
-          <label>Started:</label>
-          <span>{{ formatDate(run.startedAt) }}</span>
-        </div>
-        <div class="info-item">
-          <label>Finished:</label>
-          <span>{{ formatDate(run.finishedAt) }}</span>
-        </div>
-        <div class="info-item">
-          <label>Duration:</label>
-          <span>{{ formatDuration(run.startedAt, run.finishedAt) }}</span>
-        </div>
-        <div class="info-item" *ngIf="run.currentStep !== undefined">
-          <label>Current Step:</label>
-          <span>{{ run.currentStep }}</span>
-        </div>
-        <div class="info-item" *ngIf="run.correlationId">
-          <label>Correlation ID:</label>
-          <span class="correlation-id">{{ run.correlationId }}</span>
-        </div>
+      <!-- Steps Table -->
+      <div class="steps-section">
+        <h3>Execution Steps</h3>
+        @if (run.steps && run.steps.length > 0) {
+          <div class="steps-table">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Tool</th>
+                  <th>Status</th>
+                  <th>Attempt</th>
+                  <th>Started</th>
+                  <th>Finished</th>
+                  <th>Error</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (step of run.steps; track step) {
+                  <tr [attr.data-testid]="'planrun-step-row-' + step.orderIndex">
+                    <td>{{ step.orderIndex }}</td>
+                    <td>
+                      <strong>{{ step.toolName }}</strong>
+                    </td>
+                    <td>
+                      <span
+                        class="badge"
+                        [ngClass]="getStepStatusBadgeClass(step.status)"
+                        [attr.data-testid]="'step-status-' + step.orderIndex">
+                        {{ getStepStatusText(step.status) }}
+                      </span>
+                    </td>
+                    <td>{{ step.attempt }}</td>
+                    <td>{{ formatDate(step.startedAt) }}</td>
+                    <td>{{ formatDate(step.finishedAt) }}</td>
+                    <td>
+                      @if (step.errorCode) {
+                        <div class="error-info">
+                          <div class="error-code">{{ step.errorCode }}</div>
+                          @if (step.errorReason) {
+                            <div class="error-reason">{{ step.errorReason }}</div>
+                          }
+                        </div>
+                      }
+                      @if (!step.errorCode) {
+                        <span>-</span>
+                      }
+                    </td>
+                    <td class="actions">
+                      @if (step.executionId) {
+                        <button
+                          class="btn btn-sm btn-primary"
+                          (click)="viewExecution(step)"
+                          [attr.data-testid]="'planrun-view-exec-' + step.orderIndex">
+                          View Execution
+                        </button>
+                      }
+                      @if (!step.executionId) {
+                        <span class="no-execution">-</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @if (!run.steps || run.steps.length === 0) {
+          <div class="empty-steps">
+            <p>No steps available for this run.</p>
+          </div>
+        }
       </div>
+      <!-- Summary JSON -->
+      @if (run.summaryJson) {
+        <div class="summary-json-section">
+          <div class="section-header">
+            <h3>Summary JSON</h3>
+            <div class="json-actions">
+              <button
+                class="btn btn-sm btn-secondary"
+                (click)="copyToClipboard(formatJson(run.summaryJson))"
+                data-testid="copy-summary-btn">
+                <i class="icon-copy"></i> Copy
+              </button>
+              <button
+                class="btn btn-sm btn-secondary"
+                (click)="downloadJson(run.summaryJson, 'plan-run-summary.json')"
+                data-testid="download-summary-btn">
+                <i class="icon-download"></i> Download
+              </button>
+            </div>
+          </div>
+          <div class="json-content" data-testid="planrun-summary-json">
+            <pre>{{ formatJson(run.summaryJson) }}</pre>
+          </div>
+        </div>
+      }
+      <!-- Auto-refresh indicator -->
+      @if (shouldAutoRefresh()) {
+        <div class="auto-refresh-indicator">
+          <i class="icon-refresh"></i>
+          <span>Auto-refreshing every 5 seconds...</span>
+        </div>
+      }
     </div>
-
-    <!-- Steps Table -->
-    <div class="steps-section">
-      <h3>Execution Steps</h3>
-      
-      <div *ngIf="run.steps && run.steps.length > 0" class="steps-table">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Tool</th>
-              <th>Status</th>
-              <th>Attempt</th>
-              <th>Started</th>
-              <th>Finished</th>
-              <th>Error</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let step of run.steps" [attr.data-testid]="'planrun-step-row-' + step.orderIndex">
-              <td>{{ step.orderIndex }}</td>
-              <td>
-                <strong>{{ step.toolName }}</strong>
-              </td>
-              <td>
-                <span 
-                  class="badge" 
-                  [ngClass]="getStepStatusBadgeClass(step.status)"
-                  [attr.data-testid]="'step-status-' + step.orderIndex">
-                  {{ getStepStatusText(step.status) }}
-                </span>
-              </td>
-              <td>{{ step.attempt }}</td>
-              <td>{{ formatDate(step.startedAt) }}</td>
-              <td>{{ formatDate(step.finishedAt) }}</td>
-              <td>
-                <div *ngIf="step.errorCode" class="error-info">
-                  <div class="error-code">{{ step.errorCode }}</div>
-                  <div *ngIf="step.errorReason" class="error-reason">{{ step.errorReason }}</div>
-                </div>
-                <span *ngIf="!step.errorCode">-</span>
-              </td>
-              <td class="actions">
-                <button 
-                  *ngIf="step.executionId"
-                  class="btn btn-sm btn-primary" 
-                  (click)="viewExecution(step)"
-                  [attr.data-testid]="'planrun-view-exec-' + step.orderIndex">
-                  View Execution
-                </button>
-                <span *ngIf="!step.executionId" class="no-execution">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div *ngIf="!run.steps || run.steps.length === 0" class="empty-steps">
-        <p>No steps available for this run.</p>
-      </div>
-    </div>
-
-    <!-- Summary JSON -->
-    <div *ngIf="run.summaryJson" class="summary-json-section">
-      <div class="section-header">
-        <h3>Summary JSON</h3>
-        <div class="json-actions">
-          <button 
-            class="btn btn-sm btn-secondary" 
-            (click)="copyToClipboard(formatJson(run.summaryJson))"
-            data-testid="copy-summary-btn">
-            <i class="icon-copy"></i> Copy
-          </button>
-          <button 
-            class="btn btn-sm btn-secondary" 
-            (click)="downloadJson(run.summaryJson, 'plan-run-summary.json')"
-            data-testid="download-summary-btn">
-            <i class="icon-download"></i> Download
-          </button>
-        </div>
-      </div>
-      
-      <div class="json-content" data-testid="planrun-summary-json">
-        <pre>{{ formatJson(run.summaryJson) }}</pre>
-      </div>
-    </div>
-
-    <!-- Auto-refresh indicator -->
-    <div *ngIf="shouldAutoRefresh()" class="auto-refresh-indicator">
-      <i class="icon-refresh"></i>
-      <span>Auto-refreshing every 5 seconds...</span>
-    </div>
-  </div>
+  }
 </div>

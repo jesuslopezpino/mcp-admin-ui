@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -8,7 +8,7 @@ import { PlanTemplate, PlanStep, RunPlanRequest, OnFail } from '../models/plans'
 
 @Component({
     selector: 'app-plan-detail',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [FormsModule, RouterModule],
     templateUrl: './plan-detail.component.html',
     styleUrls: ['./plan-detail.component.scss']
 })

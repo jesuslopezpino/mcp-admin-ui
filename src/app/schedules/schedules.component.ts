@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
@@ -8,7 +8,7 @@ import { ScheduleModalComponent } from './schedule-modal.component';
 
 @Component({
     selector: 'app-schedules',
-    imports: [CommonModule, RouterModule, ScheduleModalComponent],
+    imports: [RouterModule, ScheduleModalComponent],
     templateUrl: './schedules.component.html',
     styleUrls: ['./schedules.component.scss']
 })

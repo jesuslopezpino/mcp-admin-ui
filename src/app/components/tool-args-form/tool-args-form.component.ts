@@ -7,156 +7,178 @@ import { JsonSchema, JsonSchemaFormField } from '../../models/json-schema';
     selector: 'app-tool-args-form',
     imports: [CommonModule, ReactiveFormsModule],
     template: `
-    <div class="tool-args-form" *ngIf="argsForm && schema">
-      <div class="form-header">
-        <h4>Tool Arguments</h4>
-        <button 
-          type="button" 
-          class="btn btn-sm btn-outline-secondary" 
-          (click)="resetToDefaults()"
-          [disabled]="!hasDefaults"
-          data-testid="reset-defaults">
-          Reset to Defaults
-        </button>
-      </div>
-
-      <form [formGroup]="argsForm" class="args-form">
-        <div 
-          *ngFor="let field of formFields" 
-          class="form-group"
-          [attr.data-testid]="'arg-field-' + field.key">
-          
-          <label [for]="field.key" class="form-label">
-            {{ field.label }}
-            <span *ngIf="field.required" class="required">*</span>
-            <span 
-              *ngIf="field.description" 
-              class="field-description" 
-              [title]="field.description">
-              ℹ️
-            </span>
-          </label>
-
-          <!-- Text Input -->
-          <input 
-            *ngIf="field.type === 'text'"
-            [id]="field.key"
-            type="text"
-            [formControlName]="field.key"
-            [placeholder]="field.placeholder"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-
-          <!-- Email Input -->
-          <input 
-            *ngIf="field.type === 'email'"
-            [id]="field.key"
-            type="email"
-            [formControlName]="field.key"
-            [placeholder]="field.placeholder"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-
-          <!-- Date Input -->
-          <input 
-            *ngIf="field.type === 'date'"
-            [id]="field.key"
-            type="date"
-            [formControlName]="field.key"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-
-          <!-- Number Input -->
-          <input 
-            *ngIf="field.type === 'number'"
-            [id]="field.key"
-            type="number"
-            [formControlName]="field.key"
-            [placeholder]="field.placeholder"
-            [attr.min]="field.min"
-            [attr.max]="field.max"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-
-          <!-- Checkbox -->
-          <div 
-            *ngIf="field.type === 'checkbox'"
-            class="form-check">
-            <input 
-              [id]="field.key"
-              type="checkbox"
-              [formControlName]="field.key"
-              class="form-check-input">
-            <label [for]="field.key" class="form-check-label">
-              {{ field.label }}
-            </label>
-          </div>
-
-          <!-- Select -->
-          <select 
-            *ngIf="field.type === 'select'"
-            [id]="field.key"
-            [formControlName]="field.key"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-            <option value="">{{ field.placeholder || 'Select an option' }}</option>
-            <option 
-              *ngFor="let option of field.options" 
-              [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-
-          <!-- Textarea for JSON -->
-          <textarea 
-            *ngIf="field.type === 'textarea' || field.type === 'json'"
-            [id]="field.key"
-            [formControlName]="field.key"
-            [placeholder]="field.placeholder"
-            [rows]="field.type === 'json' ? 4 : 3"
-            class="form-control"
-            [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
-          </textarea>
-
-          <!-- Validation Messages -->
-          <div 
-            *ngIf="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched" 
-            class="invalid-feedback">
-            <div *ngIf="argsForm.get(field.key)?.errors?.['required']">
-              {{ field.label }} is required
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['minlength']">
-              {{ field.label }} must be at least {{ field.minLength }} characters
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['maxlength']">
-              {{ field.label }} must be no more than {{ field.maxLength }} characters
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['min']">
-              {{ field.label }} must be at least {{ field.min }}
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['max']">
-              {{ field.label }} must be no more than {{ field.max }}
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['pattern']">
-              {{ field.label }} format is invalid
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['email']">
-              {{ field.label }} must be a valid email
-            </div>
-            <div *ngIf="argsForm.get(field.key)?.errors?.['json']">
-              {{ field.label }} must be valid JSON
-            </div>
-          </div>
+    @if (argsForm && schema) {
+      <div class="tool-args-form">
+        <div class="form-header">
+          <h4>Tool Arguments</h4>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            (click)="resetToDefaults()"
+            [disabled]="!hasDefaults"
+            data-testid="reset-defaults">
+            Reset to Defaults
+          </button>
         </div>
-      </form>
-
-      <!-- JSON Output Preview -->
-      <div class="json-preview" *ngIf="showJsonPreview">
-        <h5>Generated JSON:</h5>
-        <pre class="json-output">{{ getFormValueAsJson() | json }}</pre>
-      </div>
-    </div>
-  `,
+        <form [formGroup]="argsForm" class="args-form">
+          @for (field of formFields; track field) {
+            <div
+              class="form-group"
+              [attr.data-testid]="'arg-field-' + field.key">
+              <label [for]="field.key" class="form-label">
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="required">*</span>
+                }
+                @if (field.description) {
+                  <span
+                    class="field-description"
+                    [title]="field.description">
+                    ℹ️
+                  </span>
+                }
+              </label>
+              <!-- Text Input -->
+              @if (field.type === 'text') {
+                <input
+                  [id]="field.key"
+                  type="text"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  class="form-control"
+                  [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+              }
+              <!-- Email Input -->
+              @if (field.type === 'email') {
+                <input
+                  [id]="field.key"
+                  type="email"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  class="form-control"
+                  [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+              }
+              <!-- Date Input -->
+              @if (field.type === 'date') {
+                <input
+                  [id]="field.key"
+                  type="date"
+                  [formControlName]="field.key"
+                  class="form-control"
+                  [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+              }
+              <!-- Number Input -->
+              @if (field.type === 'number') {
+                <input
+                  [id]="field.key"
+                  type="number"
+                  [formControlName]="field.key"
+                  [placeholder]="field.placeholder"
+                  [attr.min]="field.min"
+                  [attr.max]="field.max"
+                  class="form-control"
+                  [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+              }
+              <!-- Checkbox -->
+              @if (field.type === 'checkbox') {
+                <div
+                  class="form-check">
+                  <input
+                    [id]="field.key"
+                    type="checkbox"
+                    [formControlName]="field.key"
+                    class="form-check-input">
+                    <label [for]="field.key" class="form-check-label">
+                      {{ field.label }}
+                    </label>
+                  </div>
+                }
+                <!-- Select -->
+                @if (field.type === 'select') {
+                  <select
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    class="form-control"
+                    [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                    <option value="">{{ field.placeholder || 'Select an option' }}</option>
+                    @for (option of field.options; track option) {
+                      <option
+                        [value]="option.value">
+                        {{ option.label }}
+                      </option>
+                    }
+                  </select>
+                }
+                <!-- Textarea for JSON -->
+                @if (field.type === 'textarea' || field.type === 'json') {
+                  <textarea
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [placeholder]="field.placeholder"
+                    [rows]="field.type === 'json' ? 4 : 3"
+                    class="form-control"
+                    [class.is-invalid]="argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched">
+                  </textarea>
+                }
+                <!-- Validation Messages -->
+                @if (argsForm.get(field.key)?.invalid && argsForm.get(field.key)?.touched) {
+                  <div
+                    class="invalid-feedback">
+                    @if (argsForm.get(field.key)?.errors?.['required']) {
+                      <div>
+                        {{ field.label }} is required
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['minlength']) {
+                      <div>
+                        {{ field.label }} must be at least {{ field.minLength }} characters
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['maxlength']) {
+                      <div>
+                        {{ field.label }} must be no more than {{ field.maxLength }} characters
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['min']) {
+                      <div>
+                        {{ field.label }} must be at least {{ field.min }}
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['max']) {
+                      <div>
+                        {{ field.label }} must be no more than {{ field.max }}
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['pattern']) {
+                      <div>
+                        {{ field.label }} format is invalid
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['email']) {
+                      <div>
+                        {{ field.label }} must be a valid email
+                      </div>
+                    }
+                    @if (argsForm.get(field.key)?.errors?.['json']) {
+                      <div>
+                        {{ field.label }} must be valid JSON
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </form>
+          <!-- JSON Output Preview -->
+          @if (showJsonPreview) {
+            <div class="json-preview">
+              <h5>Generated JSON:</h5>
+              <pre class="json-output">{{ getFormValueAsJson() | json }}</pre>
+            </div>
+          }
+        </div>
+      }
+    `,
     styleUrls: ['./tool-args-form.component.scss']
 })
 export class ToolArgsFormComponent implements OnInit, OnChanges {

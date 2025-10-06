@@ -1,23 +1,27 @@
-<nav class="breadcrumb" *ngIf="items.length > 0">
-  <ol class="breadcrumb-list">
-    <li class="breadcrumb-item" 
-        *ngFor="let item of items; let last = last; let i = index"
-        [class.active]="last"
-        [class.clickable]="item.path && !last">
-      
-      <span class="breadcrumb-link" 
+@if (items.length > 0) {
+  <nav class="breadcrumb">
+    <ol class="breadcrumb-list">
+      @for (item of items; track item; let last = $last; let i = $index) {
+        <li class="breadcrumb-item"
+          [class.active]="last"
+          [class.clickable]="item.path && !last">
+          <span class="breadcrumb-link"
             (click)="onItemClick(item)"
             [class.disabled]="!item.path || last">
-        
-        <span class="breadcrumb-icon" *ngIf="item.icon">{{ item.icon }}</span>
-        <span class="breadcrumb-label">{{ item.label }}</span>
-      </span>
-      
-      <span class="breadcrumb-separator" *ngIf="!last">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
-    </li>
-  </ol>
-</nav>
+            @if (item.icon) {
+              <span class="breadcrumb-icon">{{ item.icon }}</span>
+            }
+            <span class="breadcrumb-label">{{ item.label }}</span>
+          </span>
+          @if (!last) {
+            <span class="breadcrumb-separator">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+}

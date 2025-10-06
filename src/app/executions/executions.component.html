@@ -2,19 +2,23 @@
   <div class="header">
     <h2>📊 Executions</h2>
     <div class="header-actions">
-      <button 
-        class="btn btn-secondary" 
+      <button
+        class="btn btn-secondary"
         (click)="filtersExpanded = !filtersExpanded"
         data-testid="toggle-filters">
         {{ filtersExpanded ? 'Hide Filters' : 'Show Filters' }}
       </button>
-      <button 
-        class="btn btn-primary" 
-        (click)="exportCsv()" 
+      <button
+        class="btn btn-primary"
+        (click)="exportCsv()"
         [disabled]="isExporting"
         data-testid="export-csv">
-        <span *ngIf="isExporting">⏳</span>
-        <span *ngIf="!isExporting">📥 Export CSV</span>
+        @if (isExporting) {
+          <span>⏳</span>
+        }
+        @if (!isExporting) {
+          <span>📥 Export CSV</span>
+        }
       </button>
     </div>
   </div>
@@ -23,367 +27,376 @@
   <div class="polling-controls">
     <div class="polling-toggle">
       <label class="polling-label">
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           [(ngModel)]="pollingEnabled"
           (change)="togglePolling()"
           data-testid="polling-toggle">
-        <span class="polling-text">
-          <span *ngIf="pollingEnabled">🔄</span>
-          <span *ngIf="!pollingEnabled">⏸️</span>
-          Auto-refresh
-        </span>
-      </label>
-    </div>
-    <div class="polling-interval" *ngIf="pollingEnabled">
-      <label for="polling-interval">Every:</label>
-      <select 
-        id="polling-interval"
-        [value]="pollingInterval"
-        (change)="onPollingIntervalChange($event)"
-        data-testid="polling-interval">
-        <option *ngFor="let interval of pollingIntervalOptions" [value]="interval">
-          {{ formatPollingInterval(interval) }}
-        </option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Filters Section -->
-  <div class="filters-section" *ngIf="filtersExpanded" [formGroup]="filterForm">
-    <div class="filters-grid">
-      <!-- Free text search -->
-      <div class="filter-group">
-        <label for="q">Search (stdout, stderr, errorReason)</label>
-        <input 
-          type="text" 
-          id="q" 
-          formControlName="q" 
-          placeholder="Enter search terms..."
-          data-testid="flt-q">
-      </div>
-
-      <!-- Tool Name -->
-      <div class="filter-group">
-        <label for="toolName">Tool Name</label>
-        <input 
-          type="text" 
-          id="toolName" 
-          formControlName="toolName" 
-          placeholder="Tool name (may be ignored by backend)"
-          title="*The backend may temporarily ignore this filter*"
-          data-testid="flt-tool">
-      </div>
-
-      <!-- Status -->
-      <div class="filter-group">
-        <label>Status</label>
-        <div class="checkbox-group">
-          <label *ngFor="let status of statusOptions" class="checkbox-label">
-            <input 
-              type="checkbox" 
-              [value]="status"
-              (change)="onStatusChange($event, status)"
-              [checked]="filterForm.get('status')?.value?.includes(status)"
-              [attr.data-testid]="'flt-status-' + status.toLowerCase()">
-            {{ status }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Failure Stage -->
-      <div class="filter-group">
-        <label>Failure Stage</label>
-        <div class="checkbox-group">
-          <label *ngFor="let stage of failureStageOptions" class="checkbox-label">
-            <input 
-              type="checkbox" 
-              [value]="stage"
-              (change)="onFailureStageChange($event, stage)"
-              [checked]="filterForm.get('failureStage')?.value?.includes(stage)"
-              [attr.data-testid]="'flt-fstage-' + stage.toLowerCase()">
-            {{ stage }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Error Code -->
-      <div class="filter-group">
-        <label for="errorCode">Error Code</label>
-        <input 
-          type="text" 
-          id="errorCode" 
-          formControlName="errorCode" 
-          placeholder="Error code..."
-          data-testid="flt-ecode">
-      </div>
-
-      <!-- User ID -->
-      <div class="filter-group">
-        <label for="userId">User ID</label>
-        <input 
-          type="text" 
-          id="userId" 
-          formControlName="userId" 
-          placeholder="User ID..."
-          data-testid="flt-user">
-      </div>
-
-      <!-- Asset ID -->
-      <div class="filter-group">
-        <label for="assetId">Asset ID</label>
-        <input 
-          type="text" 
-          id="assetId" 
-          formControlName="assetId" 
-          placeholder="Asset UUID..."
-          data-testid="flt-asset">
-      </div>
-
-      <!-- Exit Code Range -->
-      <div class="filter-group">
-        <label for="exitCodeMin">Exit Code Range</label>
-        <div class="range-inputs">
-          <input 
-            type="number" 
-            id="exitCodeMin" 
-            formControlName="exitCodeMin" 
-            placeholder="Min"
-            data-testid="flt-exit-min">
-          <span>to</span>
-          <input 
-            type="number" 
-            id="exitCodeMax" 
-            formControlName="exitCodeMax" 
-            placeholder="Max"
-            data-testid="flt-exit-max">
-        </div>
-      </div>
-
-      <!-- Started Date Range -->
-      <div class="filter-group">
-        <label>Started Date Range</label>
-        <div class="date-inputs">
-          <input 
-            type="datetime-local" 
-            formControlName="startedFrom" 
-            placeholder="From"
-            data-testid="flt-sfrom">
-          <span>to</span>
-          <input 
-            type="datetime-local" 
-            formControlName="startedTo" 
-            placeholder="To"
-            data-testid="flt-sto">
-        </div>
-      </div>
-
-      <!-- Finished Date Range -->
-      <div class="filter-group">
-        <label>Finished Date Range</label>
-        <div class="date-inputs">
-          <input 
-            type="datetime-local" 
-            formControlName="finishedFrom" 
-            placeholder="From"
-            data-testid="flt-ffrom">
-          <span>to</span>
-          <input 
-            type="datetime-local" 
-            formControlName="finishedTo" 
-            placeholder="To"
-            data-testid="flt-fto">
-        </div>
-      </div>
-
-      <!-- Has Response JSON -->
-      <div class="filter-group">
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="hasResponseJson"
-            data-testid="flt-hasjson">
-          Has Response JSON
+          <span class="polling-text">
+            @if (pollingEnabled) {
+              <span>🔄</span>
+            }
+            @if (!pollingEnabled) {
+              <span>⏸️</span>
+            }
+            Auto-refresh
+          </span>
         </label>
       </div>
-
-      <!-- Correlation ID -->
-      <div class="filter-group">
-        <label for="correlationId">Correlation ID</label>
-        <input 
-          type="text" 
-          id="correlationId" 
-          formControlName="correlationId" 
-          placeholder="Correlation ID..."
-          data-testid="flt-corr">
-      </div>
+      @if (pollingEnabled) {
+        <div class="polling-interval">
+          <label for="polling-interval">Every:</label>
+          <select
+            id="polling-interval"
+            [value]="pollingInterval"
+            (change)="onPollingIntervalChange($event)"
+            data-testid="polling-interval">
+            @for (interval of pollingIntervalOptions; track interval) {
+              <option [value]="interval">
+                {{ formatPollingInterval(interval) }}
+              </option>
+            }
+          </select>
+        </div>
+      }
     </div>
 
-    <!-- Filter Actions -->
-    <div class="filter-actions">
-      <button 
-        class="btn btn-primary" 
-        (click)="onApplyFilters()"
-        data-testid="apply-filters">
-        Apply Filters
-      </button>
-      <button 
-        class="btn btn-secondary" 
-        (click)="resetFilters()"
-        data-testid="reset-filters">
-        Reset
-      </button>
-    </div>
-  </div>
+    <!-- Filters Section -->
+    @if (filtersExpanded) {
+      <div class="filters-section" [formGroup]="filterForm">
+        <div class="filters-grid">
+          <!-- Free text search -->
+          <div class="filter-group">
+            <label for="q">Search (stdout, stderr, errorReason)</label>
+            <input
+              type="text"
+              id="q"
+              formControlName="q"
+              placeholder="Enter search terms..."
+              data-testid="flt-q">
+            </div>
+            <!-- Tool Name -->
+            <div class="filter-group">
+              <label for="toolName">Tool Name</label>
+              <input
+                type="text"
+                id="toolName"
+                formControlName="toolName"
+                placeholder="Tool name (may be ignored by backend)"
+                title="*The backend may temporarily ignore this filter*"
+                data-testid="flt-tool">
+              </div>
+              <!-- Status -->
+              <div class="filter-group">
+                <label>Status</label>
+                <div class="checkbox-group">
+                  @for (status of statusOptions; track status) {
+                    <label class="checkbox-label">
+                      <input
+                        type="checkbox"
+                        [value]="status"
+                        (change)="onStatusChange($event, status)"
+                        [checked]="filterForm.get('status')?.value?.includes(status)"
+                        [attr.data-testid]="'flt-status-' + status.toLowerCase()">
+                        {{ status }}
+                      </label>
+                    }
+                  </div>
+                </div>
+                <!-- Failure Stage -->
+                <div class="filter-group">
+                  <label>Failure Stage</label>
+                  <div class="checkbox-group">
+                    @for (stage of failureStageOptions; track stage) {
+                      <label class="checkbox-label">
+                        <input
+                          type="checkbox"
+                          [value]="stage"
+                          (change)="onFailureStageChange($event, stage)"
+                          [checked]="filterForm.get('failureStage')?.value?.includes(stage)"
+                          [attr.data-testid]="'flt-fstage-' + stage.toLowerCase()">
+                          {{ stage }}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <!-- Error Code -->
+                  <div class="filter-group">
+                    <label for="errorCode">Error Code</label>
+                    <input
+                      type="text"
+                      id="errorCode"
+                      formControlName="errorCode"
+                      placeholder="Error code..."
+                      data-testid="flt-ecode">
+                    </div>
+                    <!-- User ID -->
+                    <div class="filter-group">
+                      <label for="userId">User ID</label>
+                      <input
+                        type="text"
+                        id="userId"
+                        formControlName="userId"
+                        placeholder="User ID..."
+                        data-testid="flt-user">
+                      </div>
+                      <!-- Asset ID -->
+                      <div class="filter-group">
+                        <label for="assetId">Asset ID</label>
+                        <input
+                          type="text"
+                          id="assetId"
+                          formControlName="assetId"
+                          placeholder="Asset UUID..."
+                          data-testid="flt-asset">
+                        </div>
+                        <!-- Exit Code Range -->
+                        <div class="filter-group">
+                          <label for="exitCodeMin">Exit Code Range</label>
+                          <div class="range-inputs">
+                            <input
+                              type="number"
+                              id="exitCodeMin"
+                              formControlName="exitCodeMin"
+                              placeholder="Min"
+                              data-testid="flt-exit-min">
+                              <span>to</span>
+                              <input
+                                type="number"
+                                id="exitCodeMax"
+                                formControlName="exitCodeMax"
+                                placeholder="Max"
+                                data-testid="flt-exit-max">
+                              </div>
+                            </div>
+                            <!-- Started Date Range -->
+                            <div class="filter-group">
+                              <label>Started Date Range</label>
+                              <div class="date-inputs">
+                                <input
+                                  type="datetime-local"
+                                  formControlName="startedFrom"
+                                  placeholder="From"
+                                  data-testid="flt-sfrom">
+                                  <span>to</span>
+                                  <input
+                                    type="datetime-local"
+                                    formControlName="startedTo"
+                                    placeholder="To"
+                                    data-testid="flt-sto">
+                                  </div>
+                                </div>
+                                <!-- Finished Date Range -->
+                                <div class="filter-group">
+                                  <label>Finished Date Range</label>
+                                  <div class="date-inputs">
+                                    <input
+                                      type="datetime-local"
+                                      formControlName="finishedFrom"
+                                      placeholder="From"
+                                      data-testid="flt-ffrom">
+                                      <span>to</span>
+                                      <input
+                                        type="datetime-local"
+                                        formControlName="finishedTo"
+                                        placeholder="To"
+                                        data-testid="flt-fto">
+                                      </div>
+                                    </div>
+                                    <!-- Has Response JSON -->
+                                    <div class="filter-group">
+                                      <label class="checkbox-label">
+                                        <input
+                                          type="checkbox"
+                                          formControlName="hasResponseJson"
+                                          data-testid="flt-hasjson">
+                                          Has Response JSON
+                                        </label>
+                                      </div>
+                                      <!-- Correlation ID -->
+                                      <div class="filter-group">
+                                        <label for="correlationId">Correlation ID</label>
+                                        <input
+                                          type="text"
+                                          id="correlationId"
+                                          formControlName="correlationId"
+                                          placeholder="Correlation ID..."
+                                          data-testid="flt-corr">
+                                        </div>
+                                      </div>
+                                      <!-- Filter Actions -->
+                                      <div class="filter-actions">
+                                        <button
+                                          class="btn btn-primary"
+                                          (click)="onApplyFilters()"
+                                          data-testid="apply-filters">
+                                          Apply Filters
+                                        </button>
+                                        <button
+                                          class="btn btn-secondary"
+                                          (click)="resetFilters()"
+                                          data-testid="reset-filters">
+                                          Reset
+                                        </button>
+                                      </div>
+                                    </div>
+                                  }
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-state">
-    <p>⏳ Loading executions...</p>
-  </div>
+                                  <!-- Loading State -->
+                                  @if (isLoading) {
+                                    <div class="loading-state">
+                                      <p>⏳ Loading executions...</p>
+                                    </div>
+                                  }
 
-  <!-- Table -->
-  <div *ngIf="!isLoading" class="table-container">
-    <table class="executions-table" data-testid="executions-table">
-      <thead>
-        <tr>
-          <th (click)="toggleSort('id')" class="sortable" data-testid="sort-header-id">
-            ID {{ getSortIcon('id') }}
-          </th>
-          <th class="non-sortable" data-testid="sort-header-toolName">
-            Tool
-          </th>
-          <th class="non-sortable" data-testid="sort-header-destination">
-            Destination
-          </th>
-          <th (click)="toggleSort('status')" class="sortable" data-testid="sort-header-status">
-            Status {{ getSortIcon('status') }}
-          </th>
-          <th (click)="toggleSort('exitCode')" class="sortable" data-testid="sort-header-exitCode">
-            Exit {{ getSortIcon('exitCode') }}
-          </th>
-          <th (click)="toggleSort('startedAt')" class="sortable" data-testid="sort-header-startedAt">
-            Started {{ getSortIcon('startedAt') }}
-          </th>
-          <th (click)="toggleSort('finishedAt')" class="sortable" data-testid="sort-header-finishedAt">
-            Finished {{ getSortIcon('finishedAt') }}
-          </th>
-          <th (click)="toggleSort('durationMs')" class="sortable" data-testid="sort-header-durationMs">
-            Duration {{ getSortIcon('durationMs') }}
-          </th>
-          <th class="actions-header">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr 
-          *ngFor="let execution of executions" 
-          class="execution-row"
-          [attr.data-testid]="'executions-row-' + execution.id">
-          <td class="id-cell" (click)="showExecutionDetails(execution)">
-            {{ execution.id.substring(0, 8) }}...
-          </td>
-          <td class="tool-cell" (click)="showExecutionDetails(execution)">
-            {{ execution.toolName || '-' }}
-          </td>
-          <td class="destination-cell" (click)="showExecutionDetails(execution)">
-            {{ execution.destination || 'Local' }}
-          </td>
-          <td class="status-cell" (click)="showExecutionDetails(execution)">
-            <span class="status-badge" [ngClass]="getStatusClass(execution.status)">
-              {{ execution.status }}
-            </span>
-          </td>
-          <td class="exit-cell" (click)="showExecutionDetails(execution)">
-            {{ execution.exitCode ?? '-' }}
-          </td>
-          <td class="started-cell" (click)="showExecutionDetails(execution)">
-            {{ formatDate(execution.startedAt || null) }}
-          </td>
-          <td class="finished-cell" (click)="showExecutionDetails(execution)">
-            {{ formatDate(execution.finishedAt || null) }}
-          </td>
-          <td class="duration-cell" (click)="showExecutionDetails(execution)">
-            {{ formatDuration(execution.durationMs || null) }}
-          </td>
-          <td class="actions-cell">
-            <button 
-              class="btn btn-sm btn-primary" 
-              (click)="showExecutionDetails(execution)"
-              data-testid="view-execution">
-              👁️ View
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                                  <!-- Table -->
+                                  @if (!isLoading) {
+                                    <div class="table-container">
+                                      <table class="executions-table" data-testid="executions-table">
+                                        <thead>
+                                          <tr>
+                                            <th (click)="toggleSort('id')" class="sortable" data-testid="sort-header-id">
+                                              ID {{ getSortIcon('id') }}
+                                            </th>
+                                            <th class="non-sortable" data-testid="sort-header-toolName">
+                                              Tool
+                                            </th>
+                                            <th class="non-sortable" data-testid="sort-header-destination">
+                                              Destination
+                                            </th>
+                                            <th (click)="toggleSort('status')" class="sortable" data-testid="sort-header-status">
+                                              Status {{ getSortIcon('status') }}
+                                            </th>
+                                            <th (click)="toggleSort('exitCode')" class="sortable" data-testid="sort-header-exitCode">
+                                              Exit {{ getSortIcon('exitCode') }}
+                                            </th>
+                                            <th (click)="toggleSort('startedAt')" class="sortable" data-testid="sort-header-startedAt">
+                                              Started {{ getSortIcon('startedAt') }}
+                                            </th>
+                                            <th (click)="toggleSort('finishedAt')" class="sortable" data-testid="sort-header-finishedAt">
+                                              Finished {{ getSortIcon('finishedAt') }}
+                                            </th>
+                                            <th (click)="toggleSort('durationMs')" class="sortable" data-testid="sort-header-durationMs">
+                                              Duration {{ getSortIcon('durationMs') }}
+                                            </th>
+                                            <th class="actions-header">
+                                              Actions
+                                            </th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          @for (execution of executions; track execution) {
+                                            <tr
+                                              class="execution-row"
+                                              [attr.data-testid]="'executions-row-' + execution.id">
+                                              <td class="id-cell" (click)="showExecutionDetails(execution)">
+                                                {{ execution.id.substring(0, 8) }}...
+                                              </td>
+                                              <td class="tool-cell" (click)="showExecutionDetails(execution)">
+                                                {{ execution.toolName || '-' }}
+                                              </td>
+                                              <td class="destination-cell" (click)="showExecutionDetails(execution)">
+                                                {{ execution.destination || 'Local' }}
+                                              </td>
+                                              <td class="status-cell" (click)="showExecutionDetails(execution)">
+                                                <span class="status-badge" [ngClass]="getStatusClass(execution.status)">
+                                                  {{ execution.status }}
+                                                </span>
+                                              </td>
+                                              <td class="exit-cell" (click)="showExecutionDetails(execution)">
+                                                {{ execution.exitCode ?? '-' }}
+                                              </td>
+                                              <td class="started-cell" (click)="showExecutionDetails(execution)">
+                                                {{ formatDate(execution.startedAt || null) }}
+                                              </td>
+                                              <td class="finished-cell" (click)="showExecutionDetails(execution)">
+                                                {{ formatDate(execution.finishedAt || null) }}
+                                              </td>
+                                              <td class="duration-cell" (click)="showExecutionDetails(execution)">
+                                                {{ formatDuration(execution.durationMs || null) }}
+                                              </td>
+                                              <td class="actions-cell">
+                                                <button
+                                                  class="btn btn-sm btn-primary"
+                                                  (click)="showExecutionDetails(execution)"
+                                                  data-testid="view-execution">
+                                                  👁️ View
+                                                </button>
+                                              </td>
+                                            </tr>
+                                          }
+                                        </tbody>
+                                      </table>
+                                      <!-- Empty State -->
+                                      @if (executions.length === 0) {
+                                        <div class="empty-state">
+                                          <p>No executions found matching the current filters.</p>
+                                        </div>
+                                      }
+                                    </div>
+                                  }
 
-    <!-- Empty State -->
-    <div *ngIf="executions.length === 0" class="empty-state">
-      <p>No executions found matching the current filters.</p>
-    </div>
-  </div>
+                                  <!-- Pagination -->
+                                  @if (pageResponse && pageResponse.totalPages > 1) {
+                                    <div class="pagination">
+                                      <div class="pagination-info">
+                                        Showing {{ (pageResponse.page * pageResponse.size) + 1 }} to
+                                        {{ getMaxPageElement() }}
+                                        of {{ pageResponse.totalElements }} executions
+                                      </div>
+                                      <div class="pagination-controls">
+                                        <button
+                                          class="btn btn-sm"
+                                          (click)="goToPage(0)"
+                                          [disabled]="pageResponse.page === 0"
+                                          data-testid="pager-first">
+                                          « First
+                                        </button>
+                                        <button
+                                          class="btn btn-sm"
+                                          (click)="goToPage(pageResponse.page - 1)"
+                                          [disabled]="pageResponse.page === 0"
+                                          data-testid="pager-prev">
+                                          ‹ Prev
+                                        </button>
+                                        <span class="page-info">
+                                          Page {{ pageResponse.page + 1 }} of {{ pageResponse.totalPages }}
+                                        </span>
+                                        <button
+                                          class="btn btn-sm"
+                                          (click)="goToPage(pageResponse.page + 1)"
+                                          [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
+                                          data-testid="pager-next">
+                                          Next ›
+                                        </button>
+                                        <button
+                                          class="btn btn-sm"
+                                          (click)="goToPage(pageResponse.totalPages - 1)"
+                                          [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
+                                          data-testid="pager-last">
+                                          Last »
+                                        </button>
+                                      </div>
+                                      <div class="page-size">
+                                        <label for="pageSize">Size:</label>
+                                        <select
+                                          id="pageSize"
+                                          [value]="pageResponse.size"
+                                          (change)="onPageSizeChange($event)"
+                                          data-testid="size-select">
+                                          @for (size of pageSizeOptions; track size) {
+                                            <option [value]="size">{{ size }}</option>
+                                          }
+                                        </select>
+                                      </div>
+                                    </div>
+                                  }
+                                </div>
 
-  <!-- Pagination -->
-  <div *ngIf="pageResponse && pageResponse.totalPages > 1" class="pagination">
-    <div class="pagination-info">
-      Showing {{ (pageResponse.page * pageResponse.size) + 1 }} to 
-      {{ getMaxPageElement() }} 
-      of {{ pageResponse.totalElements }} executions
-    </div>
-    
-    <div class="pagination-controls">
-      <button 
-        class="btn btn-sm" 
-        (click)="goToPage(0)" 
-        [disabled]="pageResponse.page === 0"
-        data-testid="pager-first">
-        « First
-      </button>
-      <button 
-        class="btn btn-sm" 
-        (click)="goToPage(pageResponse.page - 1)" 
-        [disabled]="pageResponse.page === 0"
-        data-testid="pager-prev">
-        ‹ Prev
-      </button>
-      
-      <span class="page-info">
-        Page {{ pageResponse.page + 1 }} of {{ pageResponse.totalPages }}
-      </span>
-      
-      <button 
-        class="btn btn-sm" 
-        (click)="goToPage(pageResponse.page + 1)" 
-        [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
-        data-testid="pager-next">
-        Next ›
-      </button>
-      <button 
-        class="btn btn-sm" 
-        (click)="goToPage(pageResponse.totalPages - 1)" 
-        [disabled]="pageResponse.page >= pageResponse.totalPages - 1"
-        data-testid="pager-last">
-        Last »
-      </button>
-    </div>
-    
-    <div class="page-size">
-      <label for="pageSize">Size:</label>
-      <select 
-        id="pageSize" 
-        [value]="pageResponse.size" 
-        (change)="onPageSizeChange($event)"
-        data-testid="size-select">
-        <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<!-- Execution Details Modal -->
-<app-execution-details-modal
-  *ngIf="showExecutionModal && selectedExecution"
-  [executionId]="selectedExecution.id"
-  (close)="closeExecutionModal()">
-</app-execution-details-modal>
+                                <!-- Execution Details Modal -->
+                                @if (showExecutionModal && selectedExecution) {
+                                  <app-execution-details-modal
+                                    [executionId]="selectedExecution.id"
+                                    (close)="closeExecutionModal()">
+                                  </app-execution-details-modal>
+                                }

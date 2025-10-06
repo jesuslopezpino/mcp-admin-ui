@@ -7,216 +7,252 @@
   <div class="form-section">
     <div class="form-group">
       <label for="message">Mensaje *</label>
-      <textarea 
+      <textarea
         id="message"
-        [(ngModel)]="message" 
+        [(ngModel)]="message"
         placeholder="Describe la tarea que quieres realizar..."
         rows="4"
-        [disabled]="isLoading"></textarea>
+      [disabled]="isLoading"></textarea>
     </div>
 
     <div class="form-group">
       <label for="assetId">Asset ID (opcional)</label>
-      <input 
+      <input
         id="assetId"
-        type="text" 
-        [(ngModel)]="assetId" 
+        type="text"
+        [(ngModel)]="assetId"
         placeholder="ID del asset relacionado"
         [disabled]="isLoading">
-    </div>
+      </div>
 
-    <div class="form-group">
-      <label class="checkbox-label">
-        <input 
-          type="checkbox" 
-          [(ngModel)]="useManualSelection"
-          (change)="toggleManualSelection()"
-          [disabled]="isLoading">
-        <span>Selección manual de herramienta</span>
-      </label>
-    </div>
-
-    <div class="form-group" *ngIf="useManualSelection">
-      <label for="selectedTool">Herramienta *</label>
-      <select 
-        id="selectedTool"
-        [(ngModel)]="selectedTool"
-        (change)="onToolSelected()"
-        [disabled]="isLoading">
-        <option value="">Selecciona una herramienta...</option>
-        <option *ngFor="let tool of availableTools" [value]="tool.name">
-          {{ tool.name }} - {{ tool.description }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Dynamic Parameters Form -->
-    <div class="parameters-section" *ngIf="useManualSelection && selectedTool && parameterDefinitions.length > 0">
-      <h4>📝 Parámetros de la Herramienta</h4>
-      <div class="parameters-form">
-        <div class="parameter-group" *ngFor="let param of parameterDefinitions">
-          <label [for]="param.name">
-            {{ param.label }}
-            <span class="required" *ngIf="param.required">*</span>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="useManualSelection"
+            (change)="toggleManualSelection()"
+            [disabled]="isLoading">
+            <span>Selección manual de herramienta</span>
           </label>
-          
-          <!-- Text Input -->
-          <input 
-            *ngIf="param.type === 'text'"
-            [id]="param.name"
-            type="text"
-            [(ngModel)]="toolParameters[param.name]"
-            [placeholder]="param.placeholder || ''"
-            [disabled]="isLoading"
-            class="parameter-input">
-          
-          <!-- Number Input -->
-          <input 
-            *ngIf="param.type === 'number'"
-            [id]="param.name"
-            type="number"
-            [(ngModel)]="toolParameters[param.name]"
-            [placeholder]="param.placeholder || ''"
-            [disabled]="isLoading"
-            class="parameter-input">
-          
-          <!-- Select Input -->
-          <select 
-            *ngIf="param.type === 'select'"
-            [id]="param.name"
-            [(ngModel)]="toolParameters[param.name]"
-            [disabled]="isLoading"
-            class="parameter-input">
-            <option value="">{{ param.placeholder || 'Selecciona...' }}</option>
-            <option *ngFor="let option of param.options" [value]="option">
-              {{ option }}
-            </option>
-          </select>
-          
-          <!-- Checkbox Input -->
-          <label class="checkbox-label" *ngIf="param.type === 'checkbox'">
-            <input 
-              [id]="param.name"
-              type="checkbox"
-              [(ngModel)]="toolParameters[param.name]"
+        </div>
+
+        @if (useManualSelection) {
+          <div class="form-group">
+            <label for="selectedTool">Herramienta *</label>
+            <select
+              id="selectedTool"
+              [(ngModel)]="selectedTool"
+              (change)="onToolSelected()"
               [disabled]="isLoading">
-            <span>{{ param.label }}</span>
-          </label>
+              <option value="">Selecciona una herramienta...</option>
+              @for (tool of availableTools; track tool) {
+                <option [value]="tool.name">
+                  {{ tool.name }} - {{ tool.description }}
+                </option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Dynamic Parameters Form -->
+        @if (useManualSelection && selectedTool && parameterDefinitions.length > 0) {
+          <div class="parameters-section">
+            <h4>📝 Parámetros de la Herramienta</h4>
+            <div class="parameters-form">
+              @for (param of parameterDefinitions; track param) {
+                <div class="parameter-group">
+                  <label [for]="param.name">
+                    {{ param.label }}
+                    @if (param.required) {
+                      <span class="required">*</span>
+                    }
+                  </label>
+                  <!-- Text Input -->
+                  @if (param.type === 'text') {
+                    <input
+                      [id]="param.name"
+                      type="text"
+                      [(ngModel)]="toolParameters[param.name]"
+                      [placeholder]="param.placeholder || ''"
+                      [disabled]="isLoading"
+                      class="parameter-input">
+                  }
+                  <!-- Number Input -->
+                  @if (param.type === 'number') {
+                    <input
+                      [id]="param.name"
+                      type="number"
+                      [(ngModel)]="toolParameters[param.name]"
+                      [placeholder]="param.placeholder || ''"
+                      [disabled]="isLoading"
+                      class="parameter-input">
+                  }
+                  <!-- Select Input -->
+                  @if (param.type === 'select') {
+                    <select
+                      [id]="param.name"
+                      [(ngModel)]="toolParameters[param.name]"
+                      [disabled]="isLoading"
+                      class="parameter-input">
+                      <option value="">{{ param.placeholder || 'Selecciona...' }}</option>
+                      @for (option of param.options; track option) {
+                        <option [value]="option">
+                          {{ option }}
+                        </option>
+                      }
+                    </select>
+                  }
+                  <!-- Checkbox Input -->
+                  @if (param.type === 'checkbox') {
+                    <label class="checkbox-label">
+                      <input
+                        [id]="param.name"
+                        type="checkbox"
+                        [(ngModel)]="toolParameters[param.name]"
+                        [disabled]="isLoading">
+                        <span>{{ param.label }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="actions">
+            <button
+              class="btn btn-primary"
+              (click)="onPlan()"
+              [disabled]="isLoading || !message.trim() || (useManualSelection && (!selectedTool || !isParameterValid()))">
+              @if (isLoading) {
+                <span>⏳</span>
+              }
+              @if (!isLoading) {
+                <span>📋</span>
+              }
+              {{ isLoading ? 'Planificando...' : 'Planificar' }}
+            </button>
+
+            <button
+              class="btn btn-secondary"
+              (click)="onReset()"
+              [disabled]="isLoading">
+              🔄 Limpiar
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button 
-        class="btn btn-primary" 
-        (click)="onPlan()" 
-        [disabled]="isLoading || !message.trim() || (useManualSelection && (!selectedTool || !isParameterValid()))">
-        <span *ngIf="isLoading">⏳</span>
-        <span *ngIf="!isLoading">📋</span>
-        {{ isLoading ? 'Planificando...' : 'Planificar' }}
-      </button>
-      
-      <button 
-        class="btn btn-secondary" 
-        (click)="onReset()" 
-        [disabled]="isLoading">
-        🔄 Limpiar
-      </button>
-    </div>
-  </div>
+        @if (error) {
+          <div class="error-message">
+            <div class="error-content">
+              <span class="error-icon">⚠️</span>
+              {{ error }}
+            </div>
+          </div>
+        }
 
-  <div class="error-message" *ngIf="error">
-    <div class="error-content">
-      <span class="error-icon">⚠️</span>
-      {{ error }}
-    </div>
-  </div>
-
-  <div class="plan-section" *ngIf="plan">
-    <h3>📋 Plan Generado</h3>
-    <div class="plan-card">
-      <div class="plan-header">
-        <span class="tool-name">{{ plan.toolName }}</span>
-        <span class="risk-score" [class]="'risk-' + (plan.riskScore > 7 ? 'high' : plan.riskScore > 4 ? 'medium' : 'low')">
-          Riesgo: {{ plan.riskScore }}/10
-        </span>
-      </div>
-      
-      <div class="plan-details">
-        <p><strong>Razonamiento:</strong> {{ plan.rationale }}</p>
-        <p><strong>Requiere confirmación:</strong> 
-          <span [class]="plan.requiresConfirmation ? 'requires-confirmation' : 'no-confirmation'">
-            {{ plan.requiresConfirmation ? 'Sí' : 'No' }}
-          </span>
-        </p>
-        <p><strong>Asset ID:</strong> {{ plan.assetId || 'N/A' }}</p>
-      </div>
-
-      <div class="plan-actions" *ngIf="plan.requiresConfirmation">
-        <button 
-          class="btn btn-success" 
-          (click)="onExecute()" 
-          [disabled]="isLoading">
-          <span *ngIf="isLoading">⏳</span>
-          <span *ngIf="!isLoading">✅</span>
-          {{ isLoading ? 'Ejecutando...' : 'Confirmar y ejecutar' }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="execution-section" *ngIf="executionResult">
-    <h3>⚡ Resultado de Ejecución</h3>
-    <div class="execution-card">
-      <div class="execution-header">
-        <span class="execution-id">ID: {{ executionResult.executionId }}</span>
-        <span class="execution-status" [class]="'status-' + executionResult.status.toLowerCase()" [style.color]="getStatusColor(executionResult.status)">
-          {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
-        </span>
-        <span class="exit-code" [class]="executionResult.exitCode === 0 ? 'success' : 'failure'">
-          Exit Code: {{ executionResult.exitCode }}
-        </span>
-      </div>
-      
-      <div class="execution-details">
-        <div class="output-section" *ngIf="executionResult.stdout">
-          <h4>📤 Salida (STDOUT)</h4>
-          <pre class="output-content">{{ getTruncatedStdout(executionResult.stdout) }}</pre>
-          <button class="btn btn-small" *ngIf="executionResult.stdout.length > 200" (click)="showFullOutput = !showFullOutput">
-            {{ showFullOutput ? 'Mostrar menos' : 'Mostrar completo' }}
-          </button>
-          <pre class="output-content" *ngIf="showFullOutput">{{ executionResult.stdout }}</pre>
+        @if (plan) {
+          <div class="plan-section">
+            <h3>📋 Plan Generado</h3>
+            <div class="plan-card">
+              <div class="plan-header">
+                <span class="tool-name">{{ plan.toolName }}</span>
+                <span class="risk-score" [class]="'risk-' + (plan.riskScore > 7 ? 'high' : plan.riskScore > 4 ? 'medium' : 'low')">
+                  Riesgo: {{ plan.riskScore }}/10
+                </span>
+              </div>
+              <div class="plan-details">
+                <p><strong>Razonamiento:</strong> {{ plan.rationale }}</p>
+                <p><strong>Requiere confirmación:</strong>
+                <span [class]="plan.requiresConfirmation ? 'requires-confirmation' : 'no-confirmation'">
+                  {{ plan.requiresConfirmation ? 'Sí' : 'No' }}
+                </span>
+              </p>
+              <p><strong>Asset ID:</strong> {{ plan.assetId || 'N/A' }}</p>
+            </div>
+            @if (plan.requiresConfirmation) {
+              <div class="plan-actions">
+                <button
+                  class="btn btn-success"
+                  (click)="onExecute()"
+                  [disabled]="isLoading">
+                  @if (isLoading) {
+                    <span>⏳</span>
+                  }
+                  @if (!isLoading) {
+                    <span>✅</span>
+                  }
+                  {{ isLoading ? 'Ejecutando...' : 'Confirmar y ejecutar' }}
+                </button>
+              </div>
+            }
+          </div>
         </div>
-        
-        <div class="error-section" *ngIf="executionResult.stderr">
-          <h4>❌ Errores (STDERR)</h4>
-          <pre class="error-content">{{ executionResult.stderr }}</pre>
-        </div>
-        
-        <div class="info-section" *ngIf="!executionResult.stdout && !executionResult.stderr">
-          <p class="info-message">
-            <span [class]="executionResult.status === 'SUCCESS' ? 'success' : 'warning'">
-              {{ executionResult.status === 'SUCCESS' ? '✅ Ejecución completada sin salida' : '⚠️ Ejecución falló sin mensajes de error' }}
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
+      }
 
-  <!-- Confirmation Modal -->
-  <div class="confirmation-overlay" *ngIf="showConfirmation">
-    <div class="confirmation-modal">
-      <h3>⚠️ Confirmación Requerida</h3>
-      <p>Esta herramienta puede realizar cambios en el sistema. ¿Estás seguro de que quieres continuar?</p>
-      <div class="confirmation-actions">
-        <button class="btn btn-secondary" (click)="onCancelExecution()">
-          Cancelar
-        </button>
-        <button class="btn btn-danger" (click)="onConfirmExecution()">
-          ✅ Confirmar y Ejecutar
-        </button>
-      </div>
+      @if (executionResult) {
+        <div class="execution-section">
+          <h3>⚡ Resultado de Ejecución</h3>
+          <div class="execution-card">
+            <div class="execution-header">
+              <span class="execution-id">ID: {{ executionResult.executionId }}</span>
+              <span class="execution-status" [class]="'status-' + executionResult.status.toLowerCase()" [style.color]="getStatusColor(executionResult.status)">
+                {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
+              </span>
+              <span class="exit-code" [class]="executionResult.exitCode === 0 ? 'success' : 'failure'">
+                Exit Code: {{ executionResult.exitCode }}
+              </span>
+            </div>
+            <div class="execution-details">
+              @if (executionResult.stdout) {
+                <div class="output-section">
+                  <h4>📤 Salida (STDOUT)</h4>
+                  <pre class="output-content">{{ getTruncatedStdout(executionResult.stdout) }}</pre>
+                  @if (executionResult.stdout.length > 200) {
+                    <button class="btn btn-small" (click)="showFullOutput = !showFullOutput">
+                      {{ showFullOutput ? 'Mostrar menos' : 'Mostrar completo' }}
+                    </button>
+                  }
+                  @if (showFullOutput) {
+                    <pre class="output-content">{{ executionResult.stdout }}</pre>
+                  }
+                </div>
+              }
+              @if (executionResult.stderr) {
+                <div class="error-section">
+                  <h4>❌ Errores (STDERR)</h4>
+                  <pre class="error-content">{{ executionResult.stderr }}</pre>
+                </div>
+              }
+              @if (!executionResult.stdout && !executionResult.stderr) {
+                <div class="info-section">
+                  <p class="info-message">
+                    <span [class]="executionResult.status === 'SUCCESS' ? 'success' : 'warning'">
+                      {{ executionResult.status === 'SUCCESS' ? '✅ Ejecución completada sin salida' : '⚠️ Ejecución falló sin mensajes de error' }}
+                    </span>
+                  </p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Confirmation Modal -->
+      @if (showConfirmation) {
+        <div class="confirmation-overlay">
+          <div class="confirmation-modal">
+            <h3>⚠️ Confirmación Requerida</h3>
+            <p>Esta herramienta puede realizar cambios en el sistema. ¿Estás seguro de que quieres continuar?</p>
+            <div class="confirmation-actions">
+              <button class="btn btn-secondary" (click)="onCancelExecution()">
+                Cancelar
+              </button>
+              <button class="btn btn-danger" (click)="onConfirmExecution()">
+                ✅ Confirmar y Ejecutar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
-  </div>
-</div>

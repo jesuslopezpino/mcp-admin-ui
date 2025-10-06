@@ -4,28 +4,33 @@
       <div class="selector-icon">🎯</div>
       <div class="selector-label">
         <span class="label-text">Destino de Ejecución</span>
-        <span class="label-subtitle" *ngIf="getSelectedAsset()">{{ getSelectedAsset()?.hostname || getSelectedAsset()?.ip }}</span>
+        @if (getSelectedAsset()) {
+          <span class="label-subtitle">{{ getSelectedAsset()?.hostname || getSelectedAsset()?.ip }}</span>
+        }
       </div>
     </div>
 
     <div class="selector-controls">
       <!-- Simple select with Reactive Forms -->
       <div class="select-wrapper">
-        <select 
+        <select
           data-testid="target-selector"
           [formControl]="targetCtrl"
           class="target-select">
           <option data-testid="target-option-local" [ngValue]="null">🖥️ — Servidor (local) —</option>
-          <option 
-            *ngFor="let asset of sortedAssets; trackBy: trackByAssetId"
-            [ngValue]="asset.id"
-            [disabled]="!asset.winrmEnabled"
-            [attr.data-testid]="'target-option-' + asset.id">
-            {{ asset.winrmEnabled ? '🟢' : '🔴' }} {{ asset.hostname || asset.ip }}{{ asset.ip && asset.hostname ? ' (' + asset.ip + ')' : '' }}
-            {{ !asset.winrmEnabled ? ' (Sin WinRM)' : '' }}
-          </option>
+          @for (asset of sortedAssets; track trackByAssetId($index, asset)) {
+            <option
+              [ngValue]="asset.id"
+              [disabled]="!asset.winrmEnabled"
+              [attr.data-testid]="'target-option-' + asset.id">
+              {{ asset.winrmEnabled ? '🟢' : '🔴' }} {{ asset.hostname || asset.ip }}{{ asset.ip && asset.hostname ? ' (' + asset.ip + ')' : '' }}
+              {{ !asset.winrmEnabled ? ' (Sin WinRM)' : '' }}
+            </option>
+          }
         </select>
-        <span *ngIf="assetsLoading" class="loading-spinner">⏳</span>
+        @if (assetsLoading) {
+          <span class="loading-spinner">⏳</span>
+        }
       </div>
     </div>
   </div>

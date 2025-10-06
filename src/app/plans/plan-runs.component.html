@@ -3,8 +3,8 @@
   <div class="header">
     <h1>Plan Runs</h1>
     <div class="header-actions">
-      <button 
-        class="btn btn-secondary" 
+      <button
+        class="btn btn-secondary"
         (click)="router.navigate(['/plans'])"
         data-testid="back-to-plans-btn">
         <i class="icon-arrow-left"></i> Back to Plans
@@ -17,222 +17,242 @@
     <div class="filter-group">
       <label>Status:</label>
       <div class="status-filters">
-        <label *ngFor="let status of statusOptions" class="checkbox-label">
-          <input 
-            type="checkbox" 
-            [checked]="isStatusSelected(status)"
-            (change)="onStatusChange(status, $event)"
-            [attr.data-testid]="'flt-status-' + status">
-          {{ getStatusText(status) }}
-        </label>
+        @for (status of statusOptions; track status) {
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="isStatusSelected(status)"
+              (change)="onStatusChange(status, $event)"
+              [attr.data-testid]="'flt-status-' + status">
+              {{ getStatusText(status) }}
+            </label>
+          }
+        </div>
       </div>
-    </div>
-    
-    <div class="filter-group">
-      <label for="plan-id">Plan ID:</label>
-      <input 
-        type="text" 
-        id="plan-id"
-        [(ngModel)]="planIdFilter"
-        (ngModelChange)="onFilterChange()"
-        placeholder="Filter by plan ID..."
-        data-testid="flt-plan">
-    </div>
-    
-    <div class="filter-group">
-      <label for="requested-by">Requested By:</label>
-      <input 
-        type="text" 
-        id="requested-by"
-        [(ngModel)]="requestedByFilter"
-        (ngModelChange)="onFilterChange()"
-        placeholder="Filter by user..."
-        data-testid="flt-user">
-    </div>
-    
-    <div class="filter-group">
-      <label for="from-date">From:</label>
-      <input 
-        type="datetime-local" 
-        id="from-date"
-        [(ngModel)]="fromDate"
-        (ngModelChange)="onFilterChange()"
-        data-testid="flt-from">
-    </div>
-    
-    <div class="filter-group">
-      <label for="to-date">To:</label>
-      <input 
-        type="datetime-local" 
-        id="to-date"
-        [(ngModel)]="toDate"
-        (ngModelChange)="onFilterChange()"
-        data-testid="flt-to">
-    </div>
-    
-    <div class="filter-group">
-      <button 
-        class="btn btn-outline" 
-        (click)="clearFilters()"
-        data-testid="clear-filters-btn">
-        Clear Filters
-      </button>
-    </div>
-  </div>
 
-  <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="icon-error"></i>
-    {{ error }}
-    <button class="btn btn-sm" (click)="loadRuns()">Retry</button>
-  </div>
+      <div class="filter-group">
+        <label for="plan-id">Plan ID:</label>
+        <input
+          type="text"
+          id="plan-id"
+          [(ngModel)]="planIdFilter"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Filter by plan ID..."
+          data-testid="flt-plan">
+        </div>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="loading">
-    <i class="icon-spinner"></i> Loading plan runs...
-  </div>
+        <div class="filter-group">
+          <label for="requested-by">Requested By:</label>
+          <input
+            type="text"
+            id="requested-by"
+            [(ngModel)]="requestedByFilter"
+            (ngModelChange)="onFilterChange()"
+            placeholder="Filter by user..."
+            data-testid="flt-user">
+          </div>
 
-  <!-- Runs Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="table" data-testid="planruns-table">
-      <thead>
-        <tr>
-          <th (click)="sortBy('planName')" class="sortable">
-            Plan Name {{ getSortIcon('planName') }}
-          </th>
-          <th (click)="sortBy('status')" class="sortable">
-            Status {{ getSortIcon('status') }}
-          </th>
-          <th (click)="sortBy('requestedBy')" class="sortable">
-            Requested By {{ getSortIcon('requestedBy') }}
-          </th>
-          <th (click)="sortBy('startedAt')" class="sortable">
-            Started {{ getSortIcon('startedAt') }}
-          </th>
-          <th (click)="sortBy('finishedAt')" class="sortable">
-            Finished {{ getSortIcon('finishedAt') }}
-          </th>
-          <th>Duration</th>
-          <th>Current Step</th>
-          <th>Correlation ID</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let run of runs" [attr.data-testid]="'run-row-' + run.id">
-          <td>
-            <strong>{{ run.planName || run.planId }}</strong>
-            <div *ngIf="run.assetId" class="asset-info">
-              <small>Asset: {{ run.assetId }}</small>
+          <div class="filter-group">
+            <label for="from-date">From:</label>
+            <input
+              type="datetime-local"
+              id="from-date"
+              [(ngModel)]="fromDate"
+              (ngModelChange)="onFilterChange()"
+              data-testid="flt-from">
             </div>
-          </td>
-          <td>
-            <span 
-              class="badge" 
-              [ngClass]="getStatusBadgeClass(run.status)"
-              [attr.data-testid]="'run-status-' + run.id">
-              {{ getStatusText(run.status) }}
-            </span>
-          </td>
-          <td>{{ run.requestedBy }}</td>
-          <td>{{ formatDate(run.startedAt) }}</td>
-          <td>{{ formatDate(run.finishedAt) }}</td>
-          <td>{{ formatDuration(run.startedAt, run.finishedAt) }}</td>
-          <td>
-            <span *ngIf="run.currentStep !== undefined" class="step-info">
-              {{ run.currentStep }}
-            </span>
-            <span *ngIf="run.currentStep === undefined">-</span>
-          </td>
-          <td>
-            <span *ngIf="run.correlationId" class="correlation-id">
-              {{ run.correlationId }}
-            </span>
-            <span *ngIf="!run.correlationId">-</span>
-          </td>
-          <td class="actions">
-            <button 
-              class="btn btn-sm btn-primary" 
-              (click)="viewRun(run)"
-              [attr.data-testid]="'run-view-' + run.id">
-              View
-            </button>
-            <button 
-              *ngIf="canCancel(run)"
-              class="btn btn-sm btn-danger" 
-              (click)="cancelRun(run)"
-              [attr.data-testid]="'run-cancel-' + run.id">
-              Cancel
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
 
-    <!-- Empty State -->
-    <div *ngIf="runs.length === 0" class="empty-state">
-      <i class="icon-list"></i>
-      <h3>No plan runs found</h3>
-      <p>No plan runs match your current filters.</p>
-      <button class="btn btn-primary" (click)="clearFilters()">
-        Clear Filters
-      </button>
-    </div>
-  </div>
+            <div class="filter-group">
+              <label for="to-date">To:</label>
+              <input
+                type="datetime-local"
+                id="to-date"
+                [(ngModel)]="toDate"
+                (ngModelChange)="onFilterChange()"
+                data-testid="flt-to">
+              </div>
 
-  <!-- Pagination -->
-  <div *ngIf="!loading && totalPages > 1" class="pagination">
-    <div class="pagination-info">
-      Showing {{ currentPage * pageSize + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} of {{ totalElements }} runs
-    </div>
-    
-    <div class="pagination-controls">
-      <button 
-        class="btn btn-sm" 
-        [disabled]="currentPage === 0"
-        (click)="goToPage(0)"
-        data-testid="pagination-first">
-        First
-      </button>
-      <button 
-        class="btn btn-sm" 
-        [disabled]="currentPage === 0"
-        (click)="goToPage(currentPage - 1)"
-        data-testid="pagination-prev">
-        Previous
-      </button>
-      
-      <span class="page-info">
-        Page {{ currentPage + 1 }} of {{ totalPages }}
-      </span>
-      
-      <button 
-        class="btn btn-sm" 
-        [disabled]="currentPage >= totalPages - 1"
-        (click)="goToPage(currentPage + 1)"
-        data-testid="pagination-next">
-        Next
-      </button>
-      <button 
-        class="btn btn-sm" 
-        [disabled]="currentPage >= totalPages - 1"
-        (click)="goToPage(totalPages - 1)"
-        data-testid="pagination-last">
-        Last
-      </button>
-    </div>
-    
-    <div class="page-size">
-      <label>Page size:</label>
-      <select 
-        [ngModel]="pageSize" 
-        (ngModelChange)="changePageSize($event)"
-        data-testid="page-size-select">
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-    </div>
-  </div>
-</div>
+              <div class="filter-group">
+                <button
+                  class="btn btn-outline"
+                  (click)="clearFilters()"
+                  data-testid="clear-filters-btn">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            @if (error) {
+              <div class="error-message">
+                <i class="icon-error"></i>
+                {{ error }}
+                <button class="btn btn-sm" (click)="loadRuns()">Retry</button>
+              </div>
+            }
+
+            <!-- Loading -->
+            @if (loading) {
+              <div class="loading">
+                <i class="icon-spinner"></i> Loading plan runs...
+              </div>
+            }
+
+            <!-- Runs Table -->
+            @if (!loading) {
+              <div class="table-container">
+                <table class="table" data-testid="planruns-table">
+                  <thead>
+                    <tr>
+                      <th (click)="sortBy('planName')" class="sortable">
+                        Plan Name {{ getSortIcon('planName') }}
+                      </th>
+                      <th (click)="sortBy('status')" class="sortable">
+                        Status {{ getSortIcon('status') }}
+                      </th>
+                      <th (click)="sortBy('requestedBy')" class="sortable">
+                        Requested By {{ getSortIcon('requestedBy') }}
+                      </th>
+                      <th (click)="sortBy('startedAt')" class="sortable">
+                        Started {{ getSortIcon('startedAt') }}
+                      </th>
+                      <th (click)="sortBy('finishedAt')" class="sortable">
+                        Finished {{ getSortIcon('finishedAt') }}
+                      </th>
+                      <th>Duration</th>
+                      <th>Current Step</th>
+                      <th>Correlation ID</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (run of runs; track run) {
+                      <tr [attr.data-testid]="'run-row-' + run.id">
+                        <td>
+                          <strong>{{ run.planName || run.planId }}</strong>
+                          @if (run.assetId) {
+                            <div class="asset-info">
+                              <small>Asset: {{ run.assetId }}</small>
+                            </div>
+                          }
+                        </td>
+                        <td>
+                          <span
+                            class="badge"
+                            [ngClass]="getStatusBadgeClass(run.status)"
+                            [attr.data-testid]="'run-status-' + run.id">
+                            {{ getStatusText(run.status) }}
+                          </span>
+                        </td>
+                        <td>{{ run.requestedBy }}</td>
+                        <td>{{ formatDate(run.startedAt) }}</td>
+                        <td>{{ formatDate(run.finishedAt) }}</td>
+                        <td>{{ formatDuration(run.startedAt, run.finishedAt) }}</td>
+                        <td>
+                          @if (run.currentStep !== undefined) {
+                            <span class="step-info">
+                              {{ run.currentStep }}
+                            </span>
+                          }
+                          @if (run.currentStep === undefined) {
+                            <span>-</span>
+                          }
+                        </td>
+                        <td>
+                          @if (run.correlationId) {
+                            <span class="correlation-id">
+                              {{ run.correlationId }}
+                            </span>
+                          }
+                          @if (!run.correlationId) {
+                            <span>-</span>
+                          }
+                        </td>
+                        <td class="actions">
+                          <button
+                            class="btn btn-sm btn-primary"
+                            (click)="viewRun(run)"
+                            [attr.data-testid]="'run-view-' + run.id">
+                            View
+                          </button>
+                          @if (canCancel(run)) {
+                            <button
+                              class="btn btn-sm btn-danger"
+                              (click)="cancelRun(run)"
+                              [attr.data-testid]="'run-cancel-' + run.id">
+                              Cancel
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <!-- Empty State -->
+                @if (runs.length === 0) {
+                  <div class="empty-state">
+                    <i class="icon-list"></i>
+                    <h3>No plan runs found</h3>
+                    <p>No plan runs match your current filters.</p>
+                    <button class="btn btn-primary" (click)="clearFilters()">
+                      Clear Filters
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Pagination -->
+            @if (!loading && totalPages > 1) {
+              <div class="pagination">
+                <div class="pagination-info">
+                  Showing {{ currentPage * pageSize + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} of {{ totalElements }} runs
+                </div>
+                <div class="pagination-controls">
+                  <button
+                    class="btn btn-sm"
+                    [disabled]="currentPage === 0"
+                    (click)="goToPage(0)"
+                    data-testid="pagination-first">
+                    First
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    [disabled]="currentPage === 0"
+                    (click)="goToPage(currentPage - 1)"
+                    data-testid="pagination-prev">
+                    Previous
+                  </button>
+                  <span class="page-info">
+                    Page {{ currentPage + 1 }} of {{ totalPages }}
+                  </span>
+                  <button
+                    class="btn btn-sm"
+                    [disabled]="currentPage >= totalPages - 1"
+                    (click)="goToPage(currentPage + 1)"
+                    data-testid="pagination-next">
+                    Next
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    [disabled]="currentPage >= totalPages - 1"
+                    (click)="goToPage(totalPages - 1)"
+                    data-testid="pagination-last">
+                    Last
+                  </button>
+                </div>
+                <div class="page-size">
+                  <label>Page size:</label>
+                  <select
+                    [ngModel]="pageSize"
+                    (ngModelChange)="changePageSize($event)"
+                    data-testid="page-size-select">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </div>
+              </div>
+            }
+          </div>

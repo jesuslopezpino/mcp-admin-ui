@@ -6,256 +6,304 @@
         <span class="destination-label">Destino:</span>
         <span class="destination-value">{{ getDestinationDisplay() }}</span>
       </div>
-      
+
       <!-- Status indicator during execution -->
-      <div class="status-indicator" *ngIf="isExecuting || executionResult" data-testid="execution-status">
-        <span class="status-icon">{{ getStatusIcon(currentStatus || 'PENDING') }}</span>
-        <span class="status-text">{{ currentStatus || 'PENDING' }}</span>
-        <span class="spinner" *ngIf="isExecuting">⏳</span>
-      </div>
-      
+      @if (isExecuting || executionResult) {
+        <div class="status-indicator" data-testid="execution-status">
+          <span class="status-icon">{{ getStatusIcon(currentStatus || 'PENDING') }}</span>
+          <span class="status-text">{{ currentStatus || 'PENDING' }}</span>
+          @if (isExecuting) {
+            <span class="spinner">⏳</span>
+          }
+        </div>
+      }
+
       <button class="close-btn" (click)="onClose()" data-testid="close-modal" [disabled]="isExecuting">×</button>
     </div>
 
-    <div class="modal-body" *ngIf="tool" data-testid="modal-body">
-      <div class="tool-info" data-testid="tool-info">
-        <h3>{{ tool.name }}</h3>
-        <p>{{ tool.description }}</p>
-        <div class="tool-meta">
-          <span class="meta-item" [class.requires-confirmation]="tool.requiresConfirmation">
-            {{ tool.requiresConfirmation ? '⚠️ Requiere confirmación' : '✅ Ejecución directa' }}
-          </span>
-          <span class="meta-item">OS: {{ tool.osSupport.join(', ') || 'N/A' }}</span>
-        </div>
-      </div>
-
-      <!-- Target Selection -->
-      <div class="target-selection" *ngIf="isTargetRequired">
-        <h4>🎯 Destino de Ejecución</h4>
-        <p class="target-description">Selecciona el equipo donde ejecutar la herramienta</p>
-        <app-target-selector
-          [assets]="assets"
-          [selectedAssetId]="selectedAssetId"
-          (selectedAssetIdChange)="onTargetSelected($event)">
-        </app-target-selector>
-        <div class="target-validation" *ngIf="!isTargetValid()">
-          <span class="validation-error">⚠️ Debes seleccionar un destino para continuar</span>
-        </div>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tool-form">
-        <div class="form-fields" *ngIf="tool.jsonSchema?.properties">
-          <div *ngFor="let fieldName of getFieldNames()" class="form-field">
-            <label [for]="fieldName" [class.required]="getFieldRequired(fieldName)">
-              {{ getFieldLabel(fieldName) }}
-              <span class="required-mark" *ngIf="getFieldRequired(fieldName)">*</span>
-            </label>
-            
-            <!-- Regular string input -->
-            <input *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'text'"
-                   type="text"
-                   [id]="fieldName"
-                   [formControlName]="fieldName"
-                   [placeholder]="getFieldPlaceholder(tool.jsonSchema.properties[fieldName])"
-                   class="form-input"
-                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
-                   [attr.data-testid]="'input-' + fieldName">
-
-            <!-- Number input -->
-            <input *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'number'"
-                   type="number"
-                   [id]="fieldName"
-                   [formControlName]="fieldName"
-                   [min]="getFieldMin(tool.jsonSchema.properties[fieldName])"
-                   [max]="getFieldMax(tool.jsonSchema.properties[fieldName])"
-                   class="form-input"
-                   [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
-                   [attr.data-testid]="'input-' + fieldName">
-
-            <!-- Boolean input -->
-            <label *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'checkbox'" 
-                   class="checkbox-label">
-              <input type="checkbox" 
-                     [id]="fieldName"
-                     [formControlName]="fieldName"
-                     [attr.data-testid]="'input-' + fieldName">
-              <span class="checkbox-text">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</span>
-            </label>
-
-            <!-- Select input -->
-            <select *ngIf="getFieldType(tool.jsonSchema.properties[fieldName]) === 'select'"
-                    [id]="fieldName"
-                    [formControlName]="fieldName"
-                    class="form-select"
-                    [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
-                    [attr.data-testid]="'input-' + fieldName">
-              <option value="">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</option>
-              <option *ngFor="let option of getFieldOptions(tool.jsonSchema.properties[fieldName])" 
-                      [value]="option">
-                {{ option }}
-              </option>
-            </select>
-
-            <!-- Error message -->
-            <div *ngIf="form.get(fieldName)?.invalid && form.get(fieldName)?.touched" 
-                 class="error-message">
-              <span *ngIf="form.get(fieldName)?.errors?.['required']">Campo obligatorio</span>
-              <span *ngIf="form.get(fieldName)?.errors?.['minLength']">Longitud mínima no alcanzada</span>
-              <span *ngIf="form.get(fieldName)?.errors?.['maxLength']">Longitud máxima excedida</span>
-            </div>
+    @if (tool) {
+      <div class="modal-body" data-testid="modal-body">
+        <div class="tool-info" data-testid="tool-info">
+          <h3>{{ tool.name }}</h3>
+          <p>{{ tool.description }}</p>
+          <div class="tool-meta">
+            <span class="meta-item" [class.requires-confirmation]="tool.requiresConfirmation">
+              {{ tool.requiresConfirmation ? '⚠️ Requiere confirmación' : '✅ Ejecución directa' }}
+            </span>
+            <span class="meta-item">OS: {{ tool.osSupport.join(', ') || 'N/A' }}</span>
           </div>
         </div>
-
-        <div class="form-actions">
-          <button type="button" 
-                  class="btn btn-secondary" 
-                  (click)="onClose()"
-                  [disabled]="isExecuting"
-                  data-testid="cancel-button">
-            {{ isExecuting ? 'Cerrar' : 'Cancelar' }}
-          </button>
-          <button type="button" 
-                  class="btn btn-info"
-                  (click)="onPreview()"
-                  [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
-                  data-testid="preview-button">
-            👁️ Previsualizar
-          </button>
-          <button type="submit" 
-                  class="btn btn-primary"
-                  [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
-                  data-testid="run-modal-submit">
-            <span *ngIf="isExecuting" class="spinner-icon">⏳</span>
-            <span *ngIf="!isExecuting">🚀</span>
-            {{ isExecuting ? 'Ejecutando...' : 'Ejecutar' }}
-          </button>
-        </div>
-      </form>
-
-      <!-- Preview Command Section -->
-      <div class="preview-section" *ngIf="showPreview">
-        <div class="preview-header">
-          <h4>👁️ Previsualización del Comando</h4>
-          <button class="btn btn-secondary btn-sm" (click)="onClosePreview()">
-            ✕ Cerrar
-          </button>
-        </div>
-        <app-terminal-output
-          [stdout]="previewCommand"
-          [stderr]="''"
-          [exitCode]="0"
-          [status]="'PREVIEW'"
-          [targetHostname]="getSelectedAsset()?.hostname || ''"
-          [targetIp]="getSelectedAsset()?.ip || ''"
-          [commandName]="tool.name || ''">
-        </app-terminal-output>
-      </div>
-
-      <!-- Execution Result with Enhanced Error Display -->
-      <div class="execution-result" *ngIf="executionResult !== null" data-testid="run-modal-result">
-        <!-- Result Header -->
-        <div class="result-header">
-          <h4 class="result-title">
-            <span class="exec-status" 
-                  [class.exec-status--success]="executionResult.status === 'SUCCESS'"
-                  [class.exec-status--failed]="executionResult.status === 'FAILED'"
-                  [class.exec-status--error]="executionResult.status === 'ERROR'"
-                  data-testid="run-modal-result-status">
-              {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
-            </span>
-            <span class="execution-id" *ngIf="executionId">ID: {{ executionId.substring(0, 8) }}...</span>
-          </h4>
-          
-          <!-- Exit Code and Duration -->
-          <div class="result-meta" *ngIf="executionResult.exitCode !== undefined || getExecutionDuration()">
-            <span *ngIf="executionResult.exitCode !== undefined" 
-                  class="exit-code"
-                  data-testid="run-modal-result-exitcode">
-              Exit Code: {{ executionResult.exitCode }}
-            </span>
-            <span *ngIf="getExecutionDuration()" 
-                  class="duration"
-                  data-testid="run-modal-result-duration">
-              Duración: {{ getExecutionDuration() }}
-            </span>
+        <!-- Target Selection -->
+        @if (isTargetRequired) {
+          <div class="target-selection">
+            <h4>🎯 Destino de Ejecución</h4>
+            <p class="target-description">Selecciona el equipo donde ejecutar la herramienta</p>
+            <app-target-selector
+              [assets]="assets"
+              [selectedAssetId]="selectedAssetId"
+              (selectedAssetIdChange)="onTargetSelected($event)">
+            </app-target-selector>
+            @if (!isTargetValid()) {
+              <div class="target-validation">
+                <span class="validation-error">⚠️ Debes seleccionar un destino para continuar</span>
+              </div>
+            }
           </div>
-        </div>
-
-        <!-- Error Details (only for FAILED or ERROR) -->
-        <div class="exec-error__section" 
-             *ngIf="(executionResult.status === 'FAILED' || executionResult.status === 'ERROR') && (executionResult.errorCode || executionResult.failureStage)">
-          <h5>🔍 Detalles del Error</h5>
-          <div class="error-details">
-            <div *ngIf="executionResult.failureStage" class="error-item">
-              <span class="error-label">Etapa:</span>
-              <span class="failure-stage" data-testid="run-modal-failure-stage">{{ executionResult.failureStage }}</span>
-            </div>
-            <div *ngIf="executionResult.errorCode" class="error-item">
-              <span class="error-label">Código:</span>
-              <span class="error-code" data-testid="run-modal-error-code">{{ executionResult.errorCode }}</span>
-            </div>
-            <div *ngIf="executionResult.errorReason" class="error-item">
-              <span class="error-label">Motivo:</span>
-              <span class="error-reason" data-testid="run-modal-error-reason">{{ executionResult.errorReason }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- JSON Response Block (only if responseJson exists) -->
-        <div class="exec-json__section" *ngIf="executionResult.responseJson" data-testid="run-modal-response-json">
-          <h5>📄 Respuesta JSON</h5>
-          <div class="json-container">
-            <pre class="json-content">{{ getPrettyJson(executionResult.responseJson) }}</pre>
-            <div class="json-actions">
-              <button class="btn btn-sm btn-secondary" 
-                      (click)="copyJson(executionResult.responseJson)"
-                      data-testid="run-modal-response-json-copy">
-                📋 Copiar JSON
+        }
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tool-form">
+          @if (tool.jsonSchema?.properties) {
+            <div class="form-fields">
+              @for (fieldName of getFieldNames(); track fieldName) {
+                <div class="form-field">
+                  <label [for]="fieldName" [class.required]="getFieldRequired(fieldName)">
+                    {{ getFieldLabel(fieldName) }}
+                    @if (getFieldRequired(fieldName)) {
+                      <span class="required-mark">*</span>
+                    }
+                  </label>
+                  <!-- Regular string input -->
+                  @if (getFieldType(tool.jsonSchema.properties[fieldName]) === 'text') {
+                    <input
+                      type="text"
+                      [id]="fieldName"
+                      [formControlName]="fieldName"
+                      [placeholder]="getFieldPlaceholder(tool.jsonSchema.properties[fieldName])"
+                      class="form-input"
+                      [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                      [attr.data-testid]="'input-' + fieldName">
+                  }
+                  <!-- Number input -->
+                  @if (getFieldType(tool.jsonSchema.properties[fieldName]) === 'number') {
+                    <input
+                      type="number"
+                      [id]="fieldName"
+                      [formControlName]="fieldName"
+                      [min]="getFieldMin(tool.jsonSchema.properties[fieldName])"
+                      [max]="getFieldMax(tool.jsonSchema.properties[fieldName])"
+                      class="form-input"
+                      [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                      [attr.data-testid]="'input-' + fieldName">
+                  }
+                  <!-- Boolean input -->
+                  @if (getFieldType(tool.jsonSchema.properties[fieldName]) === 'checkbox') {
+                    <label
+                      class="checkbox-label">
+                      <input type="checkbox"
+                        [id]="fieldName"
+                        [formControlName]="fieldName"
+                        [attr.data-testid]="'input-' + fieldName">
+                        <span class="checkbox-text">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</span>
+                      </label>
+                    }
+                    <!-- Select input -->
+                    @if (getFieldType(tool.jsonSchema.properties[fieldName]) === 'select') {
+                      <select
+                        [id]="fieldName"
+                        [formControlName]="fieldName"
+                        class="form-select"
+                        [class.error]="form.get(fieldName)?.invalid && form.get(fieldName)?.touched"
+                        [attr.data-testid]="'input-' + fieldName">
+                        <option value="">{{ getFieldPlaceholder(tool.jsonSchema.properties[fieldName]) }}</option>
+                        @for (option of getFieldOptions(tool.jsonSchema.properties[fieldName]); track option) {
+                          <option
+                            [value]="option">
+                            {{ option }}
+                          </option>
+                        }
+                      </select>
+                    }
+                    <!-- Error message -->
+                    @if (form.get(fieldName)?.invalid && form.get(fieldName)?.touched) {
+                      <div
+                        class="error-message">
+                        @if (form.get(fieldName)?.errors?.['required']) {
+                          <span>Campo obligatorio</span>
+                        }
+                        @if (form.get(fieldName)?.errors?.['minLength']) {
+                          <span>Longitud mínima no alcanzada</span>
+                        }
+                        @if (form.get(fieldName)?.errors?.['maxLength']) {
+                          <span>Longitud máxima excedida</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            <div class="form-actions">
+              <button type="button"
+                class="btn btn-secondary"
+                (click)="onClose()"
+                [disabled]="isExecuting"
+                data-testid="cancel-button">
+                {{ isExecuting ? 'Cerrar' : 'Cancelar' }}
               </button>
-              <button class="btn btn-sm btn-secondary" 
-                      (click)="downloadJson(executionResult.responseJson, executionId)"
-                      data-testid="run-modal-response-json-download">
-                💾 Descargar JSON
+              <button type="button"
+                class="btn btn-info"
+                (click)="onPreview()"
+                [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                data-testid="preview-button">
+                👁️ Previsualizar
+              </button>
+              <button type="submit"
+                class="btn btn-primary"
+                [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                data-testid="run-modal-submit">
+                @if (isExecuting) {
+                  <span class="spinner-icon">⏳</span>
+                }
+                @if (!isExecuting) {
+                  <span>🚀</span>
+                }
+                {{ isExecuting ? 'Ejecutando...' : 'Ejecutar' }}
               </button>
             </div>
+          </form>
+          <!-- Preview Command Section -->
+          @if (showPreview) {
+            <div class="preview-section">
+              <div class="preview-header">
+                <h4>👁️ Previsualización del Comando</h4>
+                <button class="btn btn-secondary btn-sm" (click)="onClosePreview()">
+                  ✕ Cerrar
+                </button>
+              </div>
+              <app-terminal-output
+                [stdout]="previewCommand"
+                [stderr]="''"
+                [exitCode]="0"
+                [status]="'PREVIEW'"
+                [targetHostname]="getSelectedAsset()?.hostname || ''"
+                [targetIp]="getSelectedAsset()?.ip || ''"
+                [commandName]="tool.name || ''">
+              </app-terminal-output>
+            </div>
+          }
+          <!-- Execution Result with Enhanced Error Display -->
+          @if (executionResult !== null) {
+            <div class="execution-result" data-testid="run-modal-result">
+              <!-- Result Header -->
+              <div class="result-header">
+                <h4 class="result-title">
+                  <span class="exec-status"
+                    [class.exec-status--success]="executionResult.status === 'SUCCESS'"
+                    [class.exec-status--failed]="executionResult.status === 'FAILED'"
+                    [class.exec-status--error]="executionResult.status === 'ERROR'"
+                    data-testid="run-modal-result-status">
+                    {{ getStatusIcon(executionResult.status) }} {{ executionResult.status }}
+                  </span>
+                  @if (executionId) {
+                    <span class="execution-id">ID: {{ executionId.substring(0, 8) }}...</span>
+                  }
+                </h4>
+                <!-- Exit Code and Duration -->
+                @if (executionResult.exitCode !== undefined || getExecutionDuration()) {
+                  <div class="result-meta">
+                    @if (executionResult.exitCode !== undefined) {
+                      <span
+                        class="exit-code"
+                        data-testid="run-modal-result-exitcode">
+                        Exit Code: {{ executionResult.exitCode }}
+                      </span>
+                    }
+                    @if (getExecutionDuration()) {
+                      <span
+                        class="duration"
+                        data-testid="run-modal-result-duration">
+                        Duración: {{ getExecutionDuration() }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+              <!-- Error Details (only for FAILED or ERROR) -->
+              @if ((executionResult.status === 'FAILED' || executionResult.status === 'ERROR') && (executionResult.errorCode || executionResult.failureStage)) {
+                <div class="exec-error__section"
+                  >
+                  <h5>🔍 Detalles del Error</h5>
+                  <div class="error-details">
+                    @if (executionResult.failureStage) {
+                      <div class="error-item">
+                        <span class="error-label">Etapa:</span>
+                        <span class="failure-stage" data-testid="run-modal-failure-stage">{{ executionResult.failureStage }}</span>
+                      </div>
+                    }
+                    @if (executionResult.errorCode) {
+                      <div class="error-item">
+                        <span class="error-label">Código:</span>
+                        <span class="error-code" data-testid="run-modal-error-code">{{ executionResult.errorCode }}</span>
+                      </div>
+                    }
+                    @if (executionResult.errorReason) {
+                      <div class="error-item">
+                        <span class="error-label">Motivo:</span>
+                        <span class="error-reason" data-testid="run-modal-error-reason">{{ executionResult.errorReason }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              <!-- JSON Response Block (only if responseJson exists) -->
+              @if (executionResult.responseJson) {
+                <div class="exec-json__section" data-testid="run-modal-response-json">
+                  <h5>📄 Respuesta JSON</h5>
+                  <div class="json-container">
+                    <pre class="json-content">{{ getPrettyJson(executionResult.responseJson) }}</pre>
+                    <div class="json-actions">
+                      <button class="btn btn-sm btn-secondary"
+                        (click)="copyJson(executionResult.responseJson)"
+                        data-testid="run-modal-response-json-copy">
+                        📋 Copiar JSON
+                      </button>
+                      <button class="btn btn-sm btn-secondary"
+                        (click)="downloadJson(executionResult.responseJson, executionId)"
+                        data-testid="run-modal-response-json-download">
+                        💾 Descargar JSON
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+              <!-- Terminal Output -->
+              <div class="terminal-block">
+                <app-terminal-output
+                  [stdout]="executionResult.stdout || ''"
+                  [stderr]="executionResult.stderr || ''"
+                  [exitCode]="executionResult.exitCode || 0"
+                  [status]="executionResult.status"
+                  [targetHostname]="getSelectedAsset()?.hostname || ''"
+                  [targetIp]="getSelectedAsset()?.ip || ''"
+                  [commandName]="tool.name || ''"
+                  [executionId]="executionId || undefined">
+                </app-terminal-output>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Confirmation Dialog -->
+      @if (showConfirmationDialog) {
+        <div class="confirmation-overlay" data-testid="run-modal-confirm">
+          <div class="confirmation-modal">
+            <h3>⚠️ Confirmación Requerida</h3>
+            <p>Esta herramienta requiere confirmación. ¿Estás seguro de que quieres ejecutar <strong>{{ tool?.name }}</strong>?</p>
+            <p class="confirmation-warning">Esta acción puede realizar cambios en el sistema.</p>
+            <div class="confirmation-actions">
+              <button class="btn btn-secondary"
+                (click)="onCancelConfirmation()"
+                data-testid="confirm-cancel">
+                Cancelar
+              </button>
+              <button class="btn btn-danger"
+                (click)="onConfirm()"
+                data-testid="confirm-execute">
+                ✅ Confirmar y Ejecutar
+              </button>
+            </div>
           </div>
         </div>
-
-        <!-- Terminal Output -->
-        <div class="terminal-block">
-          <app-terminal-output
-            [stdout]="executionResult.stdout || ''"
-            [stderr]="executionResult.stderr || ''"
-            [exitCode]="executionResult.exitCode || 0"
-            [status]="executionResult.status"
-            [targetHostname]="getSelectedAsset()?.hostname || ''"
-            [targetIp]="getSelectedAsset()?.ip || ''"
-            [commandName]="tool.name || ''"
-            [executionId]="executionId || undefined">
-          </app-terminal-output>
-        </div>
-      </div>
-    </div>
-
-    <!-- Confirmation Dialog -->
-    <div class="confirmation-overlay" *ngIf="showConfirmationDialog" data-testid="run-modal-confirm">
-      <div class="confirmation-modal">
-        <h3>⚠️ Confirmación Requerida</h3>
-        <p>Esta herramienta requiere confirmación. ¿Estás seguro de que quieres ejecutar <strong>{{ tool?.name }}</strong>?</p>
-        <p class="confirmation-warning">Esta acción puede realizar cambios en el sistema.</p>
-        <div class="confirmation-actions">
-          <button class="btn btn-secondary" 
-                  (click)="onCancelConfirmation()"
-                  data-testid="confirm-cancel">
-            Cancelar
-          </button>
-          <button class="btn btn-danger" 
-                  (click)="onConfirm()"
-                  data-testid="confirm-execute">
-            ✅ Confirmar y Ejecutar
-          </button>
-        </div>
-      </div>
+      }
     </div>
   </div>
-</div>

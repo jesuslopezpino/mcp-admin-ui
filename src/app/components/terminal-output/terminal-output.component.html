@@ -1,35 +1,43 @@
 <div class="terminal-container">
   <div class="terminal-header">
     <div class="terminal-info-row">
-      <div class="target-info" *ngIf="targetHostname || targetIp">
-        <span class="info-label">🎯 Destino:</span>
-        <span class="info-value">{{ getTargetDisplayName() }}</span>
-      </div>
-      <div class="command-info" *ngIf="commandName">
-        <span class="info-label">🔧 Comando:</span>
-        <span class="info-value">{{ getCommandDisplayName() }}</span>
-      </div>
+      @if (targetHostname || targetIp) {
+        <div class="target-info">
+          <span class="info-label">🎯 Destino:</span>
+          <span class="info-value">{{ getTargetDisplayName() }}</span>
+        </div>
+      }
+      @if (commandName) {
+        <div class="command-info">
+          <span class="info-label">🔧 Comando:</span>
+          <span class="info-value">{{ getCommandDisplayName() }}</span>
+        </div>
+      }
       <div class="terminal-status" [style.color]="getStatusColor()">
         <span class="status-icon">{{ getStatusIcon() }}</span>
         {{ status }} (Exit Code: {{ exitCode }})
       </div>
     </div>
   </div>
-  
+
   <div class="terminal-body" data-testid="run-modal-stdout">
     <pre class="terminal-output">{{ getDisplayOutput() }}</pre>
-    <div class="truncate-notice" *ngIf="isTruncated && !showFullOutput">
-      <button class="btn-expand" (click)="toggleOutput()" data-testid="terminal-expand">
-        👁️ Ver todo ({{formattedOutput.length}} caracteres)
-      </button>
-    </div>
-    <div class="truncate-notice" *ngIf="isTruncated && showFullOutput">
-      <button class="btn-collapse" (click)="toggleOutput()">
-        🔼 Ocultar
-      </button>
-    </div>
+    @if (isTruncated && !showFullOutput) {
+      <div class="truncate-notice">
+        <button class="btn-expand" (click)="toggleOutput()" data-testid="terminal-expand">
+          👁️ Ver todo ({{formattedOutput.length}} caracteres)
+        </button>
+      </div>
+    }
+    @if (isTruncated && showFullOutput) {
+      <div class="truncate-notice">
+        <button class="btn-collapse" (click)="toggleOutput()">
+          🔼 Ocultar
+        </button>
+      </div>
+    }
   </div>
-  
+
   <div class="terminal-footer">
     <div class="terminal-actions">
       <button class="btn-copy" (click)="copyToClipboard()" title="Copiar al portapapeles" data-testid="terminal-output-copy">
@@ -46,44 +54,48 @@
 </div>
 
 <!-- Fullscreen Modal -->
-<div class="fullscreen-overlay" *ngIf="isFullscreen" (click)="closeFullscreen()">
-  <div class="fullscreen-terminal" (click)="$event.stopPropagation()">
-    <div class="fullscreen-header">
-      <div class="fullscreen-info-row">
-        <div class="target-info" *ngIf="targetHostname || targetIp">
-          <span class="info-label">🎯 Destino:</span>
-          <span class="info-value">{{ getTargetDisplayName() }}</span>
+@if (isFullscreen) {
+  <div class="fullscreen-overlay" (click)="closeFullscreen()">
+    <div class="fullscreen-terminal" (click)="$event.stopPropagation()">
+      <div class="fullscreen-header">
+        <div class="fullscreen-info-row">
+          @if (targetHostname || targetIp) {
+            <div class="target-info">
+              <span class="info-label">🎯 Destino:</span>
+              <span class="info-value">{{ getTargetDisplayName() }}</span>
+            </div>
+          }
+          @if (commandName) {
+            <div class="command-info">
+              <span class="info-label">🔧 Comando:</span>
+              <span class="info-value">{{ getCommandDisplayName() }}</span>
+            </div>
+          }
+          <div class="terminal-status" [style.color]="getStatusColor()">
+            <span class="status-icon">{{ getStatusIcon() }}</span>
+            {{ status }} (Exit Code: {{ exitCode }})
+          </div>
         </div>
-        <div class="command-info" *ngIf="commandName">
-          <span class="info-label">🔧 Comando:</span>
-          <span class="info-value">{{ getCommandDisplayName() }}</span>
-        </div>
-        <div class="terminal-status" [style.color]="getStatusColor()">
-          <span class="status-icon">{{ getStatusIcon() }}</span>
-          {{ status }} (Exit Code: {{ exitCode }})
-        </div>
-      </div>
-      <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
-        ✕
-      </button>
-    </div>
-    
-    <div class="fullscreen-body">
-      <pre class="terminal-output fullscreen">{{ formattedOutput }}</pre>
-    </div>
-    
-    <div class="fullscreen-footer">
-      <div class="fullscreen-actions">
-        <button class="btn-copy" (click)="copyToClipboard()" title="Copy to clipboard">
-          📋 Copy
-        </button>
-        <button class="btn-download" (click)="downloadOutput()" title="Download output">
-          💾 Download
-        </button>
         <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
-          ✕ Close
+          ✕
         </button>
+      </div>
+      <div class="fullscreen-body">
+        <pre class="terminal-output fullscreen">{{ formattedOutput }}</pre>
+      </div>
+      <div class="fullscreen-footer">
+        <div class="fullscreen-actions">
+          <button class="btn-copy" (click)="copyToClipboard()" title="Copy to clipboard">
+            📋 Copy
+          </button>
+          <button class="btn-download" (click)="downloadOutput()" title="Download output">
+            💾 Download
+          </button>
+          <button class="btn-close-fullscreen" (click)="closeFullscreen()" title="Close fullscreen">
+            ✕ Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

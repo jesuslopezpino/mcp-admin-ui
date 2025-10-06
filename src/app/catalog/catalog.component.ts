@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ApiService, ToolDetails } from '../services/api.service';
 import { Tool, Asset } from '../models/api';
@@ -13,7 +13,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-catalog',
-    imports: [CommonModule, FormsModule, RunToolModalComponent, TargetSelectorComponent, CategoryGridComponent, CategoryToolsComponent, BreadcrumbComponent],
+    imports: [FormsModule, RunToolModalComponent, TargetSelectorComponent, CategoryGridComponent, CategoryToolsComponent, BreadcrumbComponent],
     templateUrl: './catalog.component.html',
     styleUrl: './catalog.component.scss'
 })

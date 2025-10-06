@@ -6,7 +6,7 @@
       </svg>
       Volver a Categorías
     </button>
-    
+
     <div class="category-info">
       <div class="category-icon">{{ categoryIcon }}</div>
       <div class="category-details">
@@ -17,32 +17,32 @@
   </div>
 
   <div class="tools-grid" data-testid="tools-grid">
-    <div class="tool-card" 
-         *ngFor="let tool of tools" 
-         (click)="selectTool(tool.id)"
-         [attr.data-testid]="'tool-card-' + tool.id"
-         [class.requires-confirmation]="tool.requiresConfirmation">
-      
-      <div class="tool-header">
-        <div class="tool-icon">🔧</div>
-        <div class="tool-badge" *ngIf="tool.requiresConfirmation">⚠️</div>
-      </div>
-      
-      <div class="tool-content">
-        <h3 class="tool-name">{{ tool.name }}</h3>
-        <p class="tool-description">{{ tool.description }}</p>
-      </div>
-      
-      <div class="tool-footer">
-        <div class="tool-type" [class]="tool.requiresConfirmation ? 'confirmation' : 'automatic'">
-          {{ tool.requiresConfirmation ? 'Requiere confirmación' : 'Automático' }}
+    @for (tool of tools; track tool) {
+      <div class="tool-card"
+        (click)="selectTool(tool.id)"
+        [attr.data-testid]="'tool-card-' + tool.id"
+        [class.requires-confirmation]="tool.requiresConfirmation">
+        <div class="tool-header">
+          <div class="tool-icon">🔧</div>
+          @if (tool.requiresConfirmation) {
+            <div class="tool-badge">⚠️</div>
+          }
         </div>
-        <div class="tool-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <div class="tool-content">
+          <h3 class="tool-name">{{ tool.name }}</h3>
+          <p class="tool-description">{{ tool.description }}</p>
+        </div>
+        <div class="tool-footer">
+          <div class="tool-type" [class]="tool.requiresConfirmation ? 'confirmation' : 'automatic'">
+            {{ tool.requiresConfirmation ? 'Requiere confirmación' : 'Automático' }}
+          </div>
+          <div class="tool-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 </div>

@@ -1,10 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Category, CategoryService } from '../../services/category.service';
 
 @Component({
     selector: 'app-category-grid',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './category-grid.component.html',
     styleUrl: './category-grid.component.scss'
 })

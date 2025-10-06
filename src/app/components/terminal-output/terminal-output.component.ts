@@ -1,9 +1,9 @@
 import { Component, Input, OnInit, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
     selector: 'app-terminal-output',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './terminal-output.component.html',
     styleUrls: ['./terminal-output.component.css']
 })

@@ -3,30 +3,30 @@
     <h2>🛠️ Categorías de Herramientas</h2>
     <p>Selecciona una categoría para ver las herramientas disponibles</p>
   </div>
-  
+
   <div class="categories-container" data-testid="categories-container">
-    <div class="category-card" 
-         *ngFor="let category of categories" 
-         (click)="selectCategory(category.id)"
-         [attr.data-testid]="'category-card-' + category.id"
-         [style.background]="'linear-gradient(135deg, ' + category.color + ' 0%, ' + category.color + '80 100%)'">
-      
-      <div class="category-icon">{{ category.icon }}</div>
-      
-      <div class="category-content">
-        <h3 class="category-name">{{ category.name }}</h3>
-        <p class="category-description">{{ category.description }}</p>
-        <div class="tool-count" *ngIf="getToolCount(category.id) > 0">
-          <span class="count-badge">{{ getToolCount(category.id) }}</span>
-          <span class="count-text">{{ getToolCount(category.id) === 1 ? 'herramienta' : 'herramientas' }}</span>
+    @for (category of categories; track category) {
+      <div class="category-card"
+        (click)="selectCategory(category.id)"
+        [attr.data-testid]="'category-card-' + category.id"
+        [style.background]="'linear-gradient(135deg, ' + category.color + ' 0%, ' + category.color + '80 100%)'">
+        <div class="category-icon">{{ category.icon }}</div>
+        <div class="category-content">
+          <h3 class="category-name">{{ category.name }}</h3>
+          <p class="category-description">{{ category.description }}</p>
+          @if (getToolCount(category.id) > 0) {
+            <div class="tool-count">
+              <span class="count-badge">{{ getToolCount(category.id) }}</span>
+              <span class="count-text">{{ getToolCount(category.id) === 1 ? 'herramienta' : 'herramientas' }}</span>
+            </div>
+          }
+        </div>
+        <div class="category-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
       </div>
-      
-      <div class="category-arrow">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
+    }
   </div>
 </div>

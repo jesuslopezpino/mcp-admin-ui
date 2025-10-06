@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
@@ -14,7 +14,7 @@ import { environment } from '../../environments/environment';
 
 @Component({
     selector: 'app-run-tool-modal',
-    imports: [CommonModule, ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
+    imports: [ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
     templateUrl: './run-tool-modal.component.html',
     styleUrl: './run-tool-modal.component.scss'
 })

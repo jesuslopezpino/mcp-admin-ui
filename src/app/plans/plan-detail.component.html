@@ -3,276 +3,280 @@
   <div class="header">
     <h1>{{ isNew ? 'Create Plan' : 'Edit Plan' }}</h1>
     <div class="header-actions">
-      <button 
-        class="btn btn-secondary" 
+      <button
+        class="btn btn-secondary"
         (click)="router.navigate(['/plans'])"
         data-testid="back-btn">
         <i class="icon-arrow-left"></i> Back
       </button>
-      <button 
-        class="btn btn-primary" 
+      <button
+        class="btn btn-primary"
         (click)="savePlan()"
         [disabled]="saving"
         data-testid="plan-save">
         <i class="icon-save"></i> {{ saving ? 'Saving...' : 'Save' }}
       </button>
-      <button 
-        class="btn btn-success" 
+      <button
+        class="btn btn-success"
         (click)="saveAndBack()"
         [disabled]="saving"
         data-testid="save-and-back-btn">
         Save & Back
       </button>
-      <button 
-        *ngIf="!isNew" 
-        class="btn btn-warning" 
-        (click)="runPlan()"
-        data-testid="plan-run">
-        <i class="icon-play"></i> Run Plan
-      </button>
+      @if (!isNew) {
+        <button
+          class="btn btn-warning"
+          (click)="runPlan()"
+          data-testid="plan-run">
+          <i class="icon-play"></i> Run Plan
+        </button>
+      }
     </div>
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="icon-error"></i>
-    {{ error }}
-    <button class="btn btn-sm" (click)="error = null">Dismiss</button>
-  </div>
+  @if (error) {
+    <div class="error-message">
+      <i class="icon-error"></i>
+      {{ error }}
+      <button class="btn btn-sm" (click)="error = null">Dismiss</button>
+    </div>
+  }
 
   <!-- Loading -->
-  <div *ngIf="loading" class="loading">
-    <i class="icon-spinner"></i> Loading plan...
-  </div>
+  @if (loading) {
+    <div class="loading">
+      <i class="icon-spinner"></i> Loading plan...
+    </div>
+  }
 
   <!-- Plan Form -->
-  <div *ngIf="!loading" class="plan-form">
-    <!-- Basic Information -->
-    <div class="form-section">
-      <h2>Basic Information</h2>
-      
-      <div class="form-group">
-        <label for="plan-name">Name *</label>
-        <input 
-          type="text" 
-          id="plan-name"
-          [(ngModel)]="planForm.name"
-          placeholder="Enter plan name"
-          data-testid="plan-name">
-      </div>
-      
-      <div class="form-group">
-        <label for="plan-description">Description</label>
-        <textarea 
-          id="plan-description"
-          [(ngModel)]="planForm.description"
-          placeholder="Enter plan description"
-          rows="3"></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label for="plan-enabled">Enabled</label>
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            id="plan-enabled"
-            [(ngModel)]="planForm.enabled"
-            data-testid="plan-enabled">
-          <span>Plan is enabled</span>
-        </label>
-      </div>
-      
-      <div class="form-group">
-        <label for="plan-tags">Tags</label>
-        <div class="tags-input">
-          <div class="tags-list">
-            <span *ngFor="let tag of planForm.tags" class="tag">
-              {{ tag }}
-              <button type="button" (click)="removeTag(tag)" class="tag-remove">×</button>
-            </span>
+  @if (!loading) {
+    <div class="plan-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h2>Basic Information</h2>
+        <div class="form-group">
+          <label for="plan-name">Name *</label>
+          <input
+            type="text"
+            id="plan-name"
+            [(ngModel)]="planForm.name"
+            placeholder="Enter plan name"
+            data-testid="plan-name">
           </div>
-          <div class="tag-input">
-            <input 
-              type="text" 
-              [(ngModel)]="newTag"
-              (keyup.enter)="addTag()"
-              placeholder="Add tag..."
-              data-testid="plan-tags">
-            <button type="button" (click)="addTag()" class="btn btn-sm">Add</button>
+          <div class="form-group">
+            <label for="plan-description">Description</label>
+            <textarea
+              id="plan-description"
+              [(ngModel)]="planForm.description"
+              placeholder="Enter plan description"
+            rows="3"></textarea>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Steps Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <h2>Steps</h2>
-        <button 
-          class="btn btn-primary" 
-          (click)="addStep()"
-          data-testid="add-step-btn">
-          <i class="icon-plus"></i> Add Step
-        </button>
-      </div>
-      
-      <div *ngIf="steps.length === 0" class="empty-steps">
-        <p>No steps defined. Add your first step to get started.</p>
-      </div>
-      
-      <div *ngFor="let step of steps; let i = index" class="step-card" [attr.data-testid]="'step-row-' + i">
-        <div class="step-header">
-          <h3>Step {{ step.orderIndex }}</h3>
-          <div class="step-actions">
-            <button 
-              class="btn btn-sm" 
-              (click)="moveStepUp(i)"
-              [disabled]="i === 0"
-              [attr.data-testid]="'step-move-up-' + i">
-              ↑
-            </button>
-            <button 
-              class="btn btn-sm" 
-              (click)="moveStepDown(i)"
-              [disabled]="i === steps.length - 1"
-              [attr.data-testid]="'step-move-down-' + i">
-              ↓
-            </button>
-            <button 
-              class="btn btn-sm btn-danger" 
-              (click)="removeStep(i)"
-              [attr.data-testid]="'step-remove-' + i">
-              🗑
-            </button>
-          </div>
-        </div>
-        
-        <div class="step-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label [for]="'step-tool-' + i">Tool Name *</label>
-              <select 
-                [id]="'step-tool-' + i"
-                [(ngModel)]="step.toolName"
-                [attr.data-testid]="'step-tool-' + i">
-                <option value="">Select a tool...</option>
-                <option *ngFor="let tool of tools" [value]="tool.name">
-                  {{ tool.name }} - {{ tool.description }}
-                </option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label [for]="'step-onfail-' + i">On Fail</label>
-              <select 
-                [id]="'step-onfail-' + i"
-                [(ngModel)]="step.onFail"
-                [attr.data-testid]="'step-onfail-' + i">
-                <option *ngFor="let option of getOnFailOptions()" [value]="option">
-                  {{ option }}
-                </option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label [for]="'step-retry-' + i">Retry Count</label>
-              <input 
-                type="number" 
-                [id]="'step-retry-' + i"
-                [(ngModel)]="step.retryCount"
-                min="0"
-                [attr.data-testid]="'step-retry-' + i">
-            </div>
-            
-            <div class="form-group">
-              <label [for]="'step-delay-' + i">Retry Delay (ms)</label>
-              <input 
-                type="number" 
-                [id]="'step-delay-' + i"
-                [(ngModel)]="step.retryDelayMs"
-                min="0"
-                [attr.data-testid]="'step-delay-' + i">
-            </div>
-            
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  [(ngModel)]="step.requiresConfirm"
-                  [attr.data-testid]="'step-confirm-' + i">
-                <span>Requires Confirmation</span>
+          <div class="form-group">
+            <label for="plan-enabled">Enabled</label>
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                id="plan-enabled"
+                [(ngModel)]="planForm.enabled"
+                data-testid="plan-enabled">
+                <span>Plan is enabled</span>
               </label>
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label [for]="'step-args-' + i">Arguments (JSON)</label>
-            <textarea 
-              [id]="'step-args-' + i"
-              [(ngModel)]="step.argumentsJson"
-              (ngModelChange)="updateJsonValue(step, $event)"
-              placeholder='{"key": "value"}'
-              rows="4"
-              [attr.data-testid]="'step-args-' + i"></textarea>
-            <small class="form-help">Enter valid JSON for tool arguments</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div class="form-group">
+              <label for="plan-tags">Tags</label>
+              <div class="tags-input">
+                <div class="tags-list">
+                  @for (tag of planForm.tags; track tag) {
+                    <span class="tag">
+                      {{ tag }}
+                      <button type="button" (click)="removeTag(tag)" class="tag-remove">×</button>
+                    </span>
+                  }
+                </div>
+                <div class="tag-input">
+                  <input
+                    type="text"
+                    [(ngModel)]="newTag"
+                    (keyup.enter)="addTag()"
+                    placeholder="Add tag..."
+                    data-testid="plan-tags">
+                    <button type="button" (click)="addTag()" class="btn btn-sm">Add</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Steps Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <h2>Steps</h2>
+                <button
+                  class="btn btn-primary"
+                  (click)="addStep()"
+                  data-testid="add-step-btn">
+                  <i class="icon-plus"></i> Add Step
+                </button>
+              </div>
+              @if (steps.length === 0) {
+                <div class="empty-steps">
+                  <p>No steps defined. Add your first step to get started.</p>
+                </div>
+              }
+              @for (step of steps; track step; let i = $index) {
+                <div class="step-card" [attr.data-testid]="'step-row-' + i">
+                  <div class="step-header">
+                    <h3>Step {{ step.orderIndex }}</h3>
+                    <div class="step-actions">
+                      <button
+                        class="btn btn-sm"
+                        (click)="moveStepUp(i)"
+                        [disabled]="i === 0"
+                        [attr.data-testid]="'step-move-up-' + i">
+                        ↑
+                      </button>
+                      <button
+                        class="btn btn-sm"
+                        (click)="moveStepDown(i)"
+                        [disabled]="i === steps.length - 1"
+                        [attr.data-testid]="'step-move-down-' + i">
+                        ↓
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        (click)="removeStep(i)"
+                        [attr.data-testid]="'step-remove-' + i">
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                  <div class="step-form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label [for]="'step-tool-' + i">Tool Name *</label>
+                        <select
+                          [id]="'step-tool-' + i"
+                          [(ngModel)]="step.toolName"
+                          [attr.data-testid]="'step-tool-' + i">
+                          <option value="">Select a tool...</option>
+                          @for (tool of tools; track tool) {
+                            <option [value]="tool.name">
+                              {{ tool.name }} - {{ tool.description }}
+                            </option>
+                          }
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label [for]="'step-onfail-' + i">On Fail</label>
+                        <select
+                          [id]="'step-onfail-' + i"
+                          [(ngModel)]="step.onFail"
+                          [attr.data-testid]="'step-onfail-' + i">
+                          @for (option of getOnFailOptions(); track option) {
+                            <option [value]="option">
+                              {{ option }}
+                            </option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label [for]="'step-retry-' + i">Retry Count</label>
+                        <input
+                          type="number"
+                          [id]="'step-retry-' + i"
+                          [(ngModel)]="step.retryCount"
+                          min="0"
+                          [attr.data-testid]="'step-retry-' + i">
+                        </div>
+                        <div class="form-group">
+                          <label [for]="'step-delay-' + i">Retry Delay (ms)</label>
+                          <input
+                            type="number"
+                            [id]="'step-delay-' + i"
+                            [(ngModel)]="step.retryDelayMs"
+                            min="0"
+                            [attr.data-testid]="'step-delay-' + i">
+                          </div>
+                          <div class="form-group">
+                            <label class="checkbox-label">
+                              <input
+                                type="checkbox"
+                                [(ngModel)]="step.requiresConfirm"
+                                [attr.data-testid]="'step-confirm-' + i">
+                                <span>Requires Confirmation</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label [for]="'step-args-' + i">Arguments (JSON)</label>
+                            <textarea
+                              [id]="'step-args-' + i"
+                              [(ngModel)]="step.argumentsJson"
+                              (ngModelChange)="updateJsonValue(step, $event)"
+                              placeholder='{"key": "value"}'
+                              rows="4"
+                            [attr.data-testid]="'step-args-' + i"></textarea>
+                            <small class="form-help">Enter valid JSON for tool arguments</small>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
 
-  <!-- Run Plan Modal -->
-  <div *ngIf="showRunModal" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Run Plan</h3>
-        <button type="button" (click)="cancelRun()" class="modal-close">×</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="run-asset">Target Asset (Optional)</label>
-          <select id="run-asset" [(ngModel)]="runForm.assetId">
-            <option value="">Select an asset...</option>
-            <option *ngFor="let asset of assets" [value]="asset.id">
-              {{ asset.hostname || asset.ip }} ({{ asset.os }})
-            </option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="run-requested-by">Requested By *</label>
-          <input 
-            type="text" 
-            id="run-requested-by"
-            [(ngModel)]="runForm.requestedBy"
-            placeholder="Enter your name">
-        </div>
-        
-        <div class="form-group">
-          <label for="run-correlation">Correlation ID (Optional)</label>
-          <input 
-            type="text" 
-            id="run-correlation"
-            [(ngModel)]="runForm.correlationId"
-            placeholder="Enter correlation ID">
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button type="button" (click)="cancelRun()" class="btn btn-secondary">
-          Cancel
-        </button>
-        <button 
-          type="button" 
-          (click)="executeRun()" 
-          class="btn btn-primary"
-          [disabled]="!runForm.requestedBy.trim()">
-          Run Plan
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+              <!-- Run Plan Modal -->
+              @if (showRunModal) {
+                <div class="modal-overlay">
+                  <div class="modal">
+                    <div class="modal-header">
+                      <h3>Run Plan</h3>
+                      <button type="button" (click)="cancelRun()" class="modal-close">×</button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label for="run-asset">Target Asset (Optional)</label>
+                        <select id="run-asset" [(ngModel)]="runForm.assetId">
+                          <option value="">Select an asset...</option>
+                          @for (asset of assets; track asset) {
+                            <option [value]="asset.id">
+                              {{ asset.hostname || asset.ip }} ({{ asset.os }})
+                            </option>
+                          }
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="run-requested-by">Requested By *</label>
+                        <input
+                          type="text"
+                          id="run-requested-by"
+                          [(ngModel)]="runForm.requestedBy"
+                          placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                          <label for="run-correlation">Correlation ID (Optional)</label>
+                          <input
+                            type="text"
+                            id="run-correlation"
+                            [(ngModel)]="runForm.correlationId"
+                            placeholder="Enter correlation ID">
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" (click)="cancelRun()" class="btn btn-secondary">
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            (click)="executeRun()"
+                            class="btn btn-primary"
+                            [disabled]="!runForm.requestedBy.trim()">
+                            Run Plan
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>

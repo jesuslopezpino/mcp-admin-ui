@@ -44,7 +44,7 @@ export class PlansPrimeComponent implements OnInit {
     { field: 'description', header: 'Description', width: '30%' },
     { field: 'tagsDisplay', header: 'Tags', width: '15%' },
     { field: 'enabled', header: 'Status', sortable: true, width: '10%', type: 'status' },
-    { field: 'steps', header: 'Steps', sortable: true, width: '10%' },
+    { field: 'stepsCount', header: 'Steps', sortable: true, width: '10%' },
     { field: 'createdAt', header: 'Created', sortable: true, width: '15%', type: 'date' },
     { field: 'actions', header: 'Actions', width: '20%', type: 'actions' }
   ];
@@ -121,7 +121,7 @@ export class PlansPrimeComponent implements OnInit {
           console.log('Processing plan:', plan);
           const processedPlan = {
             ...plan,
-            steps: plan.steps ? plan.steps.length : 0, // Convert steps array to count
+            stepsCount: plan.steps ? plan.steps.length : 0, // Create display count
             tagsDisplay: plan.tags ? plan.tags.join(', ') : '' // Create display version of tags
           };
           console.log('Processed plan:', processedPlan);

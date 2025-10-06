@@ -18,6 +18,7 @@
   background-color: var(--surface-card);
   border-bottom: 1px solid var(--surface-border);
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .layout-topbar-logo-container {
@@ -65,6 +66,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .layout-topbar-action {

@@ -112,11 +112,22 @@ export class PlansPrimeComponent implements OnInit {
     
     this.apiService.getPlans({}).subscribe({
       next: (response) => {
-        this.plans = (response.content || response).map(plan => ({
-          ...plan,
-          steps: plan.steps ? plan.steps.length : 0, // Convert steps array to count
-          tags: plan.tags ? plan.tags.join(', ') : '' // Convert tags array to string
-        }));
+        console.log('Raw response:', response);
+        const plansData = response.content || response;
+        console.log('Plans data:', plansData);
+        
+        this.plans = plansData.map(plan => {
+          console.log('Processing plan:', plan);
+          const processedPlan = {
+            ...plan,
+            steps: plan.steps ? plan.steps.length : 0, // Convert steps array to count
+            tags: plan.tags ? plan.tags.join(', ') : '' // Convert tags array to string
+          };
+          console.log('Processed plan:', processedPlan);
+          return processedPlan;
+        });
+        
+        console.log('Final plans:', this.plans);
         this.loading = false;
       },
       error: (error) => {

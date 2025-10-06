@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ExecutionPollingService } from './execution-polling.service';
 import { ApiService } from './api.service';
 import { of, throwError } from 'rxjs';
 import { ExecStatus } from '../models/api';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ExecutionPollingService', () => {
   let service: ExecutionPollingService;
@@ -13,12 +14,14 @@ describe('ExecutionPollingService', () => {
     const apiServiceSpy = jasmine.createSpyObj('ApiService', ['getExecution']);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         ExecutionPollingService,
-        { provide: ApiService, useValue: apiServiceSpy }
-      ]
-    });
+        { provide: ApiService, useValue: apiServiceSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
 
     service = TestBed.inject(ExecutionPollingService);
     apiService = TestBed.inject(ApiService) as jasmine.SpyObj<ApiService>;

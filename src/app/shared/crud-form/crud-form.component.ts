@@ -83,15 +83,50 @@ export class CrudFormComponent {
   private _form = signal<FormGroup | null>(null);
   private _formData = signal<any>({});
   private _previewData = signal<any>({});
+  private _isSubmitting = signal<boolean>(false);
+  private _formErrors = signal<Record<string, string>>({});
 
   // Computed signals
   form = computed(() => this._form());
   formData = computed(() => this._formData());
   previewData = computed(() => this._previewData());
+  isSubmitting = computed(() => this._isSubmitting());
+  formErrors = computed(() => this._formErrors());
   
   isCreate = computed(() => this.mode() === 'create');
   isEdit = computed(() => this.mode() === 'edit');
   isView = computed(() => this.mode() === 'view');
+  
+  // Form state computed signals
+  isFormValid = computed(() => {
+    const form = this.form();
+    return form ? form.valid : false;
+  });
+  
+  isFormDirty = computed(() => {
+    const form = this.form();
+    return form ? form.dirty : false;
+  });
+  
+  hasFormErrors = computed(() => {
+    const errors = this.formErrors();
+    return Object.keys(errors).length > 0;
+  });
+  
+  // Field computed signals
+  fieldsBySection = computed(() => {
+    const config = this.config();
+    const sections = config.sections || [];
+    const result: Record<string, CrudFormField[]> = {};
+    
+    sections.forEach(section => {
+      result[section.name] = config.fields
+        .filter(field => field.section === section.name)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+    
+    return result;
+  });
   
   dialogTitle = computed(() => {
     const config = this.config();
@@ -112,27 +147,6 @@ export class CrudFormComponent {
   
   showSubmitButton = computed(() => !this.isView());
   
-  fieldsBySection = computed(() => {
-    const config = this.config();
-    const fields = config.fields.sort((a, b) => (a.order || 0) - (b.order || 0));
-    
-    if (!config.sections || config.sections.length === 0) {
-      return { 'default': fields };
-    }
-    
-    const grouped: { [key: string]: CrudFormField[] } = {};
-    config.sections.forEach(section => {
-      grouped[section.name] = fields.filter(field => field.section === section.name);
-    });
-    
-    // Add fields without section to default
-    const fieldsWithoutSection = fields.filter(field => !field.section);
-    if (fieldsWithoutSection.length > 0) {
-      grouped['default'] = fieldsWithoutSection;
-    }
-    
-    return grouped;
-  });
 
   constructor(private fb: FormBuilder) {
     // Initialize form when config or data changes
@@ -143,6 +157,23 @@ export class CrudFormComponent {
       
       if (config) {
         this.initializeForm(config, data, mode);
+      }
+    });
+
+    // Update form data when data input changes
+    effect(() => {
+      const data = this.data();
+      if (data) {
+        this._formData.set(data);
+        this.updatePreviewData();
+      }
+    });
+
+    // Update form errors when form validity changes
+    effect(() => {
+      const form = this.form();
+      if (form) {
+        this.updateFormErrors();
       }
     });
   }
@@ -208,8 +239,16 @@ export class CrudFormComponent {
     const form = this.form();
     if (!form || form.invalid) return;
     
+    this._isSubmitting.set(true);
     const formData = form.getRawValue();
+    
+    // Emit the save event
     this.onSave.emit(formData);
+    
+    // Reset submitting state after a short delay
+    setTimeout(() => {
+      this._isSubmitting.set(false);
+    }, 100);
   }
 
   onCancelClick(): void {
@@ -307,5 +346,32 @@ export class CrudFormComponent {
   getFieldClass(field: CrudFormField): string {
     // Return field-specific classes
     return 'flex flex-col gap-1';
+  }
+
+  private updateFormErrors(): void {
+    const form = this.form();
+    if (!form) return;
+
+    const errors: Record<string, string> = {};
+    
+    Object.keys(form.controls).forEach(key => {
+      const control = form.get(key);
+      if (control && control.errors && control.touched) {
+        const fieldErrors = control.errors;
+        if (fieldErrors['required']) {
+          errors[key] = 'This field is required';
+        } else if (fieldErrors['email']) {
+          errors[key] = 'Please enter a valid email';
+        } else if (fieldErrors['min']) {
+          errors[key] = `Minimum value is ${fieldErrors['min'].min}`;
+        } else if (fieldErrors['max']) {
+          errors[key] = `Maximum value is ${fieldErrors['max'].max}`;
+        } else {
+          errors[key] = 'Invalid value';
+        }
+      }
+    });
+
+    this._formErrors.set(errors);
   }
 }

@@ -113,6 +113,11 @@
 // Custom table styling to match Sakai CRUD
 :host ::ng-deep {
   .p-datatable {
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    
     .p-datatable-header {
       background: var(--surface-50);
       border-bottom: 1px solid var(--surface-border);
@@ -139,14 +144,112 @@
       padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--surface-200);
     }
+    
+    // Pagination styling
+    .p-paginator {
+      background: var(--surface-card);
+      border-top: 1px solid var(--surface-border);
+      padding: 1rem;
+      
+      .p-paginator-pages .p-paginator-page {
+        background: var(--surface-card);
+        border: 1px solid var(--surface-border);
+        color: var(--text-color);
+        border-radius: var(--border-radius);
+        margin: 0 0.125rem;
+        min-width: 2rem;
+        height: 2rem;
+        transition: all 0.2s;
+      }
+      
+      .p-paginator-pages .p-paginator-page:hover {
+        background: var(--surface-hover);
+        border-color: var(--primary-color);
+      }
+      
+      .p-paginator-pages .p-paginator-page.p-highlight {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--primary-color-text);
+      }
+      
+      .p-paginator-first,
+      .p-paginator-prev,
+      .p-paginator-next,
+      .p-paginator-last {
+        background: var(--surface-card);
+        border: 1px solid var(--surface-border);
+        color: var(--text-color);
+        border-radius: var(--border-radius);
+        margin: 0 0.125rem;
+        min-width: 2rem;
+        height: 2rem;
+        transition: all 0.2s;
+      }
+      
+      .p-paginator-first:hover,
+      .p-paginator-prev:hover,
+      .p-paginator-next:hover,
+      .p-paginator-last:hover {
+        background: var(--surface-hover);
+        border-color: var(--primary-color);
+      }
+      
+      .p-paginator-first:disabled,
+      .p-paginator-prev:disabled,
+      .p-paginator-next:disabled,
+      .p-paginator-last:disabled {
+        background: var(--surface-100);
+        border-color: var(--surface-200);
+        color: var(--text-color-secondary);
+        cursor: not-allowed;
+      }
+      
+      .p-dropdown {
+        border: 1px solid var(--surface-border);
+        border-radius: var(--border-radius);
+        background: var(--surface-card);
+        color: var(--text-color);
+      }
+    }
   }
   
   .p-button {
+    font-family: var(--font-family);
+    font-weight: 500;
+    border-radius: var(--border-radius);
     transition: all 0.2s;
+    border: 1px solid transparent;
     
     &.p-button-sm {
       padding: 0.375rem 0.75rem;
       font-size: 0.875rem;
+    }
+    
+    // Primary button styling
+    &:not(.p-button-outlined) {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: var(--primary-color-text);
+    }
+    
+    &:not(.p-button-outlined):hover {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      opacity: 0.9;
+    }
+    
+    // Outlined button styling
+    &.p-button-outlined {
+      background: transparent;
+      border-color: var(--surface-border);
+      color: var(--text-color);
+    }
+    
+    &.p-button-outlined:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary-color);
+      color: var(--primary-color);
     }
   }
   
@@ -162,6 +265,8 @@
     border-radius: var(--border-radius);
     padding: 0.5rem 0.75rem;
     font-family: var(--font-family);
+    background: var(--surface-card);
+    color: var(--text-color);
   }
   
   .p-inputtext:focus {
@@ -173,5 +278,6 @@
     border: 1px solid var(--surface-border);
     border-radius: var(--border-radius);
     background: var(--surface-card);
+    color: var(--text-color);
   }
 }

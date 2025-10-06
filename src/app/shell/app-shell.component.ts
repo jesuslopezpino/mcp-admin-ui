@@ -9,6 +9,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-app-shell',
@@ -32,6 +33,7 @@ import { MenuItem } from 'primeng/api';
 })
 export class AppShellComponent implements OnInit {
   sidebarVisible = false;
+  isDarkTheme = false;
   
   menuItems: MenuItem[] = [
     {
@@ -89,15 +91,13 @@ export class AppShellComponent implements OnInit {
     }
   ];
 
-  ngOnInit(): void {
-    // Initialize theme
-    this.initializeTheme();
-  }
+  constructor(private themeService: ThemeService) {}
 
-  private initializeTheme(): void {
-    // Set default theme to light
-    const theme = localStorage.getItem('theme') || 'light';
-    this.setTheme(theme);
+  ngOnInit(): void {
+    // Subscribe to theme changes
+    this.themeService.currentTheme$.subscribe(theme => {
+      this.isDarkTheme = theme === 'lara-dark-blue';
+    });
   }
 
   toggleSidebar(): void {
@@ -105,19 +105,6 @@ export class AppShellComponent implements OnInit {
   }
 
   toggleTheme(): void {
-    const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    this.setTheme(newTheme);
-  }
-
-  private setTheme(theme: string): void {
-    if (theme === 'dark') {
-      document.body.classList.add('dark');
-      document.body.classList.remove('light');
-    } else {
-      document.body.classList.add('light');
-      document.body.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
+    this.themeService.toggleTheme();
   }
 }

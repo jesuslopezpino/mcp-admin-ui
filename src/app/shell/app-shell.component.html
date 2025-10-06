@@ -22,7 +22,7 @@
       <button 
         pButton 
         type="button" 
-        icon="pi pi-sun" 
+        [icon]="isDarkTheme ? 'pi pi-sun' : 'pi pi-moon'" 
         class="p-button-text p-button-sm"
         (click)="toggleTheme()"
         data-testid="theme-toggle">

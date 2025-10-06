@@ -9,6 +9,9 @@ import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { ToolbarModule } from 'primeng/toolbar';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 export interface CrudColumn {
@@ -42,7 +45,10 @@ export interface CrudAction {
     TagModule,
     ConfirmDialogModule,
     ToastModule,
-    TooltipModule
+    TooltipModule,
+    ToolbarModule,
+    InputIconModule,
+    IconFieldModule
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './crud-table.component.html',
@@ -58,6 +64,8 @@ export class CrudTableComponent implements OnInit {
   @Input() showCreateButton: boolean = true;
   @Input() createButtonLabel: string = 'New';
   @Input() createButtonIcon: string = 'pi pi-plus';
+  @Input() showDeleteButton: boolean = false;
+  @Input() showExportButton: boolean = false;
   @Input() showFilters: boolean = true;
   @Input() filterFields: string[] = [];
   @Input() statusOptions: any[] = [];
@@ -72,6 +80,8 @@ export class CrudTableComponent implements OnInit {
   @Output() onCreate = new EventEmitter<void>();
   @Output() onEdit = new EventEmitter<any>();
   @Output() onDelete = new EventEmitter<any>();
+  @Output() onDeleteSelected = new EventEmitter<any[]>();
+  @Output() onExport = new EventEmitter<void>();
   @Output() onSelectionChange = new EventEmitter<any[]>();
   @Output() onGlobalFilterChange = new EventEmitter<string>();
   @Output() onStatusFilterChange = new EventEmitter<any>();
@@ -157,5 +167,13 @@ export class CrudTableComponent implements OnInit {
 
   shouldShowAction(action: CrudAction, item: any): boolean {
     return action.show ? action.show(item) : true;
+  }
+
+  onDeleteSelectedClick(): void {
+    this.onDeleteSelected.emit(this.selectedItems);
+  }
+
+  onExportClick(): void {
+    this.onExport.emit();
   }
 }

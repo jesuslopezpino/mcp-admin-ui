@@ -1,137 +1,131 @@
-<div class="crud-container">
-  <!-- Toolbar -->
-  <div class="toolbar-section">
-    <div class="toolbar-left">
-      <h2 class="page-title">{{ title }}</h2>
-      <p class="page-description">{{ description }}</p>
+<!-- Toolbar - Sakai Style -->
+<p-toolbar styleClass="mb-6">
+  <ng-template #start>
+    @if (showCreateButton) {
+      <p-button 
+        [label]="createButtonLabel" 
+        [icon]="createButtonIcon" 
+        (click)="onCreateClick()"
+        severity="secondary" 
+        class="mr-2"
+        data-testid="create-button">
+      </p-button>
+    }
+    @if (showDeleteButton) {
+      <p-button 
+        severity="secondary" 
+        label="Delete" 
+        icon="pi pi-trash" 
+        [outlined]="true" 
+        (click)="onDeleteSelectedClick()" 
+        [disabled]="!selectedItems || !selectedItems.length">
+      </p-button>
+    }
+  </ng-template>
+
+  <ng-template #end>
+    @if (showExportButton) {
+      <p-button 
+        label="Export" 
+        icon="pi pi-upload" 
+        severity="secondary" 
+        (click)="onExportClick()">
+      </p-button>
+    }
+  </ng-template>
+</p-toolbar>
+
+<!-- Table - Sakai Style -->
+<p-table
+  [value]="data" 
+  [loading]="loading"
+  [rows]="rows"
+  [columns]="columns"
+  [paginator]="showPagination"
+  [globalFilterFields]="filterFields"
+  [tableStyle]="{ 'min-width': '75rem' }"
+  [(selection)]="selectedItems"
+  [rowHover]="true"
+  dataKey="id"
+  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} {{ title.toLowerCase() }}"
+  [showCurrentPageReport]="true"
+  [rowsPerPageOptions]="rowsPerPageOptions">
+  
+  <ng-template #caption>
+    <div class="flex items-center justify-between">
+      <h5 class="m-0">Manage {{ title }}</h5>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText type="text" (input)="onGlobalFilterChangeEvent($event)" [placeholder]="'Search ' + title.toLowerCase() + '...'" />
+      </p-iconfield>
     </div>
-    <div class="toolbar-right">
-      @if (showCreateButton) {
-        <p-button 
-          [label]="createButtonLabel" 
-          [icon]="createButtonIcon" 
-          (click)="onCreateClick()"
-          severity="primary"
-          data-testid="create-button">
-        </p-button>
+  </ng-template>
+  
+  <ng-template #header>
+    <tr>
+      @if (showSelection) {
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
       }
-    </div>
-  </div>
+      @for (column of columns; track column.field) {
+        <th 
+          [pSortableColumn]="column.sortable ? column.field : undefined" 
+          [style.width]="column.width">
+          {{ column.header }}
+          @if (column.sortable) {
+            <p-sortIcon [field]="column.field" />
+          }
+        </th>
+      }
+    </tr>
+  </ng-template>
 
-  <!-- Filters -->
-  @if (showFilters) {
-    <div class="filters-section">
-      <div class="filters-left">
-        <p-button 
-          label="Clear" 
-          icon="pi pi-filter-slash" 
-          [outlined]="true" 
-          severity="secondary"
-          (click)="onClearFiltersClick()">
-        </p-button>
-      </div>
-      <div class="filters-right">
-        <span class="p-input-icon-left">
-          <i class="pi pi-search"></i>
-          <input 
-            pInputText 
-            type="text" 
-            [placeholder]="'Search ' + title.toLowerCase() + '...'" 
-            [value]="globalFilter"
-            (input)="onGlobalFilterChangeEvent($event)"
-            class="search-input" />
-        </span>
-        @if (statusOptions.length > 0) {
-          <p-select 
-            [options]="statusOptions" 
-            [ngModel]="selectedStatus"
-            (onChange)="onStatusFilterChangeEvent($event)"
-            placeholder="Filter by status"
-            class="status-filter">
-          </p-select>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- Table -->
-  <p-table 
-    [value]="data" 
-    [loading]="loading"
-    [paginator]="showPagination" 
-    [rows]="rows" 
-    [showCurrentPageReport]="true" 
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [rowsPerPageOptions]="rowsPerPageOptions"
-    [globalFilterFields]="filterFields"
-    [(selection)]="selectedItems"
-    dataKey="id"
-    styleClass="p-datatable-sm"
-    [tableStyle]="{'min-width': '50rem'}">
-    
-    <ng-template pTemplate="header">
-      <tr>
-        @if (showSelection) {
-          <th style="width: 3rem">
-            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-          </th>
-        }
-        @for (column of columns; track column.field) {
-          <th 
-            [pSortableColumn]="column.sortable ? column.field : undefined" 
-            [style.width]="column.width">
-            {{ column.header }}
-            @if (column.sortable) {
-              <p-sortIcon [field]="column.field"></p-sortIcon>
+  <ng-template #body let-item>
+    <tr>
+      @if (showSelection) {
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="item" />
+        </td>
+      }
+      @for (column of columns; track column.field) {
+        <td>
+          @switch (column.type) {
+            @case ('date') {
+              <span>{{ formatDate(item[column.field]) }}</span>
             }
-          </th>
-        }
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="body" let-item>
-      <tr>
-        @if (showSelection) {
-          <td>
-            <p-tableCheckbox [value]="item"></p-tableCheckbox>
-          </td>
-        }
-        @for (column of columns; track column.field) {
-          <td>
-            @switch (column.type) {
-              @case ('date') {
-                <span class="date-text">{{ formatDate(item[column.field]) }}</span>
-              }
-              @case ('status') {
-                <p-tag 
-                  [value]="getStatusLabel(item[column.field])" 
-                  [severity]="getSeverity(item[column.field])">
-                </p-tag>
-              }
-              @case ('actions') {
-                <div class="action-buttons">
-                  @for (action of actions; track action.label) {
-                    @if (shouldShowAction(action, item)) {
-                      <p-button 
-                        [icon]="action.icon" 
-                        [outlined]="true" 
-                        size="small"
-                        [severity]="action.severity"
-                        (click)="onActionClick(action, item)"
-                        [pTooltip]="action.tooltip">
-                      </p-button>
-                    }
+            @case ('status') {
+              <p-tag 
+                [value]="getStatusLabel(item[column.field])" 
+                [severity]="getSeverity(item[column.field])">
+              </p-tag>
+            }
+            @case ('actions') {
+              <div class="action-buttons">
+                @for (action of actions; track action.label) {
+                  @if (shouldShowAction(action, item)) {
+                    <p-button 
+                      [icon]="action.icon" 
+                      [outlined]="true" 
+                      [rounded]="true"
+                      size="small"
+                      [severity]="action.severity"
+                      (click)="onActionClick(action, item)"
+                      [pTooltip]="action.tooltip"
+                      class="mr-2">
+                    </p-button>
                   }
-                </div>
-              }
-              @default {
-                <span class="text-content">{{ item[column.field] }}</span>
-              }
+                }
+              </div>
             }
-          </td>
-        }
-      </tr>
-    </ng-template>
+            @default {
+              <span>{{ item[column.field] }}</span>
+            }
+          }
+        </td>
+      }
+    </tr>
+  </ng-template>
 
     <ng-template pTemplate="emptymessage">
       <tr>
@@ -145,7 +139,6 @@
       </tr>
     </ng-template>
   </p-table>
-</div>
 
 <!-- Global Components -->
 <p-toast></p-toast>

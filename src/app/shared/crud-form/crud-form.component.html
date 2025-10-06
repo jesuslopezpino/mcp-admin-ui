@@ -5,9 +5,10 @@
   [closable]="true"
   [draggable]="false"
   [resizable]="false"
-  [style]="{ width: '90vw', maxWidth: '800px' }"
+  [style]="{ width: '90vw', maxWidth: '800px', zIndex: '9999' }"
   [header]="dialogTitle()"
-  (onHide)="onCloseClick()">
+  (onHide)="onCloseClick()"
+  styleClass="crud-form-dialog">
   
   <!-- Form Status Indicator -->
   @if (isFormDirty() || hasFormErrors()) {

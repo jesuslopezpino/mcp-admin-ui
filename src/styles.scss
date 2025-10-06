@@ -11,6 +11,24 @@
   z-index: 9998 !important;
 }
 
+/* Force all modals to be on top */
+.p-dialog-wrapper {
+  z-index: 9999 !important;
+}
+
+/* Specific for CRUD form dialogs */
+.crud-form-dialog {
+  z-index: 9999 !important;
+}
+
+.crud-form-dialog .p-dialog {
+  z-index: 9999 !important;
+}
+
+.crud-form-dialog .p-dialog-mask {
+  z-index: 9998 !important;
+}
+
 /* Ensure toolbar doesn't overlap modals */
 .layout-topbar {
   z-index: 1000 !important;
@@ -18,4 +36,20 @@
 
 .layout-sidebar {
   z-index: 1001 !important;
+}
+
+/* Force modal content to be clickable */
+.p-dialog-content {
+  z-index: 10000 !important;
+  position: relative;
+}
+
+.p-dialog-header {
+  z-index: 10000 !important;
+  position: relative;
+}
+
+.p-dialog-footer {
+  z-index: 10000 !important;
+  position: relative;
 }

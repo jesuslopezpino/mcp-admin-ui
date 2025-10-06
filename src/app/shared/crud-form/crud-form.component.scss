@@ -7,6 +7,24 @@
   z-index: 9998 !important;
 }
 
+// Specific class for CRUD form dialog
+:host ::ng-deep .crud-form-dialog {
+  z-index: 9999 !important;
+}
+
+:host ::ng-deep .crud-form-dialog .p-dialog {
+  z-index: 9999 !important;
+}
+
+:host ::ng-deep .crud-form-dialog .p-dialog-mask {
+  z-index: 9998 !important;
+}
+
+// Force modal to be on top of everything
+:host ::ng-deep .p-dialog-wrapper {
+  z-index: 9999 !important;
+}
+
 .form-container {
   max-height: 70vh;
   overflow-y: auto;

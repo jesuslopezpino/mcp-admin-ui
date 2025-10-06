@@ -1,6 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ApiService, ToolDetails } from '../services/api.service';
 import { Tool, Asset } from '../models/api';
 import { RunToolModalComponent } from '../run-tool-modal/run-tool-modal.component';
@@ -13,7 +17,19 @@ import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-catalog',
-    imports: [FormsModule, RunToolModalComponent, TargetSelectorComponent, CategoryGridComponent, CategoryToolsComponent, BreadcrumbComponent],
+    imports: [
+      CommonModule,
+      FormsModule, 
+      CardModule,
+      ButtonModule,
+      MessageModule,
+      ProgressSpinnerModule,
+      RunToolModalComponent, 
+      TargetSelectorComponent, 
+      CategoryGridComponent, 
+      CategoryToolsComponent, 
+      BreadcrumbComponent
+    ],
     templateUrl: './catalog.component.html',
     styleUrl: './catalog.component.scss'
 })

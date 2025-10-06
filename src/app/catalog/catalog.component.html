@@ -5,28 +5,30 @@
     (itemClicked)="onBreadcrumbItemClicked($event)">
   </app-breadcrumb>
 
-  <!-- Header -->
-  <div class="header" data-testid="catalog-header">
-    <h2>🛠️ Catálogo de Herramientas</h2>
-    <p>Explora y ejecuta herramientas MCP disponibles</p>
-  </div>
-
-  <!-- Actions Bar -->
-  <div class="actions-bar" data-testid="catalog-actions">
-    <button
-      class="btn btn-primary"
-      (click)="loadTools()"
-      [disabled]="isLoading"
-      data-testid="refresh-tools-button">
-      @if (isLoading) {
-        <span>⏳</span>
-      }
-      @if (!isLoading) {
-        <span>🔄</span>
-      }
-      {{ isLoading ? 'Cargando...' : 'Actualizar' }}
-    </button>
-  </div>
+  <!-- Header Card -->
+  <p-card class="mb-4">
+    <ng-template pTemplate="header">
+      <div class="flex align-items-center gap-3 p-4">
+        <i class="pi pi-cog text-primary text-3xl"></i>
+        <div>
+          <h2 class="m-0 text-2xl font-semibold text-surface-900">Catálogo de Herramientas</h2>
+          <p class="m-0 mt-1 text-surface-600">Explora y ejecuta herramientas MCP disponibles</p>
+        </div>
+      </div>
+    </ng-template>
+    
+    <ng-template pTemplate="content">
+      <div class="flex justify-end gap-2" data-testid="catalog-actions">
+        <p-button
+          [label]="isLoading ? 'Cargando...' : 'Actualizar'"
+          [icon]="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
+          [loading]="isLoading"
+          (click)="loadTools()"
+          data-testid="refresh-tools-button">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-card>
 
   <!-- Target Selector -->
   <app-target-selector
@@ -37,22 +39,22 @@
 
   <!-- Error Message -->
   @if (error) {
-    <div class="error-message">
-      <div class="error-content">
-        <span class="error-icon">⚠️</span>
-        {{ error }}
-      </div>
-    </div>
+    <p-message 
+      severity="error" 
+      [text]="error" 
+      [closable]="false"
+      class="mb-4">
+    </p-message>
   }
 
   <!-- Loading Message -->
   @if (isLoading && tools.length === 0) {
-    <div class="loading-message">
-      <div class="loading-content">
-        <span class="loading-icon">⏳</span>
-        Cargando herramientas...
+    <p-card>
+      <div class="flex flex-col align-items-center justify-center p-8 gap-4">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+        <p class="text-surface-600 m-0">Cargando herramientas...</p>
       </div>
-    </div>
+    </p-card>
   }
 
   <!-- Categories View -->
@@ -76,16 +78,19 @@
 
   <!-- Empty State -->
   @if (!isLoading && tools.length === 0 && !error) {
-    <div class="empty-state">
-      <div class="empty-content">
-        <span class="empty-icon">🔧</span>
-        <h3>No hay herramientas disponibles</h3>
-        <p>No se encontraron herramientas en el catálogo. Verifica que el backend esté ejecutándose correctamente.</p>
-        <button class="btn btn-primary" (click)="loadTools()">
-          🔄 Intentar de nuevo
-        </button>
+    <p-card>
+      <div class="flex flex-col align-items-center justify-center p-8 gap-4 text-center">
+        <i class="pi pi-cog text-6xl text-surface-400"></i>
+        <h3 class="text-xl font-semibold text-surface-900 m-0">No hay herramientas disponibles</h3>
+        <p class="text-surface-600 m-0">No se encontraron herramientas en el catálogo. Verifica que el backend esté ejecutándose correctamente.</p>
+        <p-button
+          label="Intentar de nuevo"
+          icon="pi pi-refresh"
+          (click)="loadTools()"
+          class="mt-2">
+        </p-button>
       </div>
-    </div>
+    </p-card>
   }
 
   <!-- Tool Execution Modal -->

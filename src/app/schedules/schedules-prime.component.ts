@@ -77,6 +77,20 @@ export class SchedulesPrimeComponent implements OnInit {
       tooltip: 'Resume automatic execution',
       show: (schedule: ScheduledTask) => !schedule.enabled,
       action: (schedule: ScheduledTask) => this.resumeTask(schedule)
+    },
+    {
+      icon: 'pi pi-pencil',
+      label: 'Edit',
+      severity: 'secondary',
+      tooltip: 'Edit schedule',
+      action: (schedule: ScheduledTask) => this.openEditModal(schedule)
+    },
+    {
+      icon: 'pi pi-trash',
+      label: 'Delete',
+      severity: 'danger',
+      tooltip: 'Delete schedule',
+      action: (schedule: ScheduledTask) => this.deleteTask(schedule)
     }
   ];
 

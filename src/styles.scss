@@ -1,3 +1,21 @@
 /* Sakai Theme Styles - Same as reference project */
 @use './assets/tailwind.css';
 @use 'primeicons/primeicons.css';
+
+/* Fix z-index issues with modals and toolbar */
+.p-dialog {
+  z-index: 9999 !important;
+}
+
+.p-dialog-mask {
+  z-index: 9998 !important;
+}
+
+/* Ensure toolbar doesn't overlap modals */
+.layout-topbar {
+  z-index: 1000 !important;
+}
+
+.layout-sidebar {
+  z-index: 1001 !important;
+}

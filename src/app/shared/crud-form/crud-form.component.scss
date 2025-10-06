@@ -1,3 +1,12 @@
+// Ensure modal has high z-index to appear above toolbar
+:host ::ng-deep .p-dialog {
+  z-index: 9999 !important;
+}
+
+:host ::ng-deep .p-dialog-mask {
+  z-index: 9998 !important;
+}
+
 .form-container {
   max-height: 70vh;
   overflow-y: auto;

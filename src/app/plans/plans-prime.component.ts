@@ -42,7 +42,7 @@ export class PlansPrimeComponent implements OnInit {
   columns: CrudColumn[] = [
     { field: 'name', header: 'Name', sortable: true, width: '25%' },
     { field: 'description', header: 'Description', width: '30%' },
-    { field: 'tags', header: 'Tags', width: '15%' },
+    { field: 'tagsDisplay', header: 'Tags', width: '15%' },
     { field: 'enabled', header: 'Status', sortable: true, width: '10%', type: 'status' },
     { field: 'steps', header: 'Steps', sortable: true, width: '10%' },
     { field: 'createdAt', header: 'Created', sortable: true, width: '15%', type: 'date' },
@@ -122,7 +122,7 @@ export class PlansPrimeComponent implements OnInit {
           const processedPlan = {
             ...plan,
             steps: plan.steps ? plan.steps.length : 0, // Convert steps array to count
-            tags: plan.tags ? plan.tags.join(', ') : '' // Convert tags array to string
+            tagsDisplay: plan.tags ? plan.tags.join(', ') : '' // Create display version of tags
           };
           console.log('Processed plan:', processedPlan);
           return processedPlan;

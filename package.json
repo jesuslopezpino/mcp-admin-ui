@@ -22,6 +22,7 @@
     "@angular/platform-server": "^20.3.3",
     "@angular/router": "^20.3.3",
     "@angular/ssr": "^20.3.4",
+    "@primeuix/themes": "^1.2.5",
     "express": "^4.18.2",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",

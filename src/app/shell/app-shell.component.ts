@@ -44,6 +44,7 @@ import { filter, Subscription } from 'rxjs';
 export class AppShellComponent implements OnInit, OnDestroy {
   overlayMenuOpenSubscription: Subscription;
   menuOutsideClickListener: any;
+  expandedMenus: Set<string> = new Set();
 
   // Menu items for sidebar
   menuItems: MenuItem[] = [
@@ -157,6 +158,18 @@ export class AppShellComponent implements OnInit, OnDestroy {
 
   toggleDarkMode() {
     this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+  }
+
+  toggleSubmenu(menuLabel: string) {
+    if (this.expandedMenus.has(menuLabel)) {
+      this.expandedMenus.delete(menuLabel);
+    } else {
+      this.expandedMenus.add(menuLabel);
+    }
+  }
+
+  isSubmenuExpanded(menuLabel: string): boolean {
+    return this.expandedMenus.has(menuLabel);
   }
 
   ngOnDestroy() {

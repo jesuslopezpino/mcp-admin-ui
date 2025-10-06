@@ -43,12 +43,12 @@
                         <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
                         <span class="layout-menuitem-text">{{ item.label }}</span>
                     </a>
-                    <a *ngIf="item.items" class="layout-menuitem-link layout-submenu-toggler">
+                    <a *ngIf="item.items" class="layout-menuitem-link layout-submenu-toggler" (click)="toggleSubmenu(item.label)">
                         <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
                         <span class="layout-menuitem-text">{{ item.label }}</span>
-                        <i class="pi pi-fw pi-angle-down layout-submenu-toggler-icon"></i>
+                        <i [ngClass]="{'pi pi-fw pi-angle-down': !isSubmenuExpanded(item.label), 'pi pi-fw pi-angle-up': isSubmenuExpanded(item.label)}" class="layout-submenu-toggler-icon"></i>
                     </a>
-                    <ul *ngIf="item.items" class="layout-submenu">
+                    <ul *ngIf="item.items && isSubmenuExpanded(item.label)" class="layout-submenu">
                         <li *ngFor="let child of item.items" class="layout-menuitem">
                             <a [routerLink]="child.routerLink" class="layout-menuitem-link">
                                 <i [ngClass]="child.icon" class="layout-menuitem-icon"></i>

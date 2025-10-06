@@ -1,7 +1,11 @@
-/* Sakai Theme - Real PrimeNG Sakai Implementation */
-@import "assets/sakai/tailwind.css";
-@import "assets/sakai/layout.scss";
+/* PrimeNG Core Styles */
+@import "primeflex/primeflex.css";
 @import "primeicons/primeicons.css";
+
+/* Tailwind CSS (preflight disabled) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Utilidades de badges (Tailwind) */
 .badge { 

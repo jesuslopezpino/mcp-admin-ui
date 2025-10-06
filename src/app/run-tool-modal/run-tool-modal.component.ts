@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
@@ -6,15 +6,19 @@ import { NotificationService } from '../services/notification.service';
 import { ExecutionPollingService } from '../services/execution-polling.service';
 import { TerminalOutputComponent } from '../components/terminal-output/terminal-output.component';
 import { TargetSelectorComponent } from '../components/target-selector/target-selector.component';
+import { ToolArgsFormComponent } from '../shared/tool-args-form/tool-args-form.component';
+import { ToolSchemaService } from '../services/tool-schema.service';
 import { CommandPreviewService } from '../services/command-preview.service';
 import { FormHandlerService } from '../services/form-handler.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ToolDetails, Asset, Execution, ExecStatus } from '../models/api';
+import { JsonSchema } from '../models/json-schema';
 import { environment } from '../../environments/environment';
 
 @Component({
     selector: 'app-run-tool-modal',
-    imports: [ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent],
+    standalone: true,
+    imports: [ReactiveFormsModule, TerminalOutputComponent, TargetSelectorComponent, ToolArgsFormComponent],
     templateUrl: './run-tool-modal.component.html',
     styleUrl: './run-tool-modal.component.scss'
 })
@@ -26,6 +30,8 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   @Output() close = new EventEmitter<void>();
   @Output() result = new EventEmitter<Execution>();
 
+  @ViewChild(ToolArgsFormComponent) argsFormComponent?: ToolArgsFormComponent;
+
   form: FormGroup;
   isExecuting = false;
   executionResult: Execution | null = null;
@@ -35,6 +41,11 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   assets: Asset[] = [];
   selectedAssetId: string | null = null;
   isTargetRequired = false;
+  
+  // JSON Schema for dynamic form
+  toolSchema: JsonSchema | null = null;
+  toolArguments: any = {};
+  argsFormValid = false;
   
   // Preview properties
   showPreview = false;
@@ -50,6 +61,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private notificationService: NotificationService,
     private pollingService: ExecutionPollingService,
+    private toolSchemaService: ToolSchemaService,
     private commandPreviewService: CommandPreviewService,
     private formHandlerService: FormHandlerService,
     private cdr: ChangeDetectorRef
@@ -65,6 +77,7 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     }
     
     this.loadAssets();
+    this.loadToolSchema();
     this.setupForm();
     this.checkTargetRequirement();
     
@@ -126,6 +139,40 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Load tool schema from backend
+   */
+  loadToolSchema() {
+    if (!this.tool) return;
+    
+    this.toolSchemaService.getSchema(this.tool.name).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (schema) => {
+        this.toolSchema = schema;
+        
+        // Load initial values from localStorage if feature enabled
+        if (environment.featureFlags.rememberArgs && typeof localStorage !== 'undefined') {
+          const savedArgs = localStorage.getItem(`mcp.ui.args.${this.tool!.name}`);
+          if (savedArgs) {
+            try {
+              this.toolArguments = JSON.parse(savedArgs);
+            } catch (e) {
+              console.warn('Failed to parse saved arguments:', e);
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.warn('Error loading tool schema:', err);
+        // Fall back to using tool.jsonSchema if available
+        if (this.tool?.jsonSchema) {
+          this.toolSchema = this.tool.jsonSchema;
+        }
+      }
+    });
+  }
+
   setupForm() {
     if (!this.tool?.jsonSchema?.properties) {
       this.form = this.fb.group({});
@@ -174,7 +221,14 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (this.form.invalid) {
+    // Validate using the dynamic form component if available
+    if (this.toolSchema && !this.argsFormValid) {
+      this.notificationService.error('Formulario inválido', 'Por favor, completa todos los campos requeridos');
+      return;
+    }
+    
+    // Fallback to traditional form validation
+    if (!this.toolSchema && this.form.invalid) {
       this.notificationService.error('Formulario inválido', 'Por favor, completa todos los campos requeridos');
       Object.keys(this.form.controls).forEach(key => {
         const control = this.form.get(key);
@@ -198,6 +252,25 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
 
     this.executeTool();
   }
+  
+  /**
+   * Handle arguments change from dynamic form
+   */
+  onArgumentsChange(args: any) {
+    this.toolArguments = args;
+    
+    // Save to localStorage if feature enabled
+    if (environment.featureFlags.rememberArgs && typeof localStorage !== 'undefined' && this.tool) {
+      localStorage.setItem(`mcp.ui.args.${this.tool.name}`, JSON.stringify(args));
+    }
+  }
+  
+  /**
+   * Handle form validation status from dynamic form
+   */
+  onArgumentsValid(valid: boolean) {
+    this.argsFormValid = valid;
+  }
 
   onConfirm() {
     this.showConfirmationDialog = false;
@@ -219,7 +292,9 @@ export class RunToolModalComponent implements OnInit, OnDestroy {
     // Disable form inputs
     this.form.disable();
 
-    const formValue = this.form.value;
+    // Use toolArguments from dynamic form if available, otherwise use traditional form
+    let formValue = this.toolSchema ? this.toolArguments : this.form.value;
+    
     const selectedAsset = this.getSelectedAsset();
     
     // Add target information if required

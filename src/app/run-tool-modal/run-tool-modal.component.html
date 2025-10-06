@@ -51,7 +51,21 @@
           </div>
         }
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="tool-form">
-          @if (tool.jsonSchema?.properties) {
+          <!-- Dynamic Args Form Component -->
+          @if (toolSchema) {
+            <div class="dynamic-form-container">
+              <app-tool-args-form
+                [schema]="toolSchema"
+                [value]="toolArguments"
+                [showJsonPreview]="false"
+                (valueChange)="onArgumentsChange($event)"
+                (formValid)="onArgumentsValid($event)">
+              </app-tool-args-form>
+            </div>
+          }
+          
+          <!-- Fallback to traditional form if no schema -->
+          @if (!toolSchema && tool.jsonSchema?.properties) {
             <div class="form-fields">
               @for (fieldName of getFieldNames(); track fieldName) {
                 <div class="form-field">
@@ -142,13 +156,13 @@
               <button type="button"
                 class="btn btn-info"
                 (click)="onPreview()"
-                [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                [disabled]="(toolSchema ? !argsFormValid : form.invalid) || isExecuting || (isTargetRequired && !isTargetValid())"
                 data-testid="preview-button">
                 👁️ Previsualizar
               </button>
               <button type="submit"
                 class="btn btn-primary"
-                [disabled]="form.invalid || isExecuting || (isTargetRequired && !isTargetValid())"
+                [disabled]="(toolSchema ? !argsFormValid : form.invalid) || isExecuting || (isTargetRequired && !isTargetValid())"
                 data-testid="run-modal-submit">
                 @if (isExecuting) {
                   <span class="spinner-icon">⏳</span>

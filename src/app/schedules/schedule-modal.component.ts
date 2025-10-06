@@ -1,16 +1,17 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
 import { ToolSchemaService } from '../services/tool-schema.service';
 import { ScheduledTask, Tool, Asset } from '../models/api';
 import { JsonSchema } from '../models/json-schema';
-import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-form.component';
+import { ToolArgsFormComponent } from '../shared/tool-args-form/tool-args-form.component';
 
 @Component({
     selector: 'app-schedule-modal',
-    imports: [ReactiveFormsModule, ToolArgsFormComponent],
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, ToolArgsFormComponent],
     template: `
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-container" (click)="$event.stopPropagation()" data-testid="schedule-modal">
@@ -77,13 +78,13 @@ import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-fo
           <div class="form-group">
             <app-tool-args-form
               [schema]="toolSchema"
-              [initialValues]="initialArguments"
+              [value]="initialArguments"
               [showJsonPreview]="true"
-              (formChange)="onArgumentsChange($event)"
+              (valueChange)="onArgumentsChange($event)"
               (formValid)="onArgumentsValid($event)">
-          </app-tool-args-form>
-        </div>
-      }
+            </app-tool-args-form>
+          </div>
+        }
 
       <!-- Fallback JSON Editor (when no schema available) -->
       @if (!toolSchema) {

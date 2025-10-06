@@ -1,0 +1,39 @@
+﻿<div class="tool-args-form" data-testid="args-form" [formGroup]="form">
+  @if (schema?.type === 'object' && schema.properties) {
+    <div class="grid gap-3">
+      @for (key of getObjectKeys(); track trackByKey($index, key)) {
+        <div class="form-field">
+          <label class="form-label">
+            {{ getFieldLabel(key) }}
+            @if (isFieldRequired(key)) {
+              <span class="required">*</span>
+            }
+          </label>
+          
+          <input 
+            pInputText
+            [formControlName]="key"
+            [placeholder]="getFieldLabel(key)"
+            class="w-full">
+          
+          @if (getFieldError(key)) {
+            <small class="error-text">{{ getFieldError(key) }}</small>
+          }
+        </div>
+      }
+    </div>
+  }
+  
+  <div class="form-actions flex gap-2 mt-4">
+    <button class="btn btn-secondary" type="button" (click)="resetToDefaults()">Reset</button>
+    @if (showJsonPreview) {
+      <button class="btn btn-secondary" type="button" (click)="togglePreview()">
+        {{ showPreview ? 'Hide JSON' : 'Show JSON' }}
+      </button>
+    }
+  </div>
+
+  @if (showPreview) {
+    <pre class="json-preview mt-4">{{ jsonPreview }}</pre>
+  }
+</div>

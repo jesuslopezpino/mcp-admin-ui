@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiFacadeService } from './api-facade.service';
-import { ScheduledTask, Tool, Asset, Execution, ExecutionListItem, PageResponse, ToolDetails, Suggestion, ExecuteResult, DiscoveryResult, ExecutePlanRequest } from '../models/api';
+import { ScheduledTask, Tool, Asset, Execution, ExecutionListItem, PageResponse, ToolDetails, Suggestion, ExecuteResult, DiscoveryResult } from '../models/api';
 import { PlanTemplate, PlanRun, PlanRunDetail, PlanRunStats, RunPlanRequest } from '../models/plans';
 
 export interface PlanRequest {
@@ -45,9 +45,6 @@ export interface ExecuteForAssetRequest {
   userConfirmed: boolean;
   userId: string;
 }
-
-// Re-export types for backward compatibility
-export { ToolDetails, ExecuteResult, DiscoveryResult } from '../models/api';
 
 @Injectable({
   providedIn: 'root'

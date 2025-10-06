@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
+import { ToolSchemaService } from '../services/tool-schema.service';
 import { ScheduledTask, Tool, Asset } from '../models/api';
+import { JsonSchema } from '../models/json-schema';
+import { ToolArgsFormComponent } from '../components/tool-args-form/tool-args-form.component';
 
 @Component({
   selector: 'app-schedule-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ToolArgsFormComponent],
   template: `
 <div class="modal-overlay" (click)="onCancel()">
   <div class="modal-container" (click)="$event.stopPropagation()" data-testid="schedule-modal">
@@ -66,7 +69,19 @@ import { ScheduledTask, Tool, Asset } from '../models/api';
           placeholder="e.g., */5 * * * *">
       </div>
 
-      <div class="form-group">
+      <!-- Dynamic Arguments Form -->
+      <div class="form-group" *ngIf="toolSchema">
+        <app-tool-args-form
+          [schema]="toolSchema"
+          [initialValues]="initialArguments"
+          [showJsonPreview]="true"
+          (formChange)="onArgumentsChange($event)"
+          (formValid)="onArgumentsValid($event)">
+        </app-tool-args-form>
+      </div>
+
+      <!-- Fallback JSON Editor (when no schema available) -->
+      <div class="form-group" *ngIf="!toolSchema">
         <label for="arguments">Arguments (JSON)</label>
         <textarea
           id="arguments"
@@ -75,6 +90,9 @@ import { ScheduledTask, Tool, Asset } from '../models/api';
           rows="6"
           placeholder='{"param1": "value1"}'>
         </textarea>
+        <small class="form-text text-muted">
+          No schema available for this tool. Please provide JSON arguments manually.
+        </small>
       </div>
 
       <div class="form-group">
@@ -124,11 +142,15 @@ export class ScheduleModalComponent implements OnInit {
   scheduleForm: FormGroup;
   isSubmitting = false;
   jsonError: string | null = null;
+  toolSchema: JsonSchema | null = null;
+  initialArguments: any = {};
+  argumentsValid = true;
 
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private notifyService: NotifyService
+    private notifyService: NotifyService,
+    private toolSchemaService: ToolSchemaService
   ) {
     this.scheduleForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -151,7 +173,23 @@ export class ScheduleModalComponent implements OnInit {
         enabled: this.task.enabled,
         arguments: JSON.stringify(this.task.arguments, null, 2)
       });
+      
+      // Load schema for existing tool
+      if (this.task.toolName) {
+        this.loadToolSchema(this.task.toolName);
+        this.initialArguments = this.task.arguments;
+      }
     }
+
+    // Watch for tool name changes
+    this.scheduleForm.get('toolName')?.valueChanges.subscribe(toolName => {
+      if (toolName) {
+        this.loadToolSchema(toolName);
+      } else {
+        this.toolSchema = null;
+        this.initialArguments = {};
+      }
+    });
   }
 
   onSubmit(): void {
@@ -219,7 +257,7 @@ export class ScheduleModalComponent implements OnInit {
   }
 
   get isFormValid(): boolean {
-    return this.scheduleForm.valid && !this.jsonError;
+    return this.scheduleForm.valid && !this.jsonError && this.argumentsValid;
   }
 
   get isEditMode(): boolean {
@@ -228,5 +266,30 @@ export class ScheduleModalComponent implements OnInit {
 
   get modalTitle(): string {
     return this.isEditMode ? 'Edit Scheduled Task' : 'Create Scheduled Task';
+  }
+
+  private loadToolSchema(toolName: string): void {
+    this.toolSchemaService.getSchema(toolName).subscribe({
+      next: (schema) => {
+        this.toolSchema = schema;
+        this.initialArguments = {};
+      },
+      error: (error) => {
+        console.warn('Could not load schema for tool:', toolName, error);
+        this.toolSchema = null;
+        this.initialArguments = {};
+      }
+    });
+  }
+
+  onArgumentsChange(args: any): void {
+    // Update the arguments field in the form
+    this.scheduleForm.patchValue({
+      arguments: JSON.stringify(args, null, 2)
+    });
+  }
+
+  onArgumentsValid(valid: boolean): void {
+    this.argumentsValid = valid;
   }
 }

@@ -6,6 +6,8 @@ import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
 
 @Component({
@@ -20,6 +22,10 @@ import { MenuItem } from 'primeng/api';
     ButtonModule,
     ToastModule,
     ConfirmDialogModule
+  ],
+  providers: [
+    MessageService,
+    ConfirmationService
   ],
   templateUrl: './app-shell.component.html',
   styleUrls: ['./app-shell.component.scss']

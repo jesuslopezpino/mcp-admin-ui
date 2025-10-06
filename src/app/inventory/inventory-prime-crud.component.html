@@ -15,3 +15,51 @@
     entityNamePlural="📦 assets">
   </app-crud-table>
 </div>
+
+<!-- Asset Details Modal -->
+<p-dialog 
+  header="Asset Details" 
+  [(visible)]="showModal" 
+  [modal]="true" 
+  [style]="{width: '50vw'}"
+  [closable]="true"
+  (onHide)="closeModal()">
+  <div *ngIf="selectedAsset" class="grid gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="font-semibold">Hostname:</label>
+        <p>{{ selectedAsset.hostname }}</p>
+      </div>
+      <div>
+        <label class="font-semibold">IP Address:</label>
+        <p>{{ selectedAsset.ip }}</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="font-semibold">OS:</label>
+        <p>{{ selectedAsset.os }}</p>
+      </div>
+      <div>
+        <label class="font-semibold">Status:</label>
+        <p-tag 
+          [value]="selectedAsset.status" 
+          [severity]="getSeverity(selectedAsset.status)">
+        </p-tag>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="font-semibold">WinRM:</label>
+        <p-tag 
+          [value]="getWinrmLabel(selectedAsset.winrmEnabled)" 
+          [severity]="getWinrmSeverity(selectedAsset.winrmEnabled)">
+        </p-tag>
+      </div>
+      <div>
+        <label class="font-semibold">Last Seen:</label>
+        <p>{{ formatDate(selectedAsset.lastSeen) }}</p>
+      </div>
+    </div>
+  </div>
+</p-dialog>

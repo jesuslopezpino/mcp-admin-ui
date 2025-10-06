@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
@@ -15,6 +17,8 @@ import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table
     CommonModule,
     FormsModule,
     RouterModule,
+    DialogModule,
+    TagModule,
     CrudTableComponent
   ],
   providers: [ConfirmationService, MessageService],

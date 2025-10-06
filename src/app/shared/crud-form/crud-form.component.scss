@@ -1,29 +1,4 @@
-// Ensure modal has high z-index to appear above toolbar
-:host ::ng-deep .p-dialog {
-  z-index: 9999 !important;
-}
-
-:host ::ng-deep .p-dialog-mask {
-  z-index: 9998 !important;
-}
-
-// Specific class for CRUD form dialog
-:host ::ng-deep .crud-form-dialog {
-  z-index: 9999 !important;
-}
-
-:host ::ng-deep .crud-form-dialog .p-dialog {
-  z-index: 9999 !important;
-}
-
-:host ::ng-deep .crud-form-dialog .p-dialog-mask {
-  z-index: 9998 !important;
-}
-
-// Force modal to be on top of everything
-:host ::ng-deep .p-dialog-wrapper {
-  z-index: 9999 !important;
-}
+// Z-index is now properly configured in app.config.ts
 
 .form-container {
   max-height: 70vh;

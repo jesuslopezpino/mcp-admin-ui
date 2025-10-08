@@ -7,6 +7,7 @@ import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
 import { ExecutionListItem, ExecStatus } from '../models/api';
 import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table/crud-table.component';
+import { CrudFormComponent } from '../shared/crud-form/crud-form.component';
 
 @Component({
   selector: 'app-executions-prime-crud',
@@ -15,7 +16,8 @@ import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table
     CommonModule,
     FormsModule,
     RouterModule,
-    CrudTableComponent
+    CrudTableComponent,
+    CrudFormComponent
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './executions-prime-crud.component.html',

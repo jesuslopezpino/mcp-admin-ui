@@ -25,4 +25,22 @@ export class AssetApiService extends BaseApiService {
       headers: this.getHeaders()
     });
   }
+
+  /**
+   * Create a new asset
+   */
+  createAsset(asset: Asset): Observable<Asset> {
+    return this.http.post<Asset>(`${this.baseUrl}/assets`, asset, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Update an existing asset
+   */
+  updateAsset(id: string, asset: Asset): Observable<Asset> {
+    return this.http.put<Asset>(`${this.baseUrl}/assets/${id}`, asset, {
+      headers: this.getHeaders()
+    });
+  }
 }

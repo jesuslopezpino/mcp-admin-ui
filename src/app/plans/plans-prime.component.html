@@ -1,31 +1,29 @@
 <div class="card">
   <h5>📋 Plans</h5>
-  
+
   <app-crud-table
-    [data]="plans"
-    [columns]="columns"
-    [actions]="actions"
-    [loading]="loading"
+    [data]="data"
+    [columns]="getColumns()"
+    [actions]="getActions()"
+    [loading]="loading()"
     [globalFilter]="globalFilter"
-    [selectedItems]="selectedPlans"
+    [selectedItems]="selectedItems"
     (onGlobalFilterChange)="globalFilter = $event"
-    (onSelectionChange)="selectedPlans = $event"
+    (onSelectionChange)="selectedItems = $event"
     (onNew)="openNewModal()"
     (onEdit)="openEditModal($event)"
-    (onDelete)="deletePlan($event)"
-    dataTestId="plans"
-    entityName="📋 plans"
-    entityNamePlural="📋 plans">
+    (onDelete)="deleteItem($event)"
+    dataTestId="plans">
   </app-crud-table>
 </div>
 
 <!-- Form Modal -->
 <app-crud-form
-  [visible]="showModal"
+  [visible]="showModal()"
   [mode]="'create'"
   [config]="getFormConfig()"
-  [data]="editingPlan"
-  [loading]="loading"
+  [data]="editingItem"
+  [loading]="loading()"
   (onSave)="onFormSave($event)"
   (onCancel)="onFormCancel()"
   (onClose)="onFormClose()">

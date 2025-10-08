@@ -9,6 +9,7 @@ import { ApiService } from '../services/api.service';
 import { NotifyService } from '../services/notify.service';
 import { Asset } from '../models/api';
 import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table/crud-table.component';
+import { CrudFormComponent } from '../shared/crud-form/crud-form.component';
 
 @Component({
   selector: 'app-inventory-prime-crud',
@@ -19,7 +20,8 @@ import { CrudTableComponent, CrudColumn, CrudAction } from '../shared/crud-table
     RouterModule,
     DialogModule,
     TagModule,
-    CrudTableComponent
+    CrudTableComponent,
+    CrudFormComponent
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './inventory-prime-crud.component.html',
@@ -244,7 +246,7 @@ export class InventoryPrimeCrudComponent implements OnInit {
         os: data.os,
         status: data.status || 'unknown',
         winrmEnabled: data.winrmEnabled || false,
-        lastSeen: new Date()
+        lastSeen: new Date().toISOString()
       };
       
       await this.apiService.createAsset(asset as Asset);

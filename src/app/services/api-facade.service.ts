@@ -190,4 +190,16 @@ export class ApiFacadeService {
   execute(planId: string, userConfirmed: boolean = true): Observable<ExecuteResult> {
     return this.aiApi.execute(planId, userConfirmed);
   }
+
+  // ================================================
+  // Asset API Methods
+  // ================================================
+
+  createAsset(asset: Asset): Observable<Asset> {
+    return this.assetApi.createAsset(asset);
+  }
+
+  updateAsset(id: string, asset: Asset): Observable<Asset> {
+    return this.assetApi.updateAsset(id, asset);
+  }
 }

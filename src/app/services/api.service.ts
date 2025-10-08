@@ -218,4 +218,13 @@ export class ApiService {
   getCompletedPlanRuns(params?: { size?: number }): Observable<PlanRun[]> {
     return this.apiFacade.getCompletedPlanRuns(params);
   }
+
+  // Asset methods
+  createAsset(asset: Asset): Observable<Asset> {
+    return this.apiFacade.createAsset(asset);
+  }
+
+  updateAsset(id: string, asset: Asset): Observable<Asset> {
+    return this.apiFacade.updateAsset(id, asset);
+  }
 }
